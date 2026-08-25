@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { minorToTaka } from '@fajr/schemas';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data } = $props();
 	const o = $derived(data.order);
 
-	const taka = (m: number) => `৳${minorToTaka(m)}`;
+	const taka = (m: number) => adminMoney(m);
 	const when = (d: Date | string) =>
 		new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dhaka' })
 			.format(new Date(d));

@@ -12,6 +12,10 @@ declare global {
 		// Any route may contribute head tags; the storefront layout renders them.
 		interface PageData {
 			meta?: PageMeta;
+			// Set by the admin layout, read by adminMoney.
+			currency?: string;
+			numberLocale?: string;
+			storeName?: string;
 		}
 	}
 }

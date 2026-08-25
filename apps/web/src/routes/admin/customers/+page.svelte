@@ -4,6 +4,7 @@
 	import { minorToTaka } from '@fajr/schemas';
 	import Badge from '$lib/components/Badge.svelte';
 	import { SEGMENT_LABELS, SEGMENT_TONE } from '$lib/status';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data } = $props();
 
@@ -95,7 +96,7 @@
 						<td class="px-4 py-3 text-end tabular-nums {c.returned > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-muted'}">
 							{c.returned}
 						</td>
-						<td class="px-4 py-3 text-end font-mono tabular-nums">৳{minorToTaka(c.lifetimeMinor)}</td>
+						<td class="px-4 py-3 text-end font-mono tabular-nums">{adminMoney(c.lifetimeMinor)}</td>
 						<td class="px-4 py-3 text-end whitespace-nowrap text-muted">{ago(c.recencyDays)}</td>
 					</tr>
 				{/each}

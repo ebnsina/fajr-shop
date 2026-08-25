@@ -4,11 +4,12 @@
 	import { minorToTaka } from '@fajr/schemas';
 	import Badge from '$lib/components/Badge.svelte';
 	import { SEGMENT_TONE } from '$lib/status';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data, form } = $props();
 	const p = $derived(data.profile);
 
-	const taka = (m: number) => `৳${minorToTaka(m)}`;
+	const taka = (m: number) => adminMoney(m);
 	const when = (d: Date | string) =>
 		new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dhaka' })
 			.format(new Date(d));

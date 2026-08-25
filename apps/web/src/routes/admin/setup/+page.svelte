@@ -132,17 +132,17 @@
 
 			<div class="grid gap-4 sm:grid-cols-2">
 				<div>
-					<label class="label" for="inside">Inside Dhaka ৳</label>
+					<label class="label" for="inside">Inside Dhaka ({page.data.currency ?? "BDT"})</label>
 					<input id="inside" name="inside" type="number" step="1" min="0" value={inside ? Number(minorToTaka(inside.chargeMinor)) : 60} class="field" />
 				</div>
 				<div>
-					<label class="label" for="outside">Outside Dhaka ৳</label>
+					<label class="label" for="outside">Outside Dhaka ({page.data.currency ?? "BDT"})</label>
 					<input id="outside" name="outside" type="number" step="1" min="0" value={outside ? Number(minorToTaka(outside.chargeMinor)) : 120} class="field" />
 				</div>
 			</div>
 
 			<div>
-				<label class="label" for="freeOver">Free delivery over ৳ <span class="font-normal text-muted">(optional)</span></label>
+				<label class="label" for="freeOver">Free delivery over ({page.data.currency ?? 'BDT'}) <span class="font-normal text-muted">(optional)</span></label>
 				<input id="freeOver" name="freeOver" type="number" step="1" min="0" value={inside?.freeOverMinor ? Number(minorToTaka(inside.freeOverMinor)) : ''} class="field" />
 			</div>
 

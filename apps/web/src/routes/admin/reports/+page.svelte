@@ -2,10 +2,11 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { minorToTaka } from '@fajr/schemas';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data } = $props();
 
-	const taka = (m: number) => `৳${minorToTaka(m)}`;
+	const taka = (m: number) => adminMoney(m);
 	const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
 	// A rate with no observations is not zero, it is unknown. Printing 0% next to an empty week is

@@ -4,6 +4,7 @@
 	import { Delete02FreeIcons } from '@hugeicons/core-free-icons';
 	import { enhance } from '$app/forms';
 	import { minorToTaka, BD_DIVISIONS } from '@fajr/schemas';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data, form } = $props();
 
@@ -160,10 +161,10 @@
 				<tr class={z.isActive ? '' : 'opacity-50'}>
 					<td class="py-2 font-medium">{z.name}</td>
 					<td class="py-2 text-muted">{z.districts.length ? z.districts.join(', ') : 'Everywhere else'}</td>
-					<td class="py-2 text-end font-mono tabular-nums">৳{minorToTaka(z.chargeMinor)}</td>
-					<td class="py-2 text-end font-mono tabular-nums">৳{minorToTaka(z.advanceMinor)}</td>
+					<td class="py-2 text-end font-mono tabular-nums">{adminMoney(z.chargeMinor)}</td>
+					<td class="py-2 text-end font-mono tabular-nums">{adminMoney(z.advanceMinor)}</td>
 					<td class="py-2 text-end font-mono tabular-nums text-muted">
-						{z.freeOverMinor === null ? '—' : `৳${minorToTaka(z.freeOverMinor)}`}
+						{z.freeOverMinor === null ? '—' : adminMoney(z.freeOverMinor)}
 					</td>
 					<td class="py-2 text-end">
 						<button class="btn btn-ghost !py-1 !text-xs" onclick={() => (editingZone = editingZone === z.id ? null : z.id)}>
@@ -216,16 +217,16 @@
 
 			<div class="grid gap-3 sm:grid-cols-3">
 				<div>
-					<label class="label" for="zcharge">Delivery charge ৳</label>
+					<label class="label" for="zcharge">Delivery charge ({page.data.currency ?? "BDT"})</label>
 					<input id="zcharge" name="charge" type="number" step="0.01" min="0" value={z ? Number(minorToTaka(z.chargeMinor)) : 60} class="field" />
 				</div>
 				<div>
-					<label class="label" for="zadvance">COD advance ৳</label>
+					<label class="label" for="zadvance">COD advance ({page.data.currency ?? "BDT"})</label>
 					<input id="zadvance" name="advance" type="number" step="0.01" min="0" value={z ? Number(minorToTaka(z.advanceMinor)) : 60} class="field" />
 					<p class="hint mt-1">Collected up front. Cuts fake orders sharply.</p>
 				</div>
 				<div>
-					<label class="label" for="zfree">Free over ৳</label>
+					<label class="label" for="zfree">Free over ({page.data.currency ?? "BDT"})</label>
 					<input id="zfree" name="freeOver" type="number" step="0.01" min="0" value={z?.freeOverMinor ? Number(minorToTaka(z.freeOverMinor)) : ''} class="field" />
 				</div>
 			</div>

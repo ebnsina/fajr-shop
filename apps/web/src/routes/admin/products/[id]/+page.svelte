@@ -230,9 +230,9 @@
 							<tr>
 								{#if $form.options.length}<th class="py-2 text-start font-medium">Variant</th>{/if}
 								<th class="py-2 text-start font-medium">SKU</th>
-								<th class="py-2 text-end font-medium">Price ৳</th>
-								<th class="py-2 text-end font-medium">Compare ৳</th>
-								<th class="py-2 text-end font-medium">Cost ৳</th>
+								<th class="py-2 text-end font-medium">Price ({page.data.currency ?? "BDT"})</th>
+								<th class="py-2 text-end font-medium">Compare ({page.data.currency ?? "BDT"})</th>
+								<th class="py-2 text-end font-medium">Cost ({page.data.currency ?? "BDT"})</th>
 								<th class="py-2 text-end font-medium">Stock</th>
 							</tr>
 						</thead>

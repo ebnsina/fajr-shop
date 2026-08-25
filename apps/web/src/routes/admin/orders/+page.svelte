@@ -5,6 +5,7 @@
 	import Badge from '$lib/components/Badge.svelte';
 	import { ORDER_TONE, PAYMENT_TONE } from '$lib/status';
 	import { m } from '$lib/paraglide/messages';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data } = $props();
 
@@ -109,7 +110,7 @@
 							</Badge>
 						</td>
 						<td class="px-4 py-3 text-end tabular-nums text-muted">{row.itemCount}</td>
-						<td class="px-4 py-3 text-end tabular-nums">৳{minorToTaka(row.totalMinor)}</td>
+						<td class="px-4 py-3 text-end tabular-nums">{adminMoney(row.totalMinor)}</td>
 					</tr>
 				{/each}
 			</tbody>

@@ -3,6 +3,7 @@
 	import {
 		Analytics01FreeIcons,
 		BubbleChatFreeIcons,
+		Mail01FreeIcons,
 		Plug01FreeIcons,
 		LinkSquare01FreeIcons,
 		DashboardSquare01FreeIcons,
@@ -40,6 +41,7 @@
 			items: [
 				{ href: '/admin/orders', label: m.nav_orders(), icon: ShoppingBag01FreeIcons, permission: 'order.read' },
 				{ href: '/admin/customers', label: m.nav_customers(), icon: UserMultipleFreeIcons, permission: 'customer.read' },
+				{ href: '/admin/inbox', label: m.nav_inbox(), icon: Mail01FreeIcons, permission: 'order.read' },
 				{ href: '/admin/reports', label: m.nav_reports(), icon: Analytics01FreeIcons, permission: 'report.read' }
 			]
 		},

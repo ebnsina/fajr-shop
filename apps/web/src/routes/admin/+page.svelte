@@ -4,6 +4,7 @@
 	import Badge from '$lib/components/Badge.svelte';
 	import { ORDER_TONE } from '$lib/status';
 	import { m } from '$lib/paraglide/messages';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data } = $props();
 
@@ -40,7 +41,7 @@
 
 	<div class="card !p-5">
 		<p class="text-sm text-muted">{m.dash_last_30()}</p>
-		<p class="mt-2 font-mono text-3xl tabular-nums text-strong">৳{minorToTaka(data.revenue.grossMinor)}</p>
+		<p class="mt-2 font-mono text-3xl tabular-nums text-strong">{adminMoney(data.revenue.grossMinor)}</p>
 		<p class="mt-1 text-xs text-muted">{data.revenue.orders} orders, cancellations excluded</p>
 	</div>
 </section>
@@ -77,7 +78,7 @@
 							<td class="px-4 py-3">
 								<Badge tone={ORDER_TONE[row.status] ?? 'neutral'}>{row.status}</Badge>
 							</td>
-							<td class="px-4 py-3 text-end font-mono tabular-nums">৳{minorToTaka(row.totalMinor)}</td>
+							<td class="px-4 py-3 text-end font-mono tabular-nums">{adminMoney(row.totalMinor)}</td>
 						</tr>
 					{/each}
 				</tbody>

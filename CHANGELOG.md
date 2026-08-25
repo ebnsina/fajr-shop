@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Unified inbox.** WhatsApp and Messenger arrive in one place, threaded per
+  person per channel, with the customer's latest order shown before you open the
+  thread. Webhooks are idempotent, so Meta's redeliveries never make a customer
+  appear to ask twice. Suggested replies are drafted from that customer's own
+  order and the shop's terms, each with the reason it was offered — staff send,
+  edit or ignore; nothing goes out on its own.
+
 - **Five couriers and four payment gateways.** Steadfast, Pathao, RedX and
   eCourier for South Asia; Aramex for the Gulf. SSLCommerz for Bangladesh; Tap,
   Tabby and Tamara for the Gulf. Alpha SMS and Twilio for messaging. All are
@@ -62,6 +69,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Bangla and English** across storefront and admin.
 
 ### Fixed
+
+- **The whole admin printed taka regardless of the shop's currency**, so a Dubai
+  merchant read their revenue, order totals and delivery zones in ৳.
 
 - **A Gulf customer could not check out at all.** Every phone was validated as
   Bangladeshi, so a UAE number was rejected outright. Phone rules, the address

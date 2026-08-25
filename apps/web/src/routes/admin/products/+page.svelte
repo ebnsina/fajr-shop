@@ -5,6 +5,7 @@
 	import Badge from '$lib/components/Badge.svelte';
 	import { PRODUCT_TONE } from '$lib/status';
 	import { m } from '$lib/paraglide/messages';
+	import { adminMoney } from '$lib/adminMoney';
 
 	let { data } = $props();
 
@@ -101,7 +102,7 @@
 							<Badge tone={PRODUCT_TONE[row.status] ?? 'neutral'}>{row.status}</Badge>
 						</td>
 						<td class="px-4 py-3 text-end tabular-nums">
-							{row.priceMinor === null ? '—' : `৳${minorToTaka(row.priceMinor)}`}
+							{row.priceMinor === null ? '—' : adminMoney(row.priceMinor)}
 						</td>
 						<td
 							class="px-4 py-3 text-end tabular-nums {Number(row.stock) <= 0 ? 'text-red-600' : ''}"
