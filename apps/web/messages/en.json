@@ -1,6 +1,5 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-
   "nav_dashboard": "Dashboard",
   "nav_orders": "Orders",
   "nav_products": "Products",
@@ -17,14 +16,14 @@
   "nav_group_setup": "Setup",
   "nav_sign_out": "Sign out",
   "nav_sections": "Admin sections",
-
+  "nav_visit_site": "Visit site",
+  "nav_opens_new_tab": "Opens in a new tab",
   "action_save": "Save",
   "action_cancel": "Cancel",
   "action_delete": "Delete",
   "action_add": "Add",
   "action_search": "Search",
   "action_language": "Language",
-
   "orders_title": "Orders",
   "orders_view_all": "All orders",
   "orders_view_to_call": "To call",
@@ -41,7 +40,6 @@
   "orders_col_items": "Items",
   "orders_col_total": "Total",
   "orders_empty": "Nothing here.",
-
   "order_verification": "Verification call",
   "order_verification_prompt": "What did they say?",
   "order_confirmed": "Confirmed",
@@ -62,7 +60,6 @@
   "order_invoice": "Invoice",
   "order_parcels": "Parcels",
   "order_verify_bkash": "Check the bKash app before confirming — a transaction ID alone proves nothing.",
-
   "dash_title": "Dashboard",
   "dash_to_call": "Orders to call",
   "dash_to_ship": "Ready to ship",
@@ -70,7 +67,6 @@
   "dash_last_30": "Last 30 days",
   "dash_recent": "Recent orders",
   "dash_no_orders": "No orders yet.",
-
   "products_title": "Products",
   "products_add": "Add product",
   "products_import": "Import",

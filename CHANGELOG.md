@@ -31,8 +31,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   production. The policy now comes from SvelteKit, which nonces its own scripts.
 - **Product images were blocked in development** by the same policy, because
   local object storage is served over plain http.
+- **The customers page returned a 500.** It imported a value from `@fajr/core`,
+  which pulled the database driver into the browser bundle. Segment labels now
+  live in `$lib`, and a test fails if any component imports a core value again.
+- **The admin showed "Fajr Shop" instead of the merchant's own store name.**
 
 ### Changed
+
+- The admin sidebar has a **Visit site** link, opening the storefront in a new tab.
 
 - Icons are Hugeicons throughout.
 - Client-side validation uses Valibot.

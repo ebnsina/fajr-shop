@@ -2,9 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { minorToTaka } from '@fajr/schemas';
-	import { SEGMENT_LABELS } from '@fajr/core/crm';
 	import Badge from '$lib/components/Badge.svelte';
-	import { SEGMENT_TONE } from '$lib/status';
+	import { SEGMENT_LABELS, SEGMENT_TONE } from '$lib/status';
 
 	let { data } = $props();
 
@@ -24,7 +23,7 @@
 	};
 
 
-	const segments = Object.entries(SEGMENT_LABELS) as [keyof typeof SEGMENT_LABELS, { label: string }][];
+	const segments = Object.entries(SEGMENT_LABELS) as [keyof typeof SEGMENT_LABELS, string][];
 	const ago = (d: number) => (d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d}d ago`);
 </script>
 
@@ -40,13 +39,13 @@
 	>
 		All
 	</button>
-	{#each segments as [key, meta] (key)}
+	{#each segments as [key, label] (key)}
 		{#if data.counts[key] > 0}
 			<button
 				onclick={() => apply({ segment: key })}
 				class="rounded-xl px-3 py-1.5 text-sm transition {data.segment === key ? 'bg-strong text-raised' : 'text-muted hover:bg-hover'}"
 			>
-				{meta.label}<span class="ms-1 opacity-60">{data.counts[key]}</span>
+				{label}<span class="ms-1 opacity-60">{data.counts[key]}</span>
 			</button>
 		{/if}
 	{/each}

@@ -1,4 +1,5 @@
 import type { Tone } from '$lib/components/Badge.svelte';
+import type { Segment } from '@fajr/core/crm';
 
 // One mapping from a status to a tone, so the same word never appears in two colours on two
 // screens.
@@ -25,6 +26,18 @@ export const RISK_TONE: Record<string, Tone> = {
 	medium: 'warning',
 	high: 'danger',
 	unknown: 'neutral'
+};
+
+// Kept here, not imported from core: a component that imports a core *value*
+// pulls the database driver into the client bundle and the page 500s.
+export const SEGMENT_LABELS: Record<Segment, string> = {
+	champion: 'Champion',
+	loyal: 'Loyal',
+	promising: 'Promising',
+	new: 'New',
+	at_risk: 'At risk',
+	lost: 'Lost',
+	problem: 'High returns'
 };
 
 export const SEGMENT_TONE: Record<string, Tone> = {

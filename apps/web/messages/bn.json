@@ -1,6 +1,5 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-
   "nav_dashboard": "ড্যাশবোর্ড",
   "nav_orders": "অর্ডার",
   "nav_products": "পণ্য",
@@ -17,14 +16,14 @@
   "nav_group_setup": "সেটআপ",
   "nav_sign_out": "সাইন আউট",
   "nav_sections": "অ্যাডমিন বিভাগ",
-
+  "nav_visit_site": "সাইট দেখুন",
+  "nav_opens_new_tab": "নতুন ট্যাবে খুলবে",
   "action_save": "সংরক্ষণ",
   "action_cancel": "বাতিল",
   "action_delete": "মুছুন",
   "action_add": "যোগ করুন",
   "action_search": "খুঁজুন",
   "action_language": "ভাষা",
-
   "orders_title": "অর্ডার",
   "orders_view_all": "সব অর্ডার",
   "orders_view_to_call": "কল করতে হবে",
@@ -41,7 +40,6 @@
   "orders_col_items": "পণ্য",
   "orders_col_total": "মোট",
   "orders_empty": "কিছু নেই।",
-
   "order_verification": "যাচাই কল",
   "order_verification_prompt": "কী বললেন?",
   "order_confirmed": "নিশ্চিত",
@@ -62,7 +60,6 @@
   "order_invoice": "ইনভয়েস",
   "order_parcels": "পার্সেল",
   "order_verify_bkash": "নিশ্চিত করার আগে বিকাশ অ্যাপে দেখে নিন — শুধু ট্রানজেকশন আইডি যথেষ্ট নয়।",
-
   "dash_title": "ড্যাশবোর্ড",
   "dash_to_call": "কল করতে হবে",
   "dash_to_ship": "পাঠাতে প্রস্তুত",
@@ -70,7 +67,6 @@
   "dash_last_30": "গত ৩০ দিন",
   "dash_recent": "সাম্প্রতিক অর্ডার",
   "dash_no_orders": "এখনো কোনো অর্ডার নেই।",
-
   "products_title": "পণ্য",
   "products_add": "পণ্য যোগ করুন",
   "products_import": "ইমপোর্ট",

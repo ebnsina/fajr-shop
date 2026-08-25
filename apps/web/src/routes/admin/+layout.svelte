@@ -2,6 +2,7 @@
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import {
 		Analytics01FreeIcons,
+		LinkSquare01FreeIcons,
 		DashboardSquare01FreeIcons,
 		File01FreeIcons,
 		FolderLibraryFreeIcons,
@@ -22,6 +23,9 @@
 	let { data, children } = $props();
 
 	let mobileOpen = $state(false);
+
+	const storeName = $derived(data.storeName || 'Fajr Shop');
+	const storeInitial = $derived(storeName.trim().charAt(0).toUpperCase() || 'F');
 
 	// Grouped by the job being done, not by data model.
 	const GROUPS = [
@@ -100,8 +104,24 @@
 			       {mobileOpen ? 'translate-x-0 bg-base elevated-lg' : '-translate-x-full rtl:translate-x-full'}"
 		>
 			<a href="/admin" class="mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2">
-				<span class="grid size-7 shrink-0 place-items-center rounded-lg bg-primary-600 text-xs font-semibold text-white">F</span>
-				<span class="font-semibold tracking-tight text-strong">Fajr Shop</span>
+				<span class="grid size-7 shrink-0 place-items-center rounded-lg bg-primary-600 text-xs font-semibold text-white">
+					{storeInitial}
+				</span>
+				<span class="truncate font-semibold tracking-tight text-strong">{storeName}</span>
+			</a>
+
+			<!-- Staff check the shop constantly; a new tab keeps the admin where it was. -->
+			<a
+				href="/"
+				target="_blank"
+				rel="noopener"
+				class="mb-1 flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-muted transition hover:bg-hover hover:text-strong"
+			>
+				<span class="flex w-7 shrink-0 justify-center" aria-hidden="true">
+					<HugeiconsIcon icon={LinkSquare01FreeIcons} size={18} strokeWidth={1.75} />
+				</span>
+				{m.nav_visit_site()}
+				<span class="sr-only">{m.nav_opens_new_tab()}</span>
 			</a>
 
 			<nav class="flex flex-1 flex-col gap-4 overflow-y-auto" aria-label={m.nav_sections()}>
@@ -143,21 +163,26 @@
 				{/each}
 			</nav>
 
-			<div class="mt-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5">
+			<div class="mt-1 rounded-xl px-2.5 py-1.5">
+				<div class="flex items-center gap-2">
 				<span class="grid size-7 shrink-0 place-items-center rounded-full bg-active text-xs font-medium text-strong">
 					{initials}
 				</span>
-				<div class="min-w-0 flex-1">
-					<p class="truncate text-sm font-medium text-strong">{data.staff?.name}</p>
-					<p class="truncate text-xs text-muted">{data.staff?.roleId}</p>
+					<div class="min-w-0 flex-1">
+						<p class="truncate text-sm font-medium text-strong">{data.staff?.name}</p>
+						<p class="truncate text-xs text-muted">{data.staff?.roleId}</p>
+					</div>
 				</div>
-				<LocaleToggle />
-				<ThemeToggle />
-				<form method="POST" action="/admin/logout">
-					<button class="btn btn-ghost !px-2" aria-label={m.nav_sign_out()} title={m.nav_sign_out()}>
-						<HugeiconsIcon icon={Logout01FreeIcons} size={16} strokeWidth={1.75} />
-					</button>
-				</form>
+
+				<div class="mt-1.5 flex items-center gap-1">
+					<LocaleToggle />
+					<ThemeToggle />
+					<form method="POST" action="/admin/logout" class="ms-auto">
+						<button class="btn btn-ghost !px-2" aria-label={m.nav_sign_out()} title={m.nav_sign_out()}>
+							<HugeiconsIcon icon={Logout01FreeIcons} size={16} strokeWidth={1.75} />
+						</button>
+					</form>
+				</div>
 			</div>
 		</aside>
 
@@ -177,7 +202,7 @@
 						<button class="btn btn-ghost !px-2" onclick={() => (mobileOpen = true)} aria-label="Open menu">
 							<HugeiconsIcon icon={Menu01FreeIcons} size={20} strokeWidth={1.75} />
 						</button>
-						<span class="font-semibold text-strong">Fajr Shop</span>
+						<span class="truncate font-semibold text-strong">{storeName}</span>
 					</div>
 
 					<div class="flex-1 overflow-y-auto p-6 lg:p-8">
