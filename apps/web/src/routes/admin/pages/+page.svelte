@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import Badge from '$lib/components/Badge.svelte';
 
@@ -8,7 +9,7 @@
 		new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dhaka' }).format(new Date(d));
 </script>
 
-<svelte:head><title>Pages · Fajr Shop</title></svelte:head>
+<svelte:head><title>Pages · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="flex flex-wrap items-center justify-between gap-4">
 	<div>

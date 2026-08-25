@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import { Delete02FreeIcons } from '@hugeicons/core-free-icons';
 	import { enhance } from '$app/forms';
@@ -10,7 +11,7 @@
 	const s = $derived(data.settings);
 </script>
 
-<svelte:head><title>Settings · Fajr Shop</title></svelte:head>
+<svelte:head><title>Settings · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <h1 class="text-xl font-semibold tracking-tight text-strong">Settings</h1>
 <p class="mt-1 text-sm text-muted">Everything here is specific to this shop.</p>
@@ -35,6 +36,24 @@
 			<input id="storeName" name="storeName" value={s.storeName} class="field" required />
 		</div>
 
+		<div>
+			<label class="label" for="tagline">Tagline</label>
+			<input id="tagline" name="tagline" value={s.tagline ?? ''} class="field" maxlength="160" />
+			<p class="mt-1.5 text-xs text-faint">
+				One line about the shop. Shown in the footer, and used as the description
+				in search results and link previews when a page has none of its own.
+			</p>
+		</div>
+
+		<div>
+			<label class="label" for="announcement">Announcement bar</label>
+			<input id="announcement" name="announcement" value={s.announcement ?? ''} class="field" maxlength="120" />
+			<p class="mt-1.5 text-xs text-faint">
+				The strip above the header, e.g. “Cash on delivery nationwide”. Leave it
+				empty to hide the strip.
+			</p>
+		</div>
+
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div>
 				<label class="label" for="supportPhone">Support phone</label>
@@ -44,6 +63,12 @@
 				<label class="label" for="supportEmail">Support email</label>
 				<input id="supportEmail" name="supportEmail" type="email" value={s.supportEmail ?? ''} class="field" />
 			</div>
+		</div>
+
+		<div>
+			<label class="label" for="supportHours">Support hours</label>
+			<input id="supportHours" name="supportHours" value={s.supportHours ?? ''} class="field" maxlength="80" />
+			<p class="mt-1.5 text-xs text-faint">Shown beside your phone number, e.g. “Sat–Thu, 10am–8pm”.</p>
 		</div>
 
 		<div class="grid gap-4 sm:grid-cols-2">

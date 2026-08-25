@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import { Tick02FreeIcons } from '@hugeicons/core-free-icons';
 	import { enhance } from '$app/forms';
@@ -20,7 +21,7 @@
 	const outside = $derived(data.zones.find((z) => z.districts.length === 0));
 </script>
 
-<svelte:head><title>Set up your shop · Fajr Shop</title></svelte:head>
+<svelte:head><title>Set up your shop · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="mx-auto max-w-2xl">
 	<h1 class="text-xl font-semibold tracking-tight text-strong">Set up your shop</h1>

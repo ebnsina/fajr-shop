@@ -37,7 +37,6 @@
 	}
 </script>
 
-<svelte:head><title>Checkout · {data.store.name}</title></svelte:head>
 
 <h1>Checkout</h1>
 

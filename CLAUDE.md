@@ -75,7 +75,12 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
 - **User-facing text is plain language** — no jargon, no error codes, no stack
   traces. Every route handles 404, 500, network failure and empty state.
 - **Keep meta and Open Graph current for every route.** In `apps/marketing` that
-  is `META` in `content.ts`; the layout renders it.
+  is `META` in `content.ts`; in `apps/web` a route returns `meta` from its load
+  (`$lib/meta.ts`). The layout renders it — a page that writes its own
+  `<svelte:head>` title emits a second `og:title` and breaks the share card.
+- **Nothing user-facing hardcodes the shop's name, tagline or promises.** Every
+  deploy is a different merchant; store name, tagline, announcement bar and
+  support hours all come from settings.
 - **CSP belongs to SvelteKit** (`kit.csp` in `vite.config.ts`), never a
   hand-written header — only SvelteKit can nonce its own hydration script. A
   hand-rolled `default-src 'self'` silently killed every bit of admin JS once.

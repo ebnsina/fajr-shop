@@ -3,7 +3,6 @@
 	let { data } = $props();
 </script>
 
-<svelte:head><title>{data.q ? `“${data.q}”` : 'Search'} · {data.store.name}</title></svelte:head>
 
 <h1>{data.q ? `${data.total} results for “${data.q}”` : 'Search'}</h1>
 

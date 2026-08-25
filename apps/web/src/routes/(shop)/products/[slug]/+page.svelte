@@ -89,15 +89,6 @@
 	let adding = $state(false);
 </script>
 
-<svelte:head>
-	<title>{p.metaTitle ?? p.title} · {data.store.name}</title>
-	{#if p.metaDescription ?? p.summary}
-		<meta name="description" content={p.metaDescription ?? p.summary} />
-	{/if}
-	<meta property="og:title" content={p.title} />
-	<meta property="og:type" content="product" />
-	{#if p.images[0]}<meta property="og:image" content={p.images[0].url} />{/if}
-</svelte:head>
 
 <JsonLd data={jsonLd} />
 <JsonLd data={breadcrumbs} />

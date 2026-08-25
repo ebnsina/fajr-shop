@@ -2,10 +2,12 @@ import { error, fail } from '@sveltejs/kit';
 import { trackOrder, getOrder, recordManualPayment, quote } from '@fajr/core/orders';
 import { bdPhone } from '@fajr/schemas';
 import type { Actions, PageServerLoad } from './$types';
+import { titled } from '$lib/meta';
 
 // Code plus phone, no login. This kills the "where is my order?" Messenger load, which is a
 // staffing cost rather than a feature.
-export const load: PageServerLoad = async ({ params, url }) => {
+export const load: PageServerLoad = async ({ params, url, parent }) => {
+	const { store } = await parent();
 	const phoneParam = url.searchParams.get('p');
 	if (!phoneParam) error(404, 'Order not found');
 
@@ -26,7 +28,8 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			paymentStatus: full.paymentStatus,
 			verificationStatus: full.verificationStatus
 		},
-		phone: parsed.data
+		phone: parsed.data,
+		meta: { title: titled(store.name, `Order ${params.code}`), noindex: true }
 	};
 };
 

@@ -4,13 +4,6 @@
 	let { data } = $props();
 </script>
 
-<svelte:head>
-	<title>{data.page.metaTitle ?? data.page.title} · {data.store.name}</title>
-	{#if data.page.metaDescription}
-		<meta name="description" content={data.page.metaDescription} />
-	{/if}
-	{#if data.isPreview}<meta name="robots" content="noindex" />{/if}
-</svelte:head>
 
 {#if data.isPreview}
 	<p class="preview">Preview — this page is not published.</p>

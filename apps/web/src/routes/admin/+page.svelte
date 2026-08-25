@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { minorToTaka } from '@fajr/schemas';
 	import Badge from '$lib/components/Badge.svelte';
 	import { ORDER_TONE } from '$lib/status';
@@ -20,7 +21,7 @@
 
 </script>
 
-<svelte:head><title>{m.dash_title()} · Fajr Shop</title></svelte:head>
+<svelte:head><title>{m.dash_title()} · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <header>
 	<h1 class="text-2xl font-semibold tracking-tight text-strong">{m.dash_title()}</h1>

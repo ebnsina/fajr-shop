@@ -21,5 +21,7 @@ export type Vertical = {
 	faq: { q: string; a: string }[];
 	quotes: { quote: string; name: string }[];
 	promo: { heading: string; subheading: string };
+	announcement: string;
+	supportHours: string;
 	meta: { title: string; description: string };
 };

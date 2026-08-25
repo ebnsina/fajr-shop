@@ -3,15 +3,17 @@ import { view, addItem, setQty, removeItem } from '@fajr/core/cart';
 import { quote } from '@fajr/core/orders';
 import { currentCart, ensureCart } from '$lib/server/cart';
 import type { Actions, PageServerLoad } from './$types';
+import { titled } from '$lib/meta';
 
 const EMPTY = { id: null, lines: [], subtotalMinor: 0, itemCount: 0 };
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ cookies, parent }) => {
+	const { store } = await parent();
 	const cartId = await currentCart(cookies);
 	const cart = cartId ? await view(cartId) : EMPTY;
 	// Delivery is quoted properly at checkout, once we know the district.
 	const shipping = await quote(null, cart.subtotalMinor);
-	return { cart, shipping };
+	return { cart, shipping, meta: { title: titled(store.name, 'Bag'), noindex: true } };
 };
 
 export const actions: Actions = {

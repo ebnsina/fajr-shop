@@ -86,6 +86,8 @@ export const tech: Vertical = {
 		{ quote: 'EMI went through in ten minutes and the laptop came the same evening.', name: 'Sabbir A.' },
 		{ quote: 'Had a keyboard fault. Replaced under warranty without any argument.', name: 'Nadia S.' }
 	],
+	announcement: 'Official warranty · 0% EMI up to 12 months',
+	supportHours: 'Sat–Thu, 10am–7pm',
 	promo: { heading: 'Back to campus offer ends in', subheading: 'Free bag and mouse with every laptop' },
 	meta: {
 		title: 'Jontro — laptops, phones and accessories with official warranty',

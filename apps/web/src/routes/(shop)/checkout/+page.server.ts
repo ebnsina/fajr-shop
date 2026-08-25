@@ -10,8 +10,10 @@ import { isBlacklisted } from '@fajr/core/crm';
 import { currentCart, clearCart } from '$lib/server/cart';
 import { clientIp } from '$lib/server/session';
 import type { Actions, PageServerLoad } from './$types';
+import { titled } from '$lib/meta';
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ cookies, parent }) => {
+	const { store } = await parent();
 	const cartId = await currentCart(cookies);
 	if (!cartId) redirect(303, '/cart');
 
@@ -25,7 +27,13 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const form = await superValidate(zod(checkoutForm), { errors: false });
 	const shipping = await quote(null, cart.subtotalMinor);
 
-	return { form, cart, shipping, districts: BD_DISTRICTS };
+	return {
+		form,
+		cart,
+		shipping,
+		districts: BD_DISTRICTS,
+		meta: { title: titled(store.name, 'Checkout'), noindex: true }
+	};
 };
 
 const COUPON_MESSAGES: Record<string, string> = {

@@ -43,6 +43,13 @@
       "when": 1787640951060,
       "tag": "0005_curious_darkhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787647987578,
+      "tag": "0006_fixed_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

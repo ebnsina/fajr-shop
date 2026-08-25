@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import {
 		Delete02FreeIcons,
@@ -45,7 +46,7 @@
 	const FLIP = { duration: 180 };
 </script>
 
-<svelte:head><title>{data.page.title} · Pages · Fajr Shop</title></svelte:head>
+<svelte:head><title>{data.page.title} · Pages · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="flex flex-wrap items-start justify-between gap-4">
 	<div>

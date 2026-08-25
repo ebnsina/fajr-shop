@@ -89,6 +89,8 @@ export const home: Vertical = {
 		{ quote: 'Bought the whole kitchen set for a new flat. One delivery, one payment.', name: 'Sumaiya T.' },
 		{ quote: 'Carried a wardrobe to the fourth floor without complaining. Tipped them.', name: 'Rakib M.' }
 	],
+	announcement: 'Free assembly on furniture · Carried up to the 5th floor',
+	supportHours: 'Sat–Thu, 9am–8pm',
 	promo: { heading: 'New home offer ends in', subheading: 'Free assembly and 15% off furniture' },
 	meta: {
 		title: 'Ghor Shonshar — kitchen, bedding, furniture and decor',

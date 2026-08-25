@@ -221,7 +221,15 @@ await updatePage(homeId, {
 });
 await setHome(homeId);
 
-await updateSettings({ storeName: v.shop, theme: THEME[v.key]! });
+await updateSettings({
+	storeName: v.shop,
+	theme: THEME[v.key]!,
+	// Doubles as the og:image, so a shared link is never a blank card.
+	logoMediaId: await image(`logo-${v.key}`, v.shop),
+	tagline: v.meta.description,
+	announcement: v.announcement,
+	supportHours: v.supportHours
+});
 
 const variants = v.products.reduce((n, p) => n + (p.opt?.[1].length ?? 1), 0);
 console.log(

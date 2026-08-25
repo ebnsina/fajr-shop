@@ -1,10 +1,12 @@
 import { error } from '@sveltejs/kit';
 import { categoryBySlug, browse, facetsFor, type Sort } from '@fajr/core/catalog';
 import type { PageServerLoad } from './$types';
+import { titled } from '$lib/meta';
 
 const SORTS = new Set<Sort>(['newest', 'price-asc', 'price-desc']);
 
-export const load: PageServerLoad = async ({ params, url }) => {
+export const load: PageServerLoad = async ({ params, url, parent }) => {
+	const { store } = await parent();
 	const category = await categoryBySlug(params.slug);
 	if (!category) error(404, 'Category not found');
 
@@ -30,5 +32,16 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		facetsFor(category.id)
 	]);
 
-	return { category, sort, inStockOnly, facets, selected, ...result };
+	return {
+		category,
+		sort,
+		inStockOnly,
+		facets,
+		selected,
+		...result,
+		meta: {
+			title: titled(store.name, category.metaTitle ?? category.name),
+			description: category.metaDescription ?? undefined
+		}
+	};
 };

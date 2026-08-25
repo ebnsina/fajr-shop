@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import { Delete02FreeIcons } from '@hugeicons/core-free-icons';
 	import { enhance } from '$app/forms';
@@ -18,7 +19,7 @@
 		d ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'Asia/Dhaka' }).format(new Date(d)) : '';
 </script>
 
-<svelte:head><title>Navigation · Fajr Shop</title></svelte:head>
+<svelte:head><title>Navigation · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <h1 class="text-xl font-semibold tracking-tight text-strong">Navigation & banners</h1>
 <p class="mt-1 text-sm text-muted">Menus and promotional images, editable without a deploy.</p>

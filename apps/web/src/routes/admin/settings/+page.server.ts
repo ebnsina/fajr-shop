@@ -17,8 +17,13 @@ export const actions: Actions = {
 		const name = String(form.get('storeName') ?? '').trim();
 		if (!name) return fail(400, { error: 'The store needs a name.' });
 
+		const text = (field: string) => String(form.get(field) ?? '').trim() || null;
+
 		await updateSettings({
 			storeName: name,
+			tagline: text('tagline'),
+			announcement: text('announcement'),
+			supportHours: text('supportHours'),
 			supportPhone: String(form.get('supportPhone') ?? '').trim() || null,
 			supportEmail: String(form.get('supportEmail') ?? '').trim() || null,
 			logoMediaId: String(form.get('logoMediaId') ?? '') || null,

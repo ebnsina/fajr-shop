@@ -29,7 +29,7 @@
 
 </script>
 
-<svelte:head><title>{m.products_title()} · Fajr Shop</title></svelte:head>
+<svelte:head><title>{m.products_title()} · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="flex items-center justify-between gap-4">
 	<div>

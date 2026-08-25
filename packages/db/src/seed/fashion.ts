@@ -88,6 +88,8 @@ export const fashion: Vertical = {
 		{ quote: 'Paid cash on delivery, no problem. The kurti fabric is genuinely soft.', name: 'Sadia H.' },
 		{ quote: 'Called to confirm before shipping, which I appreciated.', name: 'Nusrat J.' }
 	],
+	announcement: 'Cash on delivery nationwide · Free delivery over ৳5,000',
+	supportHours: 'Sat–Thu, 10am–8pm',
 	promo: { heading: 'Eid offer ends in', subheading: 'Up to 20% off selected sarees' },
 	meta: {
 		title: 'Neel Tanti — handwoven sarees, kurti and panjabi',

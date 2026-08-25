@@ -39,6 +39,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - The admin sidebar has a **Visit site** link, opening the storefront in a new tab.
+- **Shop name, tagline, announcement bar and support hours are settings**, not
+  hardcoded copy. The announcement strip hides itself when empty rather than
+  promising something the merchant does not offer.
+- **Every storefront page carries a full set of meta and Open Graph tags** —
+  title, description, canonical, `og:` and `twitter:` twins, and an image that
+  falls back to the shop's logo. They are rendered once by the layout, so no
+  page can emit a second `og:title`. Cart, checkout, search and order pages are
+  `noindex`.
 
 - Icons are Hugeicons throughout.
 - Client-side validation uses Valibot.

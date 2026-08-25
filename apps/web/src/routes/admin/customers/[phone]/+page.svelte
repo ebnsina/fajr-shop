@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { minorToTaka } from '@fajr/schemas';
 	import Badge from '$lib/components/Badge.svelte';
@@ -20,7 +21,7 @@
 	};
 </script>
 
-<svelte:head><title>{p.name ?? p.phoneE164} · Customers · Fajr Shop</title></svelte:head>
+<svelte:head><title>{p.name ?? p.phoneE164} · Customers · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <a href="/admin/customers" class="text-sm text-muted hover:text-strong">← Customers</a>
 

@@ -91,6 +91,8 @@ export const beauty: Vertical = {
 		{ quote: 'Sunscreen arrived sealed with two years of expiry left.', name: 'Anika F.' },
 		{ quote: 'Exchanged a foundation shade without any fuss.', name: 'Maliha C.' }
 	],
+	announcement: 'Sealed and batch-coded · Cash on delivery nationwide',
+	supportHours: 'Sat–Thu, 10am–8pm',
 	promo: { heading: 'Skincare week ends in', subheading: 'Buy any two serums and save 20%' },
 	meta: {
 		title: 'Rupkotha — original skincare, makeup and fragrance',

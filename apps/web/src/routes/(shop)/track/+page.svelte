@@ -15,7 +15,6 @@
 	};
 </script>
 
-<svelte:head><title>Track your order · {data.store.name}</title></svelte:head>
 
 <div class="wrap">
 	<h1>Track your order</h1>

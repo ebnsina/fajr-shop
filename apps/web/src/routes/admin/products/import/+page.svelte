@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
@@ -13,7 +14,7 @@
 	};
 </script>
 
-<svelte:head><title>Import products · Fajr Shop</title></svelte:head>
+<svelte:head><title>Import products · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <a href="/admin/products" class="text-sm text-muted hover:text-strong">← Products</a>
 <h1 class="mt-1 text-xl font-semibold tracking-tight text-strong">Import products</h1>

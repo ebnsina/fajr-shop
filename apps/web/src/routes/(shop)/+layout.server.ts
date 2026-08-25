@@ -1,9 +1,19 @@
 import { navCategories } from '@fajr/core/catalog';
 import { menuFor } from '@fajr/core/cms';
-import { db, setting, eq } from '@fajr/db';
+import { db, setting, media, eq } from '@fajr/db';
 import { view } from '@fajr/core/cart';
 import { currentCart } from '$lib/server/cart';
+import { publicUrl } from '@fajr/core/media';
 import type { LayoutServerLoad } from './$types';
+
+// The logo doubles as the share-card image, so a link to the shop is never blank.
+async function logoUrl(mediaId: string) {
+	const row = await db.read.query.media.findFirst({
+		columns: { key: true },
+		where: eq(media.id, mediaId)
+	});
+	return row ? publicUrl(row.key) : null;
+}
 
 export const load: LayoutServerLoad = async ({ cookies }) => {
 	const [store, categories, menu] = await Promise.all([
@@ -27,7 +37,11 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 			theme: store?.theme ?? 'fashion',
 			country: store?.country ?? 'BD',
 			locale: store?.defaultLocale ?? 'bn',
-			supportPhone: store?.supportPhone ?? null
+			supportPhone: store?.supportPhone ?? null,
+			supportHours: store?.supportHours ?? null,
+			tagline: store?.tagline ?? null,
+			announcement: store?.announcement ?? null,
+			logoUrl: store?.logoMediaId ? await logoUrl(store.logoMediaId) : null
 		},
 		categories,
 		nav,

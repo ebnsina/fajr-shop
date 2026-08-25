@@ -18,6 +18,19 @@
 	const theme = $derived(getTheme(data.store.theme));
 	const canonical = $derived(`${page.url.origin}${page.url.pathname}`);
 
+	// One place owns every meta tag. Pages contribute through `meta` in their load,
+	// so a page can never render a second og:title alongside the layout's.
+	const meta = $derived({
+		title: page.data.meta?.title ?? data.store.name,
+		description: page.data.meta?.description ?? data.store.tagline ?? '',
+		type: page.data.meta?.type ?? 'website',
+		image: page.data.meta?.image ?? data.store.logoUrl,
+		noindex: page.data.meta?.noindex ?? false
+	});
+
+	// og:locale wants a full locale, and BD Bangla is bn_BD.
+	const ogLocale = $derived(data.store.locale === 'bn' ? 'bn_BD' : 'en_GB');
+
 	const org = $derived({
 		'@context': 'https://schema.org',
 		'@type': 'Store',
@@ -32,18 +45,34 @@
 
 <svelte:head>
 	{@html `<style>${themeCss(theme)}</style>`}
+
+	<title>{meta.title}</title>
+	{#if meta.description}<meta name="description" content={meta.description} />{/if}
 	<link rel="canonical" href={canonical} />
+	{#if meta.noindex}<meta name="robots" content="noindex" />{/if}
+
 	<meta property="og:site_name" content={data.store.name} />
 	<meta property="og:url" content={canonical} />
-	<meta name="twitter:card" content="summary_large_image" />
+	<meta property="og:type" content={meta.type} />
+	<meta property="og:locale" content={ogLocale} />
+	<meta property="og:title" content={meta.title} />
+	{#if meta.description}<meta property="og:description" content={meta.description} />{/if}
+	{#if meta.image}<meta property="og:image" content={meta.image} />{/if}
+
+	<meta name="twitter:card" content={meta.image ? 'summary_large_image' : 'summary'} />
+	<meta name="twitter:title" content={meta.title} />
+	{#if meta.description}<meta name="twitter:description" content={meta.description} />{/if}
+	{#if meta.image}<meta name="twitter:image" content={meta.image} />{/if}
 </svelte:head>
 
 <JsonLd data={org} />
 
 <a href="#main" class="skip">Skip to content</a>
 
-<!-- The promise BD shoppers scan for before anything else. -->
-<p class="announce">Cash on delivery nationwide · Free delivery over ৳5,000</p>
+<!-- The promise BD shoppers scan for first. Empty hides it entirely. -->
+{#if data.store.announcement}
+	<p class="announce">{data.store.announcement}</p>
+{/if}
 
 <header>
 	<div class="bar">
@@ -116,7 +145,7 @@
 	<div class="cols">
 		<div>
 			<p class="wordmark">{data.store.name}</p>
-			<p class="muted">Handwoven and everyday wear, delivered across Bangladesh.</p>
+			{#if data.store.tagline}<p class="muted">{data.store.tagline}</p>{/if}
 		</div>
 
 		<div>
@@ -143,12 +172,12 @@
 				{#if data.store.supportPhone}
 					<li><a href="tel:{data.store.supportPhone}">{data.store.supportPhone}</a></li>
 				{/if}
-				<li class="muted">Sat–Thu, 10am–8pm</li>
+				{#if data.store.supportHours}<li class="muted">{data.store.supportHours}</li>{/if}
 			</ul>
 		</div>
 	</div>
 
-	<p class="fine">© {year} {data.store.name}. Cash on delivery available nationwide.</p>
+	<p class="fine">© {year} {data.store.name}</p>
 </footer>
 
 <style>

@@ -27,12 +27,6 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{data.category.metaTitle ?? data.category.name} · {data.store.name}</title>
-	{#if data.category.metaDescription}
-		<meta name="description" content={data.category.metaDescription} />
-	{/if}
-</svelte:head>
 
 <header class="head">
 	<h1>{data.category.name}</h1>

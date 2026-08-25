@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { minorToTaka } from '@fajr/schemas';
 
@@ -26,7 +27,7 @@
 		new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' }).format(new Date(iso));
 </script>
 
-<svelte:head><title>Reports · Fajr Shop</title></svelte:head>
+<svelte:head><title>Reports · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="flex flex-wrap items-center justify-between gap-4">
 	<div>

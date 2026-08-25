@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { superForm } from 'sveltekit-superforms';
 	import { buildMatrix } from '$lib/variants';
 
@@ -50,7 +51,7 @@
 	const cell = 'field !px-2 !py-1 tabular-nums';
 </script>
 
-<svelte:head><title>{data.isNew ? 'New product' : $form.title} · Fajr Shop</title></svelte:head>
+<svelte:head><title>{data.isNew ? 'New product' : $form.title} · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <form method="POST" action="?/save" use:enhance class="pb-16">
 	<div class="flex flex-wrap items-center justify-between gap-4">

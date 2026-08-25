@@ -15,6 +15,12 @@ export const setting = pgTable('setting', {
 	timezone: text().notNull().default('Asia/Dhaka'),
 	supportPhone: text(),
 	supportEmail: text(),
+	// Shown in the footer's contact column, e.g. "Sat–Thu, 10am–8pm".
+	supportHours: text(),
+	// One line describing the shop. Feeds the footer and the default meta description.
+	tagline: text(),
+	// The strip above the header. Empty hides it rather than showing someone else's promise.
+	announcement: text(),
 	/** Tax is a setting, not a constant: many BD merchants are not VAT registered. */
 	vatRegistered: boolean().notNull().default(false),
 	vatBin: text('vat_bin'),

@@ -5,13 +5,6 @@
 	let { data } = $props();
 </script>
 
-<svelte:head>
-	<title>{data.page?.metaTitle ?? data.store.name}</title>
-	<meta
-		name="description"
-		content={data.page?.metaDescription ?? `Shop ${data.store.name} — cash on delivery across Bangladesh.`}
-	/>
-</svelte:head>
 
 {#if data.page && data.blocks}
 	<BlockList blocks={data.page.blocks} data={data.blocks} currency={data.store.currency} />

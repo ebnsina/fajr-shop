@@ -3,7 +3,13 @@ import { trackForm } from '@fajr/schemas';
 import { trackOrder } from '@fajr/core/orders';
 import { consume } from '@fajr/core/auth';
 import { clientIp } from '$lib/server/session';
-import type { Actions } from './$types';
+import { titled } from '$lib/meta';
+import type { Actions, PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ parent }) => {
+	const { store } = await parent();
+	return { meta: { title: titled(store.name, 'Track your order') } };
+};
 
 export const actions: Actions = {
 	default: async ({ request, getClientAddress }) => {

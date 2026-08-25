@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import type { CategoryNode } from '@fajr/core/catalog';
 
@@ -13,7 +14,7 @@
 	const all = $derived(flatten(data.tree));
 </script>
 
-<svelte:head><title>Categories · Fajr Shop</title></svelte:head>
+<svelte:head><title>Categories · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <h1 class="text-xl font-semibold tracking-tight">Categories</h1>
 <p class="mt-1 text-sm text-muted">

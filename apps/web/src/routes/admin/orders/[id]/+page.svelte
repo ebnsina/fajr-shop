@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { minorToTaka } from '@fajr/schemas';
 	import Badge from '$lib/components/Badge.svelte';
@@ -23,7 +24,7 @@
 	const btn = 'btn btn-secondary';
 </script>
 
-<svelte:head><title>{o.publicCode} · Orders · Fajr Shop</title></svelte:head>
+<svelte:head><title>{o.publicCode} · Orders · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="flex flex-wrap items-start justify-between gap-4">
 	<div>

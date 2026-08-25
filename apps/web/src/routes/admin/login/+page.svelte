@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 
 	let { form } = $props();
@@ -6,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign in · Fajr Shop</title>
+	<title>Sign in · {page.data.storeName ?? 'Fajr Shop'}</title>
 	{@html `<script>try{var m=localStorage.getItem('admin-theme');if(m)document.documentElement.setAttribute('data-theme',m)}catch(e){}</script>`}
 </svelte:head>
 
@@ -15,7 +16,7 @@
 		<div class="mb-8 flex items-center gap-2.5">
 			<span class="grid size-9 place-items-center rounded-xl bg-primary-600 font-semibold text-white">F</span>
 			<div>
-				<h1 class="font-semibold tracking-tight text-strong">Fajr Shop</h1>
+				<h1 class="font-semibold tracking-tight text-strong">{page.data.storeName ?? 'Fajr Shop'}</h1>
 				<p class="text-sm text-muted">Sign in to the admin.</p>
 			</div>
 		</div>

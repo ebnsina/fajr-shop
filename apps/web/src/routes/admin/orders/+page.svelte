@@ -46,7 +46,7 @@
 		}).format(new Date(d));
 </script>
 
-<svelte:head><title>{m.orders_title()} · Fajr Shop</title></svelte:head>
+<svelte:head><title>{m.orders_title()} · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <h1 class="text-xl font-semibold tracking-tight">Orders</h1>
 

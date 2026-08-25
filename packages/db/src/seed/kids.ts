@@ -90,6 +90,8 @@ export const kids: Vertical = {
 		{ quote: 'School bag survived a full year. Ordering the same one again.', name: 'Mahmud R.' },
 		{ quote: 'Exchanged a size without any argument. Took three days.', name: 'Shirin A.' }
 	],
+	announcement: 'Cash on delivery · Free size exchange within 7 days',
+	supportHours: 'Sat–Thu, 10am–8pm',
 	promo: { heading: 'School season ends in', subheading: 'Up to 25% off bags, shoes and stationery' },
 	meta: {
 		title: 'Choto Bela — kids clothing, toys and school supplies',

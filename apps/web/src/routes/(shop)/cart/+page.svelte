@@ -6,7 +6,6 @@
 	const money = (m: number) => formatMoney(m, data.store.currency);
 </script>
 
-<svelte:head><title>Bag · {data.store.name}</title></svelte:head>
 
 <h1>Your bag</h1>
 

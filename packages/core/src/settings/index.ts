@@ -21,7 +21,8 @@ export type SettingsPatch = Partial<
 	Pick<
 		StoreSettings,
 		| 'storeName' | 'logoMediaId' | 'currency' | 'country' | 'defaultLocale' | 'timezone'
-		| 'supportPhone' | 'supportEmail' | 'vatRegistered' | 'vatBin' | 'vatRateBp'
+		| 'supportPhone' | 'supportEmail' | 'supportHours' | 'tagline' | 'announcement'
+		| 'vatRegistered' | 'vatBin' | 'vatRateBp'
 		| 'vatInclusivePricing' | 'theme' | 'setupStep'
 	>
 >;

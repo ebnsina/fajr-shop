@@ -9,10 +9,6 @@
 	const needsPayment = $derived(owed > 0 && data.order.paymentStatus !== 'paid');
 </script>
 
-<svelte:head>
-	<title>Order {data.order.publicCode} · {data.store.name}</title>
-	<meta name="robots" content="noindex" />
-</svelte:head>
 
 <div class="wrap">
 	<p class="tick">✓</p>

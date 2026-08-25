@@ -95,6 +95,8 @@ export const grocery: Vertical = {
 		{ quote: 'Weighed the dal myself. Exactly right, which I did not expect.', name: 'Rehana B.' },
 		{ quote: 'Ordering the whole month at once now. Saves two trips to Karwan Bazar.', name: 'Imran H.' }
 	],
+	announcement: 'Order before 10pm · Next-day delivery inside Dhaka',
+	supportHours: 'Every day, 8am–10pm',
 	promo: { heading: 'Ramadan bazar offer ends in', subheading: 'Rice, oil and dal bundles at wholesale rates' },
 	meta: {
 		title: 'Bazar Ghor — rice, oil, dal and spices delivered',

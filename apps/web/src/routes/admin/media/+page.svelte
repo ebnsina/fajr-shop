@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 
 	let { data, form } = $props();
@@ -8,7 +9,7 @@
 		bytes < 1024 * 1024 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 </script>
 
-<svelte:head><title>Media · Fajr Shop</title></svelte:head>
+<svelte:head><title>Media · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <div class="flex items-center justify-between gap-4">
 	<div>

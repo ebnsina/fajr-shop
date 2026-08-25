@@ -27,7 +27,7 @@
 	const ago = (d: number) => (d === 0 ? 'today' : d === 1 ? 'yesterday' : `${d}d ago`);
 </script>
 
-<svelte:head><title>Customers · Fajr Shop</title></svelte:head>
+<svelte:head><title>Customers · {page.data.storeName ?? 'Fajr Shop'}</title></svelte:head>
 
 <h1 class="text-xl font-semibold tracking-tight text-strong">Customers</h1>
 <p class="mt-1 text-sm text-muted">Built from orders by phone — most buyers never create an account.</p>
