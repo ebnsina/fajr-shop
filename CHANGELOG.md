@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Delivery zones come from the country.** A new shop starts with zones that
+  make sense where it sells — inside Dhaka, the suburbs, and everywhere else in
+  Bangladesh; Dubai and Sharjah, the Northern Emirates, and the rest of the UAE.
+  The charge is worked out from the area the customer picks, and the Gulf
+  collects no advance because cash on delivery does not work that way there.
+
 - **Dependent address fields.** The first field is a searchable combobox —
   district in Dhaka, emirate in Dubai — and the second lists only what belongs
   to it. Pick Dhaka and the area field searches Dhaka's forty-two thanas;

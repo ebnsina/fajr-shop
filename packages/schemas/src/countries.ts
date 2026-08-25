@@ -30,6 +30,15 @@ export type CountryProfile = {
 	manualPayHint: string;
 	// Where the shop delivers, in the customer's words.
 	deliversTo: string;
+	// Starting delivery zones for a new shop. The last one has no areas, which
+	// makes it the catch-all "everywhere else" rate. Minor units of `currency`.
+	zones: {
+		name: string;
+		areas: string[];
+		chargeMinor: number;
+		advanceMinor: number;
+		freeOverMinor: number | null;
+	}[];
 };
 
 const AE_AREAS = {
@@ -61,7 +70,12 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: false, taxRateBp: 0, taxName: 'VAT',
 		manualPayLabel: 'bKash',
 		manualPayHint: 'Send the amount to our bKash number and enter the transaction ID.',
-		deliversTo: 'across Bangladesh'
+		deliversTo: 'across Bangladesh',
+		zones: [
+			{ name: 'Inside Dhaka', areas: ['Dhaka'], chargeMinor: 6000, advanceMinor: 6000, freeOverMinor: 500000 },
+			{ name: 'Dhaka suburbs', areas: ['Gazipur', 'Narayanganj', 'Munshiganj', 'Manikganj'], chargeMinor: 9000, advanceMinor: 9000, freeOverMinor: 500000 },
+			{ name: 'Outside Dhaka', areas: [], chargeMinor: 12000, advanceMinor: 12000, freeOverMinor: 500000 }
+		]
 	},
 	PK: {
 		code: 'PK', name: 'Pakistan', region: 'south-asia',
@@ -72,7 +86,11 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: false, taxRateBp: 0, taxName: 'GST',
 		manualPayLabel: 'JazzCash',
 		manualPayHint: 'Send the amount to our JazzCash number and enter the transaction ID.',
-		deliversTo: 'across Pakistan'
+		deliversTo: 'across Pakistan',
+		zones: [
+			{ name: 'Inside Karachi', areas: ['Karachi'], chargeMinor: 15000, advanceMinor: 15000, freeOverMinor: 500000 },
+			{ name: 'Rest of Pakistan', areas: [], chargeMinor: 25000, advanceMinor: 25000, freeOverMinor: 500000 }
+		]
 	},
 	AE: {
 		code: 'AE', name: 'United Arab Emirates', region: 'middle-east',
@@ -83,7 +101,12 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: true, taxRateBp: 500, taxName: 'VAT',
 		manualPayLabel: 'Bank transfer',
 		manualPayHint: 'Transfer the amount to our account and enter the reference.',
-		deliversTo: 'across the Emirates'
+		deliversTo: 'across the Emirates',
+		zones: [
+			{ name: 'Dubai and Sharjah', areas: ['Dubai', 'Sharjah'], chargeMinor: 1500, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Northern Emirates', areas: ['Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'], chargeMinor: 2500, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Rest of the UAE', areas: [], chargeMinor: 3000, advanceMinor: 0, freeOverMinor: 20000 }
+		]
 	},
 	SA: {
 		code: 'SA', name: 'Saudi Arabia', region: 'middle-east',
@@ -94,7 +117,11 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: true, taxRateBp: 1500, taxName: 'VAT',
 		manualPayLabel: 'Bank transfer',
 		manualPayHint: 'Transfer the amount to our account and enter the reference.',
-		deliversTo: 'across Saudi Arabia'
+		deliversTo: 'across Saudi Arabia',
+		zones: [
+			{ name: 'Riyadh and Jeddah', areas: ['Riyadh', 'Makkah'], chargeMinor: 2000, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Rest of Saudi Arabia', areas: [], chargeMinor: 3500, advanceMinor: 0, freeOverMinor: 20000 }
+		]
 	},
 	KW: {
 		code: 'KW', name: 'Kuwait', region: 'middle-east',
@@ -105,7 +132,11 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: false, taxRateBp: 0, taxName: 'VAT',
 		manualPayLabel: 'Bank transfer',
 		manualPayHint: 'Transfer the amount to our account and enter the reference.',
-		deliversTo: 'across Kuwait'
+		deliversTo: 'across Kuwait',
+		zones: [
+			{ name: 'Kuwait City', areas: ['Al Asimah'], chargeMinor: 1500, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Rest of Kuwait', areas: [], chargeMinor: 2500, advanceMinor: 0, freeOverMinor: 20000 }
+		]
 	},
 	QA: {
 		code: 'QA', name: 'Qatar', region: 'middle-east',
@@ -116,7 +147,11 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: false, taxRateBp: 0, taxName: 'VAT',
 		manualPayLabel: 'Bank transfer',
 		manualPayHint: 'Transfer the amount to our account and enter the reference.',
-		deliversTo: 'across Qatar'
+		deliversTo: 'across Qatar',
+		zones: [
+			{ name: 'Doha', areas: ['Doha'], chargeMinor: 1500, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Rest of Qatar', areas: [], chargeMinor: 2500, advanceMinor: 0, freeOverMinor: 20000 }
+		]
 	},
 	BH: {
 		code: 'BH', name: 'Bahrain', region: 'middle-east',
@@ -127,7 +162,11 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: true, taxRateBp: 1000, taxName: 'VAT',
 		manualPayLabel: 'Bank transfer',
 		manualPayHint: 'Transfer the amount to our account and enter the reference.',
-		deliversTo: 'across Bahrain'
+		deliversTo: 'across Bahrain',
+		zones: [
+			{ name: 'Capital and Muharraq', areas: ['Capital', 'Muharraq'], chargeMinor: 1500, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Rest of Bahrain', areas: [], chargeMinor: 2500, advanceMinor: 0, freeOverMinor: 20000 }
+		]
 	},
 	OM: {
 		code: 'OM', name: 'Oman', region: 'middle-east',
@@ -138,7 +177,11 @@ export const COUNTRIES: Record<string, CountryProfile> = {
 		taxInclusiveByDefault: true, taxRateBp: 500, taxName: 'VAT',
 		manualPayLabel: 'Bank transfer',
 		manualPayHint: 'Transfer the amount to our account and enter the reference.',
-		deliversTo: 'across Oman'
+		deliversTo: 'across Oman',
+		zones: [
+			{ name: 'Muscat', areas: ['Muscat'], chargeMinor: 1500, advanceMinor: 0, freeOverMinor: 20000 },
+			{ name: 'Rest of Oman', areas: [], chargeMinor: 2500, advanceMinor: 0, freeOverMinor: 20000 }
+		]
 	}
 };
 

@@ -7,7 +7,8 @@ import {
 import { upload } from '@fajr/core/media';
 import { createPage, updatePage, addBlock, updateBlock, setHome } from '@fajr/core/cms';
 import { updateSettings } from '@fajr/core/settings';
-import { db, menuItem, review, question, newId, sql } from '../index.ts';
+import { countryOf } from '@fajr/schemas';
+import { db, menuItem, review, question, shippingZone, newId, sql } from '../index.ts';
 import { tile } from './png.ts';
 import { REVIEW_POOL, REVIEWERS, GULF_REVIEWERS, QUESTION_POOL } from './social.ts';
 import type { P, Vertical } from './types.ts';
@@ -167,6 +168,22 @@ async function seedProduct(spec: P) {
 }
 
 for (const spec of v.products) await seedProduct(spec);
+
+// ── delivery zones ──────────────────────────────────────────────────────────
+
+// Inside/outside Dhaka means nothing in Dubai. Zones come from the country.
+await db.write.execute(sql`delete from shipping_zone`);
+await db.write.insert(shippingZone).values(
+	countryOf(v.country).zones.map((zone, i) => ({
+		id: `zone_${i}`,
+		name: zone.name,
+		districts: zone.areas,
+		chargeMinor: zone.chargeMinor,
+		advanceMinor: zone.advanceMinor,
+		freeOverMinor: zone.freeOverMinor,
+		sort: i
+	}))
+);
 
 // ── reviews and questions ───────────────────────────────────────────────────
 

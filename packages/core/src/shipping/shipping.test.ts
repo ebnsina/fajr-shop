@@ -266,3 +266,41 @@ test('a thin sample falls back to district, then to everywhere', async () => {
 	assert.equal(blind[0]!.basis, 'none');
 	assert.ok(blind[0]!.successRate > 0.5, 'an unknown courier starts trusted, not blacklisted');
 });
+
+// ── delivery zones follow the country ───────────────────────────────────────
+
+import { countryOf } from '@fajr/schemas';
+
+test('every market ships with its own zones, not Bangladesh’s', () => {
+	for (const code of ['BD', 'PK', 'AE', 'SA', 'KW', 'QA', 'BH', 'OM']) {
+		const zones = countryOf(code).zones;
+		assert.ok(zones.length >= 2, `${code} needs a near zone and a catch-all`);
+
+		// Exactly one catch-all, and it must be last, or the fallback never fires.
+		const catchAlls = zones.filter((z) => z.areas.length === 0);
+		assert.equal(catchAlls.length, 1, `${code} must have one catch-all zone`);
+		assert.equal(zones.at(-1)!.areas.length, 0, `${code}'s catch-all must sort last`);
+
+		// The near zone must be cheaper, or the whole distinction is pointless.
+		assert.ok(
+			zones[0]!.chargeMinor < zones.at(-1)!.chargeMinor,
+			`${code}: the nearest zone should cost less than everywhere else`
+		);
+	}
+});
+
+test('a Gulf shop never offers a Bangladeshi zone, and the reverse', () => {
+	const uae = countryOf('AE').zones.flatMap((z) => z.areas);
+	assert.ok(uae.includes('Dubai'));
+	assert.equal(uae.includes('Dhaka'), false);
+
+	const bd = countryOf('BD').zones.flatMap((z) => z.areas);
+	assert.ok(bd.includes('Dhaka'));
+	assert.equal(bd.includes('Dubai'), false);
+});
+
+test('the Gulf collects no advance, South Asia collects the delivery charge', () => {
+	// COD in BD prepays the delivery fee; the Gulf does not work that way.
+	assert.ok(countryOf('BD').zones.every((z) => z.advanceMinor > 0));
+	assert.ok(countryOf('AE').zones.every((z) => z.advanceMinor === 0));
+});

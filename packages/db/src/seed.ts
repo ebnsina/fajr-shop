@@ -2,6 +2,7 @@
 // ADMIN_EMAIL / ADMIN_PASSWORD override the defaults; without them a password is generated.
 import { randomBytes } from 'node:crypto';
 import { hash } from '@node-rs/argon2';
+import { countryOf } from '@fajr/schemas';
 import { db, role, adminUser, setting, shippingZone, newId, eq } from './index.ts';
 
 const email = (process.env.ADMIN_EMAIL ?? 'admin@fajr.shop').trim().toLowerCase();
@@ -37,10 +38,17 @@ await db.write.insert(setting).values({ id: 'default' }).onConflictDoNothing();
 // collecting it up front is what cuts fake COD orders.
 await db.write
 	.insert(shippingZone)
-	.values([
-		{ id: 'zone_dhaka', name: 'Inside Dhaka', districts: ['Dhaka'], chargeMinor: 6000, advanceMinor: 6000, sort: 0 },
-		{ id: 'zone_outside', name: 'Outside Dhaka', districts: [], chargeMinor: 12000, advanceMinor: 12000, sort: 1 }
-	])
+	.values(
+		countryOf(process.env.STORE_COUNTRY ?? 'BD').zones.map((zone, i) => ({
+			id: `zone_${i}`,
+			name: zone.name,
+			districts: zone.areas,
+			chargeMinor: zone.chargeMinor,
+			advanceMinor: zone.advanceMinor,
+			freeOverMinor: zone.freeOverMinor,
+			sort: i
+		}))
+	)
 	.onConflictDoNothing();
 
 const existing = await db.read.query.adminUser.findFirst({ where: eq(adminUser.email, email) });
