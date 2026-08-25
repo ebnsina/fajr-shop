@@ -1,10 +1,14 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { listPages, createPage, duplicatePage, deletePage, setHome } from '@fajr/core/cms';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async () => ({ pages: await listPages() });
+export const load: PageServerLoad = async ({ locals }) => {
+	requirePermission(locals, 'cms.read');
+	return { pages: await listPages() };
+};
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('cms.write', {
 	create: async ({ request }) => {
 		const form = await request.formData();
 		const title = String(form.get('title') ?? '').trim();
@@ -28,4 +32,4 @@ export const actions: Actions = {
 		await deletePage(String(form.get('id')));
 		return { done: true };
 	}
-};
+});

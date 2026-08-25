@@ -4,7 +4,7 @@ import {
 	pendingReviews, pendingQuestions, moderateReview, replyToReview,
 	answerQuestion, rejectQuestion
 } from '@fajr/core/social';
-import { requirePermission } from '$lib/server/guard';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -29,23 +29,20 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('catalog.write', {
 	publish: async ({ request, locals }) => {
-		requirePermission(locals, 'catalog.write');
 		const form = await request.formData();
 		await moderateReview(String(form.get('id')), 'published', { actorId: locals.staff?.id });
 		return { done: true };
 	},
 
 	reject: async ({ request, locals }) => {
-		requirePermission(locals, 'catalog.write');
 		const form = await request.formData();
 		await moderateReview(String(form.get('id')), 'rejected', { actorId: locals.staff?.id });
 		return { done: true };
 	},
 
 	reply: async ({ request, locals }) => {
-		requirePermission(locals, 'catalog.write');
 		const form = await request.formData();
 		const text = String(form.get('reply') ?? '').trim();
 		if (!text) return fail(400, { error: 'Write a reply first.' });
@@ -58,7 +55,6 @@ export const actions: Actions = {
 	},
 
 	answer: async ({ request, locals }) => {
-		requirePermission(locals, 'catalog.write');
 		const form = await request.formData();
 		const text = String(form.get('answer') ?? '').trim();
 		if (!text) return fail(400, { error: 'Write an answer first.' });
@@ -68,9 +64,8 @@ export const actions: Actions = {
 	},
 
 	dismiss: async ({ request, locals }) => {
-		requirePermission(locals, 'catalog.write');
 		const form = await request.formData();
 		await rejectQuestion(String(form.get('id')), { actorId: locals.staff?.id });
 		return { done: true };
 	}
-};
+});

@@ -4,15 +4,18 @@ import {
 	attributesFor, saveAttribute, deleteAttribute
 } from '@fajr/core/catalog';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	requirePermission(locals, 'catalog.read');
+
 	const tree = await categoryTree();
 	// Attributes are edited one category at a time; the tree stays a tree.
 	const editing = url.searchParams.get('attrs');
 	return { tree, editing, attributes: editing ? await attributesFor(editing) : [] };
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('catalog.write', {
 	create: async ({ request }) => {
 		const form = await request.formData();
 		const name = String(form.get('name') ?? '').trim();
@@ -67,4 +70,4 @@ export const actions: Actions = {
 		await deleteAttribute(String(form.get('id')));
 		return { deleted: true };
 	}
-};
+});

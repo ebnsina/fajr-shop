@@ -5,8 +5,11 @@ import {
 import { pushToCourier, refreshTracking, shipmentsFor, rankCouriers } from '@fajr/core/shipping';
 import { db, order, eq } from '@fajr/db';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	requirePermission(locals, 'order.read');
+
 	const detail = await getOrder(params.id);
 	if (!detail) error(404, 'Order not found');
 
@@ -19,7 +22,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return { order: detail, shipments, couriers };
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('order.write', {
 	verify: async ({ request, params, locals }) => {
 		const form = await request.formData();
 		const status = String(form.get('status') ?? '') as 'called' | 'confirmed' | 'cancelled' | 'unreachable';
@@ -90,4 +93,4 @@ export const actions: Actions = {
 			.where(eq(order.id, params.id));
 		return { saved: true };
 	}
-};
+});

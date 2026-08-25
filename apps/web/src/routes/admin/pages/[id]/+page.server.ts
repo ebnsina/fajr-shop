@@ -5,8 +5,11 @@ import {
 import { list as listMedia } from '@fajr/core/media';
 import { BLOCK_TYPES, BLOCK_LABELS, parseProps } from '@fajr/schemas';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	requirePermission(locals, 'cms.read');
+
 	const page = await editablePage(params.id);
 	if (!page) error(404, 'Page not found');
 
@@ -17,7 +20,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	};
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('cms.write', {
 	settings: async ({ request, params }) => {
 		const form = await request.formData();
 		const unpublishAt = String(form.get('unpublishAt') ?? '');
@@ -73,4 +76,4 @@ export const actions: Actions = {
 		await reorderBlocks(params.id, ids);
 		return { saved: true };
 	}
-};
+});

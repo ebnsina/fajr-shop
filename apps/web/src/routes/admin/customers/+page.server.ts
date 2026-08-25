@@ -1,7 +1,10 @@
 import { listCustomers, segmentCounts, type Segment } from '@fajr/core/crm';
 import type { PageServerLoad } from './$types';
+import { requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	requirePermission(locals, 'customer.read');
+
 	const segment = (url.searchParams.get('segment') as Segment | null) ?? undefined;
 	const search = url.searchParams.get('q') ?? '';
 

@@ -1,9 +1,12 @@
 import { salesSummary, codPerformance, courierPerformance, topProducts, couponUsage, funnel } from '@fajr/core/reports';
 import type { PageServerLoad } from './$types';
+import { requirePermission } from '$lib/server/guard';
 
 const PRESETS: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 };
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	requirePermission(locals, 'report.read');
+
 	const key = url.searchParams.get('range') ?? '30d';
 	const days = PRESETS[key] ?? 30;
 

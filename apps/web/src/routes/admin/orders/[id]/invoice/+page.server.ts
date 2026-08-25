@@ -2,8 +2,10 @@ import { error } from '@sveltejs/kit';
 import { getOrder } from '@fajr/core/orders';
 import { db, setting, eq } from '@fajr/db';
 import type { PageServerLoad } from './$types';
+import { requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	requirePermission(locals, 'order.read');
 	const [detail, store] = await Promise.all([
 		getOrder(params.id),
 		db.read.query.setting.findFirst({ where: eq(setting.id, 'default') })

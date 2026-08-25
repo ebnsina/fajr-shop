@@ -1,8 +1,11 @@
 import { listOrders } from '@fajr/core/orders';
 import { ORDER_VIEWS } from '$lib/orderViews';
 import type { PageServerLoad } from './$types';
+import { requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	requirePermission(locals, 'order.read');
+
 	const key = url.searchParams.get('view') ?? 'all';
 	const active = ORDER_VIEWS.find((v) => v.key === key) ?? ORDER_VIEWS[0];
 	const search = url.searchParams.get('q') ?? '';

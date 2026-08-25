@@ -2,8 +2,11 @@ import { error, fail } from '@sveltejs/kit';
 import { customerProfile, setBlacklisted, setNote } from '@fajr/core/crm';
 import { assess } from '@fajr/core/risk';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	requirePermission(locals, 'customer.read');
+
 	const phone = decodeURIComponent(params.phone);
 	const profile = await customerProfile(phone);
 	if (!profile) error(404, 'Customer not found');
@@ -14,7 +17,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	return { profile, risk };
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('customer.write', {
 	blacklist: async ({ request, params }) => {
 		const form = await request.formData();
 		const note = String(form.get('note') ?? '').trim();
@@ -31,4 +34,4 @@ export const actions: Actions = {
 		await setNote(decodeURIComponent(params.phone), String(form.get('note') ?? '').trim() || null);
 		return { done: true };
 	}
-};
+});

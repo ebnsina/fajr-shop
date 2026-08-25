@@ -3,8 +3,10 @@ import { getSettings, updateSettings, advanceSetup, finishSetup, saveZone, listZ
 import { createStaff } from '@fajr/core/staff';
 import { db, role, asc } from '@fajr/db';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	requirePermission(locals, 'setting.write');
 	const settings = await getSettings();
 	// Finished merchants land on the dashboard, not back at step one.
 	if (!settings.setupStep) redirect(303, '/admin');
@@ -19,7 +21,7 @@ export const load: PageServerLoad = async () => {
 
 const taka = (v: FormDataEntryValue | null) => Math.round(Number(String(v ?? 0)) * 100);
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('setting.write', {
 	store: async ({ request }) => {
 		const form = await request.formData();
 		const name = String(form.get('storeName') ?? '').trim();
@@ -110,4 +112,4 @@ export const actions: Actions = {
 		await advanceSetup(String(form.get('step')) as SetupStep);
 		return { done: true };
 	}
-};
+});

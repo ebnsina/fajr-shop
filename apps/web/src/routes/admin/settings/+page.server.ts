@@ -3,15 +3,18 @@ import { getSettings, updateSettings, listZones, saveZone, deleteZone } from '@f
 import { list as listMedia } from '@fajr/core/media';
 import { BD_DISTRICTS } from '@fajr/schemas';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	requirePermission(locals, 'setting.write');
+
 	const [settings, zones, media] = await Promise.all([getSettings(), listZones(), listMedia({ limit: 60 })]);
 	return { settings, zones, media, districts: BD_DISTRICTS };
 };
 
 const taka = (v: FormDataEntryValue | null) => Math.round(Number(String(v ?? 0)) * 100);
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('setting.write', {
 	store: async ({ request }) => {
 		const form = await request.formData();
 		const name = String(form.get('storeName') ?? '').trim();
@@ -82,4 +85,4 @@ export const actions: Actions = {
 		await deleteZone(String(form.get('id')));
 		return { saved: 'zone' };
 	}
-};
+});

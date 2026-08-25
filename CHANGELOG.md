@@ -31,6 +31,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **Admin permissions were never enforced on the server.** The sidebar hid what
+  a role could not do, but a direct POST reached the action regardless — a
+  staff-role account could rename the shop, delete media or change payment
+  settings. Every admin load and action is now behind a permission check, and a
+  test fails if a route is added without one.
+
 - **The admin never hydrated.** A hand-written Content Security Policy blocked
   SvelteKit's own inline script, so client-side navigation, the theme toggle,
   debounced search and the page builder's drag-and-drop were all dead in

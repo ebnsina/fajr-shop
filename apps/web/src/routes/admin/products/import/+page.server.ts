@@ -2,11 +2,15 @@ import { fail } from '@sveltejs/kit';
 import { analyse, planImport, applyImport, PRESETS, type Mapping } from '@fajr/core/import';
 import { IMPORT_FIELDS } from '$lib/importFields';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = () => ({
-	presets: PRESETS.map((p) => ({ id: p.id, label: p.label })),
-	fields: IMPORT_FIELDS
-});
+export const load: PageServerLoad = ({ locals }) => {
+	requirePermission(locals, 'catalog.write');
+	return {
+		presets: PRESETS.map((p) => ({ id: p.id, label: p.label })),
+		fields: IMPORT_FIELDS
+	};
+};
 
 function mappingFrom(form: FormData): Mapping {
 	const mapping: Mapping = {};
@@ -17,7 +21,7 @@ function mappingFrom(form: FormData): Mapping {
 	return mapping;
 }
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('catalog.write', {
 	/** Step one: read the file, guess the preset, show what was found. */
 	analyse: async ({ request }) => {
 		const form = await request.formData();
@@ -102,4 +106,4 @@ export const actions: Actions = {
 
 		return { step: 'done' as const, result };
 	}
-};
+});

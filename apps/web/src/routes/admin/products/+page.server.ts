@@ -1,5 +1,6 @@
 import { listProducts, categoryTree, type CategoryNode } from '@fajr/core/catalog';
 import type { PageServerLoad } from './$types';
+import { requirePermission } from '$lib/server/guard';
 
 /** Flattened with indentation, so one <select> can show the whole tree. */
 function flatten(nodes: CategoryNode[], depth = 0): { id: string; label: string }[] {
@@ -9,7 +10,9 @@ function flatten(nodes: CategoryNode[], depth = 0): { id: string; label: string 
 	]);
 }
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	requirePermission(locals, 'catalog.read');
+
 	const search = url.searchParams.get('q') ?? '';
 	const status = url.searchParams.get('status') as 'draft' | 'active' | 'archived' | null;
 	const categoryId = url.searchParams.get('category') ?? undefined;

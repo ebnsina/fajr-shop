@@ -2,8 +2,10 @@ import { listOrders } from '@fajr/core/orders';
 import { listProducts } from '@fajr/core/catalog';
 import { db, order, sql } from '@fajr/db';
 import type { PageServerLoad } from './$types';
+import { requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	requirePermission(locals, 'order.read');
 	const [toCall, toShip, lowStock, recent, revenue] = await Promise.all([
 		listOrders({ verificationStatus: 'pending', limit: 1 }),
 		listOrders({ status: 'confirmed', limit: 1 }),

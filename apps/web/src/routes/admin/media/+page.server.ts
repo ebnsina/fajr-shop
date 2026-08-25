@@ -1,8 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import { list, upload, remove, setAlt, MAX_BYTES } from '@fajr/core/media';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async () => ({ items: await list({ limit: 60 }) });
+export const load: PageServerLoad = async ({ locals }) => {
+	requirePermission(locals, 'catalog.read');
+	return { items: await list({ limit: 60 }) };
+};
 
 const REASONS: Record<string, string> = {
 	too_large: `That file is over ${Math.round(MAX_BYTES / 1024 / 1024)}MB.`,
@@ -10,7 +14,7 @@ const REASONS: Record<string, string> = {
 	corrupt: "That file isn't a readable image."
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('catalog.write', {
 	upload: async ({ request, locals }) => {
 		const form = await request.formData();
 		const files = form.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
@@ -45,4 +49,4 @@ export const actions: Actions = {
 		await remove(id, { actorId: locals.staff?.id });
 		return { deleted: true };
 	}
-};
+});

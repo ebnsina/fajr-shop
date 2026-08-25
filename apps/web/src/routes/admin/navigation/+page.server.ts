@@ -3,8 +3,11 @@ import { menuFor, bannersFor } from '@fajr/core/cms';
 import { list as listMedia } from '@fajr/core/media';
 import { db, menuItem, banner, newId, eq, asc } from '@fajr/db';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+	requirePermission(locals, 'cms.read');
+
 	const [items, banners, media] = await Promise.all([
 		db.read.select().from(menuItem).where(eq(menuItem.menu, 'main')).orderBy(asc(menuItem.sort)),
 		db.read.select().from(banner).orderBy(asc(banner.slot), asc(banner.sort)),
@@ -13,7 +16,7 @@ export const load: PageServerLoad = async () => {
 	return { items, banners, media };
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('cms.write', {
 	addLink: async ({ request }) => {
 		const form = await request.formData();
 		const label = String(form.get('label') ?? '').trim();
@@ -88,4 +91,4 @@ export const actions: Actions = {
 		await db.write.delete(banner).where(eq(banner.id, String(form.get('id'))));
 		return { done: true };
 	}
-};
+});

@@ -11,6 +11,7 @@ import { list as listMedia } from '@fajr/core/media';
 import { db, brand, asc } from '@fajr/db';
 import { comboKey } from '$lib/variants';
 import type { Actions, PageServerLoad } from './$types';
+import { guardActions, requirePermission } from '$lib/server/guard';
 
 function flatten(nodes: CategoryNode[], depth = 0): { id: string; label: string }[] {
 	return nodes.flatMap((n) => [
@@ -19,7 +20,9 @@ function flatten(nodes: CategoryNode[], depth = 0): { id: string; label: string 
 	]);
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	requirePermission(locals, 'catalog.read');
+
 	const isNew = params.id === 'new';
 
 	const [tree, brands, media] = await Promise.all([
@@ -107,7 +110,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	};
 };
 
-export const actions: Actions = {
+export const actions: Actions = guardActions('catalog.write', {
 	save: async ({ request, params, locals }) => {
 		// Read the body once. superValidate consumes it, and a later `request.clone()` throws — the
 		// spec fields are read from this same FormData rather than a second pass.
@@ -186,4 +189,4 @@ export const actions: Actions = {
 		await archiveProduct(params.id, { actorId: locals.staff?.id });
 		redirect(303, '/admin/products');
 	}
-};
+});
