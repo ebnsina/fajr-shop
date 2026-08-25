@@ -1,50 +1,44 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/fraunces';
-@import '@fontsource-variable/instrument-sans';
+@import '@fontsource-variable/geist';
 @import '@fontsource-variable/geist-mono';
 
 /*
- * Fajr is dawn. The palette is that hour: a deep indigo night warming into a
- * saffron horizon. Deliberately not the admin's blue — the admin is the
- * merchant's workspace and their own storefront owns the colour there, while
- * this site is the company's and needs a face of its own.
+ * One typeface, one accent, a lot of restraint. Geist across display and text
+ * with tight tracking at large sizes; a single violet that does all the work.
+ * Deliberately not the admin's blue — the admin is the merchant's workspace and
+ * their own storefront owns the colour there.
  */
 @theme {
-	--font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+	--font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
 	--font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
-	/* Saffron: the horizon, and what every call to action is painted in. */
-	--color-primary-50: oklch(0.97 0.024 78);
-	--color-primary-100: oklch(0.94 0.052 76);
-	--color-primary-200: oklch(0.89 0.093 73);
-	--color-primary-300: oklch(0.83 0.132 68);
-	--color-primary-400: oklch(0.76 0.157 60);
-	--color-primary-500: oklch(0.69 0.169 51);
-	--color-primary-600: oklch(0.61 0.166 45);
-	--color-primary-700: oklch(0.52 0.146 42);
-	--color-primary-800: oklch(0.43 0.116 42);
-	--color-primary-900: oklch(0.37 0.092 43);
+	--color-primary-50: oklch(0.97 0.014 287);
+	--color-primary-100: oklch(0.94 0.030 287);
+	--color-primary-200: oklch(0.89 0.058 287);
+	--color-primary-300: oklch(0.82 0.099 287);
+	--color-primary-400: oklch(0.73 0.152 287);
+	--color-primary-500: oklch(0.65 0.196 285);
+	--color-primary-600: oklch(0.58 0.222 283);
+	--color-primary-700: oklch(0.51 0.211 282);
+	--color-primary-800: oklch(0.44 0.176 282);
+	--color-primary-900: oklch(0.39 0.140 283);
 
-	/* Indigo: the night the horizon sits against. Used for depth, never for text. */
-	--color-night-500: oklch(0.42 0.086 274);
-	--color-night-700: oklch(0.30 0.070 276);
-	--color-night-900: oklch(0.21 0.048 278);
-	--color-night-950: oklch(0.16 0.036 280);
+	--ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
-	/* Warm greys, not blue ones: a cool neutral under a saffron accent reads
-	   as a mistake rather than a decision. */
-	--surface-sunken: oklch(0.972 0.005 76);
-	--surface-base: oklch(0.987 0.003 76);
+	/* Near-neutral with the faintest cool cast. Colour comes from the accent
+	   and from content, never from the surfaces. */
+	--surface-sunken: oklch(0.975 0.002 285);
+	--surface-base: oklch(0.990 0.001 285);
 	--surface-raised: oklch(1 0 0);
-	--surface-hover: oklch(0.958 0.007 76);
-	--line: oklch(0.923 0.008 76);
-	--text-strong: oklch(0.22 0.018 278);
-	--text: oklch(0.33 0.015 278);
-	--text-muted: oklch(0.55 0.012 278);
-	--text-faint: oklch(0.67 0.010 278);
+	--surface-hover: oklch(0.962 0.003 285);
+	--line: oklch(0.920 0.004 285);
+	--text-strong: oklch(0.19 0.008 285);
+	--text: oklch(0.31 0.007 285);
+	--text-muted: oklch(0.53 0.008 285);
+	--text-faint: oklch(0.66 0.008 285);
 	--ring: var(--color-primary-500);
 	--elevation-1:
 		0 0 0 1px oklch(0.2 0.01 265 / 0.04),
@@ -58,16 +52,17 @@
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
-		/* Night, not black: the dark mode is the other half of the same hour. */
-		--surface-sunken: oklch(0.155 0.030 280);
-		--surface-base: oklch(0.192 0.034 279);
-		--surface-raised: oklch(0.232 0.036 278);
-		--surface-hover: oklch(0.272 0.038 278);
-		--line: oklch(0.315 0.036 278);
-		--text-strong: oklch(0.97 0.006 76);
-		--text: oklch(0.89 0.008 76);
-		--text-muted: oklch(0.70 0.014 76);
-		--text-faint: oklch(0.57 0.014 76);
+		/* Properly dark, not charcoal-grey: contrast is what makes a dark UI
+		   read as deliberate rather than inverted. */
+		--surface-sunken: oklch(0.145 0.006 285);
+		--surface-base: oklch(0.178 0.007 285);
+		--surface-raised: oklch(0.212 0.008 285);
+		--surface-hover: oklch(0.252 0.009 285);
+		--line: oklch(0.295 0.010 285);
+		--text-strong: oklch(0.98 0.002 285);
+		--text: oklch(0.90 0.003 285);
+		--text-muted: oklch(0.68 0.008 285);
+		--text-faint: oklch(0.55 0.008 285);
 		--ring: var(--color-primary-400);
 		--elevation-1: 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.3);
 		--elevation-2: 0 0 0 1px oklch(1 0 0 / 0.07), 0 4px 16px oklch(0 0 0 / 0.4);
@@ -124,13 +119,42 @@ body {
 		white-space: nowrap;
 		cursor: pointer;
 		text-decoration: none;
-		transition: background-color 120ms, border-color 120ms;
+		/* Transform included: a button that lifts under the cursor is most of
+		   what makes an interface feel answered rather than static. */
+		transition:
+			background-color 150ms var(--ease-out-quint),
+			border-color 150ms var(--ease-out-quint),
+			transform 150ms var(--ease-out-quint),
+			box-shadow 150ms var(--ease-out-quint);
+	}
+	.btn:hover {
+		transform: translateY(-1px);
+	}
+	.btn:active {
+		transform: translateY(0);
+		transition-duration: 60ms;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.btn,
+		.btn:hover,
+		.btn:active {
+			transform: none;
+			transition: background-color 150ms, border-color 150ms;
+		}
 	}
 
 	.btn-primary {
 		background: var(--color-primary-600);
 		color: white;
 		border: 1px solid transparent;
+		box-shadow:
+			0 1px 2px oklch(0.2 0.02 285 / 0.16),
+			inset 0 1px 0 oklch(1 0 0 / 0.14);
+	}
+	.btn-primary:hover {
+		box-shadow:
+			0 4px 14px oklch(0.58 0.222 283 / 0.32),
+			inset 0 1px 0 oklch(1 0 0 / 0.14);
 	}
 	.btn-primary:hover {
 		background: var(--color-primary-700);
@@ -151,6 +175,22 @@ body {
 		border-radius: var(--radius-3xl);
 		padding: 1.75rem;
 		box-shadow: var(--elevation-1);
+		transition:
+			box-shadow 200ms var(--ease-out-quint),
+			transform 200ms var(--ease-out-quint);
+	}
+	/* Only cards that are actually links lift; a static panel that moves under
+	   the cursor suggests an action that is not there. */
+	a.card:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--elevation-2);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.card,
+		a.card:hover {
+			transform: none;
+			transition: box-shadow 200ms;
+		}
 	}
 
 	.field {
@@ -186,14 +226,42 @@ body {
 		}
 	}
 
-	/* Fraunces on headings is where the brand actually shows. Its optical size
-	   axis wants a nudge at display sizes or it reads too delicate. */
+	/* Large type is where a grotesque earns its keep: tight tracking and a
+	   line-height under one, which only works because Geist is drawn for it. */
 	.display {
 		font-family: var(--font-display);
-		font-variation-settings: 'SOFT' 0, 'WONK' 1, 'opsz' 36;
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		line-height: 1.05;
+		font-weight: 560;
+		letter-spacing: -0.035em;
+		line-height: 1.03;
+		text-wrap: balance;
+	}
+
+	/*
+	 * Scroll reveal in pure CSS. Guarded by @supports, so a browser without
+	 * scroll-driven animations simply shows the content — and, more importantly,
+	 * a JS failure cannot leave the page permanently blank, which is exactly
+	 * what a class-on-<html> approach risks.
+	 */
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.reveal {
+				animation: reveal-in linear both;
+				animation-timeline: view();
+				/* Finishes as the section reaches the middle of the screen. */
+				animation-range: entry 0% cover 26%;
+			}
+		}
+	}
+
+	@keyframes reveal-in {
+		from {
+			opacity: 0;
+			transform: translateY(14px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
 	}
 
 	.eyebrow {

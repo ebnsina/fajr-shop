@@ -122,6 +122,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **The marketing site is redrawn.** Geist across display and text with tight
+  tracking, one violet accent doing all the work, near-neutral surfaces and a
+  properly dark dark mode. Buttons lift, cards raise, and sections fade in as
+  they arrive — all of it dropped under `prefers-reduced-motion`.
+
 - **The marketing site has its own identity.** Fajr means dawn, so the palette is
   that hour — saffron on indigo — with Fraunces for headlines and Instrument
   Sans for text. The admin deliberately stays neutral: it is the merchant's

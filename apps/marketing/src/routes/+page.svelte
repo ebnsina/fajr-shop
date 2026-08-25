@@ -127,7 +127,7 @@
 </section>
 
 <!-- the problem, in numbers -->
-<section class="border-y border-line bg-sunken">
+<section class="reveal border-y border-line bg-sunken">
 	<div class="mx-auto grid max-w-6xl gap-8 px-6 py-14 sm:grid-cols-3">
 		{#each region.stats as stat (stat.figure)}
 			<div>
@@ -141,7 +141,7 @@
 <!-- features -->
 <div id="what-it-does">
 	{#each SECTIONS as section (section.id)}
-		<section class="mx-auto max-w-6xl px-6 py-16">
+		<section class="reveal mx-auto max-w-6xl px-6 py-16">
 			<p class="eyebrow">{section.eyebrow}</p>
 			<h2 class="display mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
 				{section.title}
@@ -160,7 +160,7 @@
 </div>
 
 <!-- live demos, one per trade -->
-<section class="mx-auto max-w-6xl px-6 py-16">
+<section class="reveal mx-auto max-w-6xl px-6 py-16">
 	<p class="eyebrow">See it working</p>
 	<h2 class="display mt-3 text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
 		A demo shop for your trade, not someone else's
@@ -214,7 +214,7 @@
 </section>
 
 <!-- pricing teaser -->
-<section class="mx-auto max-w-6xl px-6 py-16">
+<section class="reveal mx-auto max-w-6xl px-6 py-16">
 	<div class="card !p-8 lg:flex lg:items-center lg:gap-10">
 		<div class="lg:flex-1">
 			<p class="eyebrow">Pricing</p>
