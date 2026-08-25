@@ -122,12 +122,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **The landing page is rebuilt on current patterns**, not invented ones: an
-  ambient gradient field with grain instead of a flat background, a header that
-  carries no rule until the page moves, gradient hairline borders instead of
-  flat 1px boxes, a bento grid where the flagship feature gets twice the room,
-  a marquee of the couriers and wallets each region already uses, and a hero at
-  a size that reads as a headline rather than a heading.
+- **The landing page keeps the structure and drops the decoration.** A bento
+  grid where the flagship feature gets twice the room, a marquee of the couriers
+  and wallets each region already uses, and a hero sized as a headline — but
+  flat surfaces, a single hairline, one accent, and no gradients, glows or
+  grain.
 
 - **The marketing site is redrawn.** Geist across display and text with tight
   tracking, one violet accent doing all the work, near-neutral surfaces and a

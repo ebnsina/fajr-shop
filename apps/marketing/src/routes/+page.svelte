@@ -89,15 +89,11 @@
 
 	<!-- Showing the product beats describing it. This is the screen the pitch is
 	     actually about: an order stopped before it was accepted. -->
-	<div class="relative" aria-hidden="true">
-		<div class="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-primary-500/20 via-primary-500/5 to-transparent blur-2xl"></div>
-
-		<div class="relative rounded-3xl bg-raised p-5 elevation-2">
+	<div aria-hidden="true">
+		<div class="rounded-2xl border border-line bg-raised p-5">
 			<div class="flex items-center justify-between">
 				<p class="text-xs font-medium uppercase tracking-wide text-faint">Incoming order</p>
-				<span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-300">
-					High risk
-				</span>
+				<span class="text-xs font-medium text-red-700 dark:text-red-400">High risk</span>
 			</div>
 
 			<p class="mt-3 font-mono text-lg text-strong">{region.id === 'middle-east' ? 'AED 690' : 'BDT 4,250'}</p>
@@ -118,7 +114,7 @@
 				</div>
 			</dl>
 
-			<p class="mt-4 rounded-2xl bg-sunken p-3 text-sm text-body">
+			<p class="mt-4 rounded-xl bg-sunken p-3 text-sm text-body">
 				<span class="font-medium text-strong">Ask for payment in advance.</span>
 				Nine of this number's last twelve parcels came back.
 			</p>
@@ -193,7 +189,7 @@
 	<ul class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 		{#each DEMOS as demo (demo.key)}
 			<li>
-				<a href="/demo/{demo.key}" class="card flex items-baseline justify-between gap-3 !py-4 transition hover:shadow-lg">
+				<a href="/demo/{demo.key}" class="card flex items-baseline justify-between gap-3 !py-4">
 					<span>
 						<span class="block font-medium text-strong">{demo.label}</span>
 						<span class="block text-sm text-muted">{demo.shop}</span>

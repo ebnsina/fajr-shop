@@ -100,6 +100,11 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
   behind `@supports`, so an unsupporting browser just shows the section. Never
   hide content behind a class that JavaScript has to remove — a failed
   hydration then leaves the page permanently blank.
+- **Restraint is the look.** Flat surfaces, one hairline, one accent used
+  sparingly, and space. No gradient fills, glows, grain, gradient borders or
+  gradient text — stacking effects reads as trying, which is the opposite of
+  expensive. If a change adds an effect rather than removing one, it is probably
+  the wrong change.
 - **Type is chosen per theme, and must cover the theme's script.** Mona Sans and
   Geist Mono are the admin and marketing defaults; storefront themes pick their
   own — Hind Siliguri for Bengali, Cairo for Arabic. A Latin face with a system

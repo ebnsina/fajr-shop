@@ -30,7 +30,7 @@
 					{ href: `mailto:${CONTACT.email}`, icon: Mail01FreeIcons, label: 'Email', value: CONTACT.email }
 				] as item (item.label)}
 					<li>
-						<a href={item.href} class="card flex items-center gap-4 !py-4 transition hover:shadow-lg">
+						<a href={item.href} class="card flex items-center gap-4 !py-4">
 							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
 								<HugeiconsIcon icon={item.icon} size={18} aria-hidden="true" />
 							</span>

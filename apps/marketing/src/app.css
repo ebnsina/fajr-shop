@@ -34,18 +34,13 @@
 	--surface-base: oklch(0.990 0.001 285);
 	--surface-raised: oklch(1 0 0);
 	--surface-hover: oklch(0.962 0.003 285);
-	--line: oklch(0.920 0.004 285);
+	--line: oklch(0.922 0.004 285);
+	--line-strong: oklch(0.865 0.006 285);
 	--text-strong: oklch(0.19 0.008 285);
 	--text: oklch(0.31 0.007 285);
 	--text-muted: oklch(0.53 0.008 285);
 	--text-faint: oklch(0.66 0.008 285);
 	--ring: var(--color-primary-500);
-	/* A hairline that catches light at the top and fades away — what separates a
-	   surface that looks made from one that looks drawn. */
-	--card-edge: linear-gradient(160deg, oklch(0.2 0.01 285 / 0.10), oklch(0.2 0.01 285 / 0.04) 45%);
-	--glow-accent: oklch(0.58 0.222 283 / 0.28);
-	--mesh-1: oklch(0.65 0.196 285 / 0.10);
-	--mesh-2: oklch(0.70 0.140 250 / 0.08);
 	--elevation-1:
 		0 0 0 1px oklch(0.2 0.01 265 / 0.04),
 		0 1px 2px oklch(0.2 0.01 265 / 0.04),
@@ -64,19 +59,14 @@
 		--surface-base: oklch(0.178 0.007 285);
 		--surface-raised: oklch(0.212 0.008 285);
 		--surface-hover: oklch(0.252 0.009 285);
-		--line: oklch(0.295 0.010 285);
+		--line: oklch(0.268 0.009 285);
+		--line-strong: oklch(0.345 0.011 285);
 		--text-strong: oklch(0.98 0.002 285);
 		--text: oklch(0.90 0.003 285);
 		--text-muted: oklch(0.68 0.008 285);
 		--text-faint: oklch(0.55 0.008 285);
 		--ring: var(--color-primary-400);
-		/* A hairline that catches light at the top and fades away — what separates a
-	   surface that looks made from one that looks drawn. */
-	--card-edge: linear-gradient(160deg, oklch(0.2 0.01 285 / 0.10), oklch(0.2 0.01 285 / 0.04) 45%);
-	--glow-accent: oklch(0.58 0.222 283 / 0.28);
-	--mesh-1: oklch(0.65 0.196 285 / 0.10);
-	--mesh-2: oklch(0.70 0.140 250 / 0.08);
-	--elevation-1: 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.3);
+		--elevation-1: 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.3);
 		--elevation-2: 0 0 0 1px oklch(1 0 0 / 0.07), 0 4px 16px oklch(0 0 0 / 0.4);
 	}
 }
@@ -107,27 +97,8 @@ html {
 body {
 	background: var(--surface-base);
 	color: var(--text);
-	/* Two soft light sources behind the page, fixed so they do not scroll away.
-	   A flat background is most of what makes a landing page feel like a
-	   template. */
-	background-image:
-		radial-gradient(60rem 40rem at 78% -8%, var(--mesh-1), transparent 62%),
-		radial-gradient(48rem 36rem at 8% 4%, var(--mesh-2), transparent 60%);
-	background-attachment: fixed;
-	background-repeat: no-repeat;
 	-webkit-font-smoothing: antialiased;
-}
-
-/* A trace of grain over the gradients. Without it large soft gradients band
-   visibly on 8-bit displays, which is exactly what looks cheap. */
-body::before {
-	content: '';
-	position: fixed;
-	inset: 0;
-	z-index: 0;
-	pointer-events: none;
-	opacity: 0.035;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+	text-rendering: optimizeLegibility;
 }
 
 @layer base {
@@ -152,55 +123,21 @@ body::before {
 		white-space: nowrap;
 		cursor: pointer;
 		text-decoration: none;
-		/* Transform included: a button that lifts under the cursor is most of
-		   what makes an interface feel answered rather than static. */
 		transition:
-			background-color 150ms var(--ease-out-quint),
-			border-color 150ms var(--ease-out-quint),
-			transform 150ms var(--ease-out-quint),
-			box-shadow 150ms var(--ease-out-quint);
-	}
-	.btn:hover {
-		transform: translateY(-1px);
-	}
-	.btn:active {
-		transform: translateY(0);
-		transition-duration: 60ms;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.btn,
-		.btn:hover,
-		.btn:active {
-			transform: none;
-			transition: background-color 150ms, border-color 150ms;
-		}
+			background-color 140ms var(--ease-out-quint),
+			border-color 140ms var(--ease-out-quint);
 	}
 
 	.btn-primary {
 		background: var(--color-primary-600);
 		color: white;
 		border: 1px solid transparent;
-		box-shadow:
-			0 1px 2px oklch(0.2 0.02 285 / 0.16),
-			inset 0 1px 0 oklch(1 0 0 / 0.14);
-	}
-	.btn-primary:hover {
-		box-shadow:
-			0 4px 14px oklch(0.58 0.222 283 / 0.32),
-			inset 0 1px 0 oklch(1 0 0 / 0.14);
 	}
 	.btn-primary:hover {
 		background: var(--color-primary-700);
 	}
-
-	/* The primary action gets a real light source: a vertical sheen and a glow
-	   that spreads on hover, rather than a flat fill. */
-	.btn-primary {
-		background-image: linear-gradient(
-			to bottom,
-			oklch(1 0 0 / 0.16),
-			oklch(1 0 0 / 0) 46%
-		);
+	.btn-primary:hover {
+		background: var(--color-primary-700);
 	}
 
 	.btn-secondary {
@@ -213,32 +150,22 @@ body::before {
 		background: var(--surface-hover);
 	}
 
-	/*
-	 * The border is a gradient, not a flat line: painted into border-box while
-	 * the fill sits in padding-box. A uniform 1px grey rectangle is the single
-	 * biggest tell that a surface was typed rather than designed.
-	 */
+	/* One hairline and a flat surface. Everything else was decoration. */
 	.card {
 		position: relative;
-		border: 1px solid transparent;
-		border-radius: var(--radius-3xl);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-2xl);
 		padding: 1.75rem;
-		background:
-			linear-gradient(var(--surface-raised), var(--surface-raised)) padding-box,
-			var(--card-edge) border-box;
-		box-shadow: var(--elevation-1);
+		background: var(--surface-raised);
 		transition:
-			box-shadow 240ms var(--ease-out-quint),
-			transform 240ms var(--ease-out-quint),
-			border-color 240ms var(--ease-out-quint);
+			border-color 160ms var(--ease-out-quint),
+			transform 160ms var(--ease-out-quint);
 	}
 	/* Only cards that are actually links lift; a static panel that moves under
 	   the cursor suggests an action that is not there. */
 	a.card:hover {
-		transform: translateY(-3px);
-		box-shadow:
-			var(--elevation-2),
-			0 0 0 1px var(--glow-accent);
+		border-color: var(--line-strong);
+		transform: translateY(-1px);
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.card,
@@ -294,22 +221,14 @@ body::before {
 	/* Fluid, so the hero is genuinely large on a desktop without wrapping badly
 	   on a 360px Android — which is most of this market. */
 	.display-xl {
-		font-size: clamp(2.5rem, 1.4rem + 4.6vw, 4.5rem);
-		letter-spacing: -0.042em;
-		line-height: 0.98;
+		font-size: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+		letter-spacing: -0.032em;
+		line-height: 1.06;
 	}
 
-	/* The half of the headline that carries the turn, lit rather than greyed. */
+	/* The turning half sits back rather than lighting up. */
 	.display-accent {
-		background: linear-gradient(
-			100deg,
-			var(--color-primary-400),
-			var(--color-primary-600) 55%,
-			var(--color-primary-500)
-		);
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
+		color: var(--text-muted);
 	}
 
 	/*
@@ -324,7 +243,7 @@ body::before {
 				animation: reveal-in linear both;
 				animation-timeline: view();
 				/* Finishes as the section reaches the middle of the screen. */
-				animation-range: entry 0% cover 26%;
+				animation-range: entry 0% cover 20%;
 			}
 		}
 	}
@@ -332,7 +251,7 @@ body::before {
 	@keyframes reveal-in {
 		from {
 			opacity: 0;
-			transform: translateY(14px);
+			transform: translateY(8px);
 		}
 		to {
 			opacity: 1;
@@ -340,138 +259,14 @@ body::before {
 		}
 	}
 
-	/*
-	 * The header carries no line at rest and grows one only once the page has
-	 * moved. A permanent hard rule under a transparent bar is the most generic
-	 * thing on a landing page.
-	 */
 	.site-header {
 		position: sticky;
 		inset-block-start: 0;
 		z-index: 30;
-		border-block-end: 1px solid transparent;
-		background: color-mix(in oklab, var(--surface-base) 72%, transparent);
-		backdrop-filter: saturate(1.6) blur(14px);
-		-webkit-backdrop-filter: saturate(1.6) blur(14px);
-		transition: border-color 200ms var(--ease-out-quint);
-	}
-
-	@supports (animation-timeline: scroll()) {
-		.site-header {
-			animation: header-settle linear both;
-			animation-timeline: scroll();
-			/* Over the first 120px of travel, then it stays. */
-			animation-range: 0 120px;
-		}
-	}
-
-	@keyframes header-settle {
-		to {
-			border-block-end-color: var(--line);
-			background: color-mix(in oklab, var(--surface-base) 88%, transparent);
-		}
-	}
-
-	/* Without scroll-driven animation the bar simply keeps its line. */
-	@supports not (animation-timeline: scroll()) {
-		.site-header {
-			border-block-end-color: var(--line);
-		}
-	}
-
-	/*
-	 * Bento: the first tile is the flagship and gets twice the room, the rest
-	 * fall in around it. A uniform three-column grid gives every feature the
-	 * same weight, which tells the reader nothing about what matters.
-	 */
-	.bento {
-		display: grid;
-		gap: 0.875rem;
-		grid-template-columns: 1fr;
-	}
-	@media (min-width: 48rem) {
-		.bento {
-			grid-template-columns: repeat(6, 1fr);
-		}
-		.bento > :nth-child(1) {
-			grid-column: span 4;
-		}
-		.bento > :nth-child(2) {
-			grid-column: span 2;
-		}
-		.bento > :nth-child(3) {
-			grid-column: span 2;
-		}
-		.bento > :nth-child(4) {
-			grid-column: span 4;
-		}
-		.bento > :nth-child(n + 5) {
-			grid-column: span 3;
-		}
-	}
-
-	/* Each tile is lit from its own corner, so a wall of them has variation
-	   without needing different colours. */
-	.bento > * {
-		position: relative;
-		overflow: hidden;
-		isolation: isolate;
-	}
-	.bento > *::after {
-		content: '';
-		position: absolute;
-		inline-size: 16rem;
-		block-size: 16rem;
-		inset-block-start: -8rem;
-		inset-inline-end: -8rem;
-		z-index: -1;
-		border-radius: 50%;
-		background: radial-gradient(circle, var(--mesh-1), transparent 70%);
-		opacity: 0.9;
-		transition: opacity 300ms var(--ease-out-quint);
-	}
-	.bento > :nth-child(even)::after {
-		background: radial-gradient(circle, var(--mesh-2), transparent 70%);
-	}
-
-	/*
-	 * The trust strip. No logos yet, so the names carry it — which is the point
-	 * anyway: a Dhaka merchant reads "Steadfast" and knows we understand them.
-	 * Duplicated in the markup so the loop has no seam.
-	 */
-	.marquee {
-		display: flex;
-		overflow: hidden;
-		mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-		-webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-	}
-	.marquee > ul {
-		display: flex;
-		flex-shrink: 0;
-		align-items: center;
-		gap: 3rem;
-		padding-inline-end: 3rem;
-		margin: 0;
-		list-style: none;
-		animation: marquee 34s linear infinite;
-	}
-	.marquee:hover > ul {
-		animation-play-state: paused;
-	}
-	@keyframes marquee {
-		to {
-			transform: translateX(-100%);
-		}
-	}
-	/* Endless horizontal motion is exactly the kind a vestibular disorder
-	   reacts to, so it simply stops. */
-	@media (prefers-reduced-motion: reduce) {
-		.marquee > ul {
-			animation: none;
-		}
-		.marquee {
-			overflow-x: auto;
-		}
+		border-block-end: 1px solid var(--line);
+		background: color-mix(in oklab, var(--surface-base) 86%, transparent);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 	}
 
 	.sr-only {

@@ -57,7 +57,7 @@
 			<ul class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 				{#each group.demos as demo (demo.key)}
 			<li>
-				<a href="/demo/{demo.key}" class="card group flex h-full flex-col transition hover:shadow-lg">
+				<a href="/demo/{demo.key}" class="card group flex h-full flex-col">
 					<span class="grid size-11 place-items-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
 						<HugeiconsIcon icon={ICON[demo.key]} size={20} aria-hidden="true" />
 					</span>
