@@ -6,6 +6,7 @@
 		ArrowRight01FreeIcons
 	} from '@hugeicons/core-free-icons';
 	import { DEMOS } from '$lib/content';
+	import { REGIONS } from '$lib/regions';
 
 	const ICON: Record<string, IconSvgElement> = {
 		fashion: Shirt01FreeIcons,
@@ -13,8 +14,18 @@
 		grocery: RiceBowl01FreeIcons,
 		tech: LaptopProgrammingFreeIcons,
 		beauty: SparklesFreeIcons,
-		home: Sofa01FreeIcons
+		home: Sofa01FreeIcons,
+		'gulf-fashion': Shirt01FreeIcons,
+		'gulf-tech': LaptopProgrammingFreeIcons,
+		'gulf-grocery': RiceBowl01FreeIcons
 	};
+
+	// Grouped by region: a Dubai merchant should not have to read past six
+	// Bangladeshi shops to find one priced in dirhams.
+	const grouped = REGIONS.map((region) => ({
+		region,
+		demos: DEMOS.filter((d) => d.region === region.id)
+	}));
 
 	const total = DEMOS.reduce((n, d) => n + d.products, 0);
 	const count = new Intl.NumberFormat('en-GB');
@@ -23,16 +34,28 @@
 <section class="mx-auto max-w-6xl px-6 py-16">
 	<p class="eyebrow">Live demos</p>
 	<h1 class="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
-		Six real shops, one for each trade
+		Nine real shops, across two regions
 	</h1>
 	<p class="mt-5 max-w-2xl text-lg text-muted">
-		Not screenshots and not a sandbox that resets when you click something.
+		Not screenshots, and not a sandbox that resets when you click something.
 		Each is a working storefront with a full catalogue — {count.format(total)} products
-		between them — and an admin you can log into.
+		between them — and an admin you can log into. South Asia and the Gulf are
+		different shops, not the same shop with the prices swapped.
 	</p>
 
-	<ul class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-		{#each DEMOS as demo (demo.key)}
+	{#each grouped as group (group.region.id)}
+		<section class="mt-12">
+			<div class="flex flex-wrap items-baseline gap-3">
+				<h2 class="text-xl font-semibold tracking-tight text-strong">{group.region.label}</h2>
+				<p class="text-sm text-muted">{group.region.markets.join(' · ')}</p>
+				{#if group.region.status === 'building'}
+					<span class="badge-soon">In build</span>
+				{/if}
+			</div>
+			<p class="mt-2 max-w-2xl text-sm text-muted">{group.region.proof}</p>
+
+			<ul class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+				{#each group.demos as demo (demo.key)}
 			<li>
 				<a href="/demo/{demo.key}" class="card group flex h-full flex-col transition hover:shadow-lg">
 					<span class="grid size-11 place-items-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
@@ -64,10 +87,12 @@
 					</span>
 				</a>
 			</li>
-		{/each}
-	</ul>
+				{/each}
+			</ul>
+		</section>
+	{/each}
 
-	<p class="mt-10 max-w-2xl text-sm text-muted">
+	<p class="mt-12 max-w-2xl text-sm text-muted">
 		Every demo resets to the same catalogue each night, so you can place test
 		orders, cancel them and change prices without breaking it for anyone else.
 	</p>

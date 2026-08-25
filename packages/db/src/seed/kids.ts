@@ -5,6 +5,10 @@ const SZ: [string, string[]] = ['Size', ['S', 'M', 'L', 'XL']];
 
 export const kids: Vertical = {
 	key: 'kids',
+	region: 'south-asia',
+	currency: 'BDT',
+	locale: 'bn',
+	country: 'BD',
 	shop: 'Choto Bela',
 	categories: ['Boys Clothing', 'Girls Clothing', 'Baby Care', 'Toys & Games', 'School Supplies', 'Footwear'],
 	products: [

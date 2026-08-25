@@ -215,9 +215,9 @@ export const SITE_URL = 'https://fajr.shop';
 // their og:/twitter: twins.
 export const META: Record<string, { title: string; description: string }> = {
 	'/': {
-		title: 'Fajr Shop — ecommerce built for Bangladesh',
+		title: 'Fajr Shop — ecommerce for South Asia and the Gulf',
 		description:
-			'Cash on delivery, fraud checking, courier routing and COD reconciliation. Ecommerce built for how Bangladesh actually sells.'
+			'Cash on delivery, fraud checking, courier routing and COD reconciliation. Built for how South Asia and the Gulf actually sell.'
 	},
 	'/pricing': {
 		title: 'Pricing — Fajr Shop',
@@ -236,52 +236,72 @@ export const META: Record<string, { title: string; description: string }> = {
 
 export type Demo = {
 	key: string;
+	region: 'south-asia' | 'middle-east';
 	shop: string;
 	label: string;
 	tagline: string;
 	// What this particular demo is meant to prove, rather than a feature list.
 	shows: string[];
 	products: number;
-	theme: 'Fashion theme' | 'Tech theme';
+	theme: 'Fashion theme' | 'Tech theme' | 'Gulf theme';
 };
 
 // One seeded shop per vertical, so a merchant sees their own trade, not someone else's.
 export const DEMOS: Demo[] = [
 	{
-		key: 'fashion', shop: 'Neel Tanti', label: 'Fashion & clothing',
+		key: 'fashion', region: 'south-asia', shop: 'Neel Tanti', label: 'Fashion & clothing',
 		tagline: 'Sarees, kurti and panjabi with colour and size variants.',
 		shows: ['Colour swatches and size runs', 'Sold-out variants on the grid', 'Bangla product titles'],
 		products: 52, theme: 'Fashion theme'
 	},
 	{
-		key: 'kids', shop: 'Choto Bela', label: 'Kids & baby',
+		key: 'kids', region: 'south-asia', shop: 'Choto Bela', label: 'Kids & baby',
 		tagline: 'Clothes, toys and school supplies sold by age band.',
 		shows: ['Age-band variants, not just sizes', 'Six categories on one menu', 'Exchange-heavy FAQ'],
 		products: 54, theme: 'Fashion theme'
 	},
 	{
-		key: 'grocery', shop: 'Bazar Ghor', label: 'Grocery & bazar',
+		key: 'grocery', region: 'south-asia', shop: 'Bazar Ghor', label: 'Grocery & bazar',
 		tagline: 'Rice, oil, dal and spices priced by pack size.',
 		shows: ['Pack-size pricing up to 50kg', 'Dense grid built for repeat orders', 'Filterable origin and type'],
 		products: 57, theme: 'Tech theme'
 	},
 	{
-		key: 'tech', shop: 'Jontro', label: 'Electronics',
+		key: 'tech', region: 'south-asia', shop: 'Jontro', label: 'Electronics',
 		tagline: 'Laptops and phones with full spec tables.',
 		shows: ['Filter by RAM, processor, brand', 'Storage variants per model', 'Spec table on every product'],
 		products: 52, theme: 'Tech theme'
 	},
 	{
-		key: 'beauty', shop: 'Rupkotha', label: 'Beauty & skincare',
+		key: 'beauty', region: 'south-asia', shop: 'Rupkotha', label: 'Beauty & skincare',
 		tagline: 'Skincare, makeup and attar with shade variants.',
 		shows: ['Shade swatches on makeup', 'Filter by skin type and concern', 'Batch and expiry messaging'],
 		products: 56, theme: 'Fashion theme'
 	},
 	{
-		key: 'home', shop: 'Ghor Shonshar', label: 'Home & living',
+		key: 'home', region: 'south-asia', shop: 'Ghor Shonshar', label: 'Home & living',
 		tagline: 'Kitchen, bedding and furniture with delivery promises.',
 		shows: ['Bulky-item delivery copy', 'Material filters on furniture', 'Six categories, deep catalogue'],
 		products: 56, theme: 'Fashion theme'
+	},
+
+	{
+		key: 'gulf-fashion', region: 'middle-east', shop: 'Layali', label: 'Modest fashion',
+		tagline: 'Abayas, kaftans and kandura priced in dirhams.',
+		shows: ['Bilingual Arabic and English titles', 'Tabby and Tamara pay-in-4', 'VAT-inclusive prices, as required'],
+		products: 38, theme: 'Gulf theme'
+	},
+	{
+		key: 'gulf-tech', region: 'middle-east', shop: 'Barq', label: 'Electronics',
+		tagline: 'Phones and laptops with genuine UAE warranty.',
+		shows: ['Same-day Dubai delivery copy', 'Filter by RAM, brand, storage', 'Gulf-scale basket sizes'],
+		products: 36, theme: 'Gulf theme'
+	},
+	{
+		key: 'gulf-grocery', region: 'middle-east', shop: 'Souq Yawmi', label: 'Grocery',
+		tagline: 'Fresh produce and halal meat in two-hour slots.',
+		shows: ['Halal certification on every item', 'Origin country as a filter', 'Ramadan delivery slots'],
+		products: 40, theme: 'Gulf theme'
 	}
 ];
 

@@ -35,8 +35,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   which pulled the database driver into the browser bundle. Segment labels now
   live in `$lib`, and a test fails if any component imports a core value again.
 - **The admin showed "Fajr Shop" instead of the merchant's own store name.**
+- **The enquiry forms rejected every Gulf phone number**, accepting only
+  Bangladeshi mobiles.
 
 ### Changed
+
+- **The landing page covers two regions.** South Asia and the Gulf swap the
+  headline, the numbers, the currency and the couriers and wallets named — the
+  Gulf is marked *in build* rather than implied to be finished.
+- **Storefront themes are regional.** `bazar` for South Asia (saturated, dense,
+  built to be scanned) and `gulf` for the Middle East (deeper palette, roomier,
+  looser leading for Arabic). Typefaces cover their scripts: Hind Siliguri for
+  Bengali, Cairo for Arabic.
+- **Three Gulf demo shops** — Layali, Barq and Souq Yawmi — priced in dirhams,
+  VAT-inclusive, with bilingual product titles.
+- Demo URLs come from `DEMO_URL_TEMPLATE` instead of an assumed subdomain.
 
 - The admin sidebar has a **Visit site** link, opening the storefront in a new tab.
 - **Shop name, tagline, announcement bar and support hours are settings**, not

@@ -11,20 +11,23 @@ import { db, menuItem, newId, sql } from '../index.ts';
 import { tile } from './png.ts';
 import type { P, Vertical } from './types.ts';
 import { fashion } from './fashion.ts';
+import { gulfFashion } from './gulf-fashion.ts';
+import { gulfTech } from './gulf-tech.ts';
+import { gulfGrocery } from './gulf-grocery.ts';
 import { kids } from './kids.ts';
 import { grocery } from './grocery.ts';
 import { tech } from './tech.ts';
 import { beauty } from './beauty.ts';
 import { home } from './home.ts';
 
-const ALL: Record<string, Vertical> = { fashion, kids, grocery, tech, beauty, home };
-
-// A dense grid with specs up front suits groceries and electronics; the roomy
-// image-led grid suits everything else.
-const THEME: Record<string, 'fashion' | 'tech'> = {
-	fashion: 'fashion', kids: 'fashion', beauty: 'fashion',
-	home: 'fashion', grocery: 'tech', tech: 'tech'
+const ALL: Record<string, Vertical> = {
+	fashion, kids, grocery, tech, beauty, home,
+	'gulf-fashion': gulfFashion, 'gulf-tech': gulfTech, 'gulf-grocery': gulfGrocery
 };
+
+// Region picks the palette and density: South Asia is a dense, saturated
+// marketplace; the Gulf is roomier and reads as a boutique.
+const THEME = { 'south-asia': 'bazar', 'middle-east': 'gulf' } as const;
 
 const key = process.argv[2];
 const v = key ? ALL[key] : undefined;
@@ -223,12 +226,19 @@ await setHome(homeId);
 
 await updateSettings({
 	storeName: v.shop,
-	theme: THEME[v.key]!,
+	theme: THEME[v.region],
+	currency: v.currency,
+	country: v.country,
+	defaultLocale: v.locale,
 	// Doubles as the og:image, so a shared link is never a blank card.
 	logoMediaId: await image(`logo-${v.key}`, v.shop),
 	tagline: v.meta.description,
 	announcement: v.announcement,
-	supportHours: v.supportHours
+	supportHours: v.supportHours,
+	// The Gulf displays tax-inclusive prices by law; South Asia mostly does not.
+	vatRegistered: v.region === 'middle-east',
+	vatRateBp: v.region === 'middle-east' ? 500 : 0,
+	vatInclusivePricing: v.region === 'middle-east'
 });
 
 const variants = v.products.reduce((n, p) => n + (p.opt?.[1].length ?? 1), 0);

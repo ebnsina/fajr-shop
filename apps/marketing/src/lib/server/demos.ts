@@ -22,10 +22,15 @@ function required(name: string): string {
 export function credentialsFor(key: string): Credentials | null {
 	if (!DEMOS.some((d) => d.key === key)) return null;
 
-	const host = required('DEMO_BASE_HOST');
+	// A template, not a hardcoded subdomain: how the demos are addressed is a
+	// deployment decision, and a wildcard subdomain that is not actually ours
+	// hands the visitor someone else's site.
+	const template = required('DEMO_URL_TEMPLATE');
+	const storefront = template.replaceAll('{key}', key).replace(/\/$/, '');
+
 	return {
-		storefront: `https://${key}.${host}`,
-		admin: `https://${key}.${host}/admin`,
+		storefront,
+		admin: `${storefront}/admin`,
 		email: required('DEMO_EMAIL'),
 		password: required('DEMO_PASSWORD'),
 		resetsAt: 'Every night at 3am Dhaka time'

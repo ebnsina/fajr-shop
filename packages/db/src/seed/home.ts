@@ -2,6 +2,10 @@ import type { Vertical } from './types.ts';
 
 export const home: Vertical = {
 	key: 'home',
+	region: 'south-asia',
+	currency: 'BDT',
+	locale: 'bn',
+	country: 'BD',
 	shop: 'Ghor Shonshar',
 	categories: ['Kitchen & Dining', 'Bedding & Bath', 'Furniture', 'Home Decor', 'Storage & Organisation', 'Cleaning'],
 	products: [

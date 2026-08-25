@@ -2,9 +2,15 @@
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import { ArrowRight01FreeIcons, Tick02FreeIcons } from '@hugeicons/core-free-icons';
 	import { OPERATIONS, STOREFRONT, RUNNING, ROADMAP, PLANS, DEMOS, CONTACT } from '$lib/content';
+	import { REGIONS, money, type RegionId } from '$lib/regions';
 
 	const taka = (n: number) => new Intl.NumberFormat('en-US').format(n);
 	const growth = PLANS.find((p) => p.featured)!;
+
+	// One product, two very different markets. The visitor picks which one they
+	// are, and the whole pitch above the fold changes with them.
+	let regionId = $state<RegionId>('south-asia');
+	const region = $derived(REGIONS.find((r) => r.id === regionId)!);
 
 	const SECTIONS = [
 		{ id: 'operations', eyebrow: 'Where the money leaks', title: 'The operational half nobody else builds', items: OPERATIONS },
@@ -15,37 +21,76 @@
 
 
 <!-- hero -->
-<section class="mx-auto max-w-6xl px-6 pb-16 pt-16 sm:pt-24">
-	<p class="eyebrow">For Bangladeshi shops</p>
+<section class="mx-auto max-w-6xl px-6 pb-16 pt-14 sm:pt-20">
+	<div
+		class="inline-flex rounded-2xl bg-sunken p-1"
+		role="group"
+		aria-label="Choose your region"
+	>
+		{#each REGIONS as r (r.id)}
+			<button
+				onclick={() => (regionId = r.id)}
+				aria-pressed={regionId === r.id}
+				class="rounded-xl px-4 py-2 text-sm font-medium transition
+				       {regionId === r.id ? 'bg-raised text-strong elevation-1' : 'text-muted hover:text-strong'}"
+			>
+				{r.label}
+			</button>
+		{/each}
+	</div>
+
+	<p class="eyebrow mt-6">{region.eyebrow}</p>
 	<h1 class="mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-strong sm:text-5xl">
-		Your return rate is the problem.
-		<span class="text-muted">Not your website.</span>
+		{region.headline.lead}
+		<span class="text-muted">{region.headline.trail}</span>
 	</h1>
 
-	<p class="mt-6 max-w-2xl text-lg text-muted">
-		Every platform sells you a storefront. None of them check whether the person
-		ordering has returned nine of their last twelve parcels. Fajr Shop does that
-		before the order is accepted — and handles the calls, the couriers and the
-		COD money that arrives days later.
-	</p>
+	<p class="mt-6 max-w-2xl text-lg text-muted">{region.pitch}</p>
 
 	<div class="mt-8 flex flex-wrap gap-3">
-		<a href="/demo" class="btn btn-primary">Open a live demo <HugeiconsIcon icon={ArrowRight01FreeIcons} size={16} aria-hidden="true" /></a>
+		<a href="/demo" class="btn btn-primary">
+			Open a live demo <HugeiconsIcon icon={ArrowRight01FreeIcons} size={16} aria-hidden="true" />
+		</a>
 		<a href="/pricing" class="btn btn-secondary">See pricing</a>
 	</div>
 
 	<p class="mt-4 text-sm text-faint">
-		From BDT {taka(PLANS[0].monthlyBdt)}/month. No revenue share, ever.
+		From {money(region.priceFrom.amount, region.priceFrom.currency, region.locale)}/month.
+		No revenue share, ever.
 	</p>
+
+	<!-- Naming the couriers and wallets a merchant already uses does more than any
+	     feature list: it proves the product knows their market. -->
+	<dl class="mt-10 grid gap-6 border-t border-line pt-8 sm:grid-cols-3">
+		<div>
+			<dt class="text-xs font-medium uppercase tracking-wide text-faint">Markets</dt>
+			<dd class="mt-1.5 text-sm text-body">{region.markets.join(' · ')}</dd>
+		</div>
+		<div>
+			<dt class="text-xs font-medium uppercase tracking-wide text-faint">Couriers</dt>
+			<dd class="mt-1.5 text-sm text-body">{region.couriers.join(' · ')}</dd>
+		</div>
+		<div>
+			<dt class="text-xs font-medium uppercase tracking-wide text-faint">Payments</dt>
+			<dd class="mt-1.5 text-sm text-body">{region.payments.join(' · ')}</dd>
+		</div>
+	</dl>
+
+	{#if region.status === 'building'}
+		<p class="mt-6 flex flex-wrap items-center gap-2 text-sm text-muted">
+			<span class="badge-soon">In build</span>
+			{region.note}
+		</p>
+	{/if}
 </section>
 
 <!-- the problem, in numbers -->
 <section class="border-y border-line bg-sunken">
 	<div class="mx-auto grid max-w-6xl gap-8 px-6 py-14 sm:grid-cols-3">
-		{#each [['20–35%', 'of COD orders come back in Bangladesh. Every one costs you the delivery both ways.'], ['Days later', 'is when COD money actually arrives, in batches that most shops never reconcile.'], ['Every order', 'gets a confirmation call at most shops — including the ones that never needed one.']] as [stat, body] (stat)}
+		{#each region.stats as stat (stat.figure)}
 			<div>
-				<p class="font-mono text-3xl tabular-nums text-strong">{stat}</p>
-				<p class="mt-2 text-sm text-muted">{body}</p>
+				<p class="font-mono text-3xl tabular-nums text-strong">{stat.figure}</p>
+				<p class="mt-2 text-sm text-muted">{stat.body}</p>
 			</div>
 		{/each}
 	</div>

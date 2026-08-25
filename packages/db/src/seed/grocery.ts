@@ -5,6 +5,10 @@ const L: [string, string[]] = ['Size', ['500 ml', '1 L', '2 L', '5 L']];
 
 export const grocery: Vertical = {
 	key: 'grocery',
+	region: 'south-asia',
+	currency: 'BDT',
+	locale: 'bn',
+	country: 'BD',
 	shop: 'Bazar Ghor',
 	categories: ['Rice & Grains', 'Cooking Oil & Ghee', 'Spices & Masala', 'Dal & Pulses', 'Snacks & Biscuits', 'Tea, Coffee & Drinks', 'Dairy & Eggs'],
 	units: { Weight: 'kg', Volume: 'L' },

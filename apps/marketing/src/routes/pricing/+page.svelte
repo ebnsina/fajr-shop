@@ -75,7 +75,8 @@
 	</div>
 
 	<p class="mt-5 text-sm text-muted">
-		Prices in Bangladeshi taka, excluding VAT where applicable. Changing plans
+		Prices in Bangladeshi taka for South Asia; Gulf pricing is quoted in dirhams
+		at the equivalent tier. Excluding VAT where applicable. Changing plans
 		takes effect the following month, and nobody is upgraded automatically for
 		having a good month.
 	</p>

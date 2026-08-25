@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { PLANS } from '$lib/content';
+import { phoneSchema } from '$lib/kyc';
 import { record, tooSoon } from '$lib/server/enquiry';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -11,12 +12,7 @@ export const load: PageServerLoad = ({ url }) => ({
 
 const schema = v.object({
 	name: v.pipe(v.string(), v.trim(), v.minLength(2, 'Please tell us your name.')),
-	phone: v.pipe(
-		v.string(),
-		v.trim(),
-		v.transform((s) => s.replace(/[\s-]/g, '')),
-		v.regex(/^(\+?88)?01[3-9]\d{8}$/, 'That does not look like a Bangladeshi mobile number.')
-	),
+	phone: phoneSchema,
 	shop: v.pipe(v.string(), v.trim(), v.maxLength(120)),
 	orders: v.pipe(v.string(), v.trim(), v.maxLength(40)),
 	message: v.pipe(v.string(), v.trim(), v.maxLength(1000))

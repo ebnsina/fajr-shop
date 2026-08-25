@@ -4,6 +4,10 @@ const SHADE: [string, string[]] = ['Shade', ['Fair', 'Light', 'Medium', 'Warm', 
 
 export const beauty: Vertical = {
 	key: 'beauty',
+	region: 'south-asia',
+	currency: 'BDT',
+	locale: 'bn',
+	country: 'BD',
 	shop: 'Rupkotha',
 	categories: ['Skincare', 'Makeup', 'Haircare', 'Fragrance', 'Bath & Body', 'Tools & Brushes'],
 	products: [

@@ -13,6 +13,11 @@ export type P = {
 export type Vertical = {
 	key: string;
 	shop: string;
+	// Drives currency, locale, theme and the storefront's reading direction.
+	region: 'south-asia' | 'middle-east';
+	currency: string;
+	locale: string;
+	country: string;
 	categories: string[];
 	units?: Record<string, string>; // attribute name -> unit
 	products: P[];

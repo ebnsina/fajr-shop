@@ -5,6 +5,10 @@ const size = (): [string, string[]] => ['Size', SIZES];
 
 export const fashion: Vertical = {
 	key: 'fashion',
+	region: 'south-asia',
+	currency: 'BDT',
+	locale: 'bn',
+	country: 'BD',
 	shop: 'Neel Tanti',
 	categories: ['Sarees', 'Salwar Kameez', 'Kurti', 'Panjabi', 'Shawls & Scarves', 'Bags & Jewellery'],
 	products: [

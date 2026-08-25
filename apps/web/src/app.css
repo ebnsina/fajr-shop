@@ -4,6 +4,12 @@
    Dhaka 3G connection, and it leaks every visitor to another domain. */
 @import '@fontsource-variable/mona-sans';
 @import '@fontsource-variable/geist-mono';
+/* Each @font-face carries a unicode-range, so a Latin-only page never fetches
+   the Bengali or Arabic files. Declaring them costs nothing until used. */
+@import '@fontsource/hind-siliguri/400.css';
+@import '@fontsource/hind-siliguri/500.css';
+@import '@fontsource/hind-siliguri/600.css';
+@import '@fontsource-variable/cairo';
 
 /* ── design tokens ─────────────────────────────────────────────────────────
    The admin has one identity. Storefront themes are per-merchant config and

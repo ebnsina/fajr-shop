@@ -26,7 +26,7 @@ export const setting = pgTable('setting', {
 	vatBin: text('vat_bin'),
 	vatRateBp: integer('vat_rate_bp').notNull().default(0),
 	vatInclusivePricing: boolean().notNull().default(false),
-	theme: text({ enum: ['fashion', 'tech'] })
+	theme: text({ enum: ['fashion', 'tech', 'bazar', 'gulf'] })
 		.notNull()
 		.default('fashion'),
 	/** Which step of the first-run wizard is outstanding. null = finished. */

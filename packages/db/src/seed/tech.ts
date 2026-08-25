@@ -2,6 +2,10 @@ import type { Vertical } from './types.ts';
 
 export const tech: Vertical = {
 	key: 'tech',
+	region: 'south-asia',
+	currency: 'BDT',
+	locale: 'bn',
+	country: 'BD',
 	shop: 'Jontro',
 	categories: ['Laptops', 'Smartphones', 'Monitors', 'Audio', 'Storage & Components', 'Accessories'],
 	units: { RAM: 'GB', Screen: 'inch', Battery: 'mAh' },

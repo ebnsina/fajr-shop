@@ -40,6 +40,27 @@ Storefront pages carry the same bar. BD shoppers are overwhelmingly on small
 Android screens over slow connections, so touch targets stay at least 44px and
 nothing important depends on hover.
 
+## Two regions, one product
+
+South Asia and the Gulf are different businesses, and the product says so rather
+than translating one into the other.
+
+- **`region` drives the storefront theme.** `bazar` for South Asia — saturated
+  orange, dense grid, everything scannable on one screen, because it competes
+  with Daraz. `gulf` for the Middle East — deep green and gold, roomier grid,
+  higher basket, looser leading because Arabic runs ~25% longer than English.
+- **Name what the merchant already uses.** Steadfast and bKash in Dhaka; Aramex,
+  mada, Tabby and Tamara in Dubai. Naming the wrong ones loses the sale faster
+  than a missing feature.
+- **The Gulf displays tax-inclusive prices** — it is legally required there and
+  wrong in Bangladesh. `vatInclusivePricing` follows the region.
+- **Never claim Arabic or RTL until the catalogue exists.** The Gulf demos are
+  English-first with bilingual product titles, which is what plan §14 committed
+  to. Marketing copy says so plainly.
+- **Phone validation covers every market we sell into**, not just Bangladesh. A
+  Dubai merchant being told their own number is invalid is the worst first
+  impression the form can make.
+
 ## Two apps, two audiences
 
 `apps/web` is the merchant's — storefront plus admin, deployed once **per
@@ -69,8 +90,12 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
 - **Comments are one line, two at most.** No exceptions, no JSDoc blocks.
 - **Never hardcode config or fall back for a missing env var** — throw, with the
   variable named in the message. A wrong default is worse than a stopped page.
-- **Icons are Hugeicons** (`@hugeicons/svelte`), validation is **Valibot**,
-  fonts are **Mona Sans** and **Geist Mono**. Never reach for another set.
+- **Icons are Hugeicons** (`@hugeicons/svelte`) and validation is **Valibot**.
+- **Type is chosen per theme, and must cover the theme's script.** Mona Sans and
+  Geist Mono are the admin and marketing defaults; storefront themes pick their
+  own — Hind Siliguri for Bengali, Cairo for Arabic. A Latin face with a system
+  fallback for Bangla or Arabic is not acceptable. Self-host via `@fontsource`:
+  the CSP has no external font origin, so Google Fonts will not load.
 - **Use `Intl`** for every date, number and currency. No hand-rolled formatters.
 - **User-facing text is plain language** — no jargon, no error codes, no stack
   traces. Every route handles 404, 500, network failure and empty state.

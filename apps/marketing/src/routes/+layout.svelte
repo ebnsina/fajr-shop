@@ -93,7 +93,7 @@
 		<div>
 			<p class="font-semibold tracking-tight text-strong">Fajr Shop</p>
 			<p class="mt-2 text-sm text-muted">
-				Ecommerce built for how Bangladesh actually sells: cash on delivery,
+				Ecommerce built for how South Asia and the Gulf actually sell: cash on delivery,
 				courier returns, and Facebook traffic.
 			</p>
 		</div>
