@@ -2,6 +2,8 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { moneyFor } from '$lib/money';
 	import { page } from '$app/state';
+	import Combobox from '$lib/components/Combobox.svelte';
+	import { subAreasOf, hasSubAreas } from '@fajr/schemas';
 
 	let { data } = $props();
 
@@ -23,6 +25,10 @@
 	const totalMinor = $derived(
 		Math.max(0, data.cart.subtotalMinor + shippingMinor - discountMinor)
 	);
+	const allAreas = $derived(Object.values(data.areas).flat());
+	// Recomputed from the first field, so the two can never disagree.
+	const subAreas = $derived(subAreasOf(data.country, $form.district));
+
 	const advanceMinor = $derived($form.paymentMethod === 'bkash_manual' ? totalMinor : shippingMinor);
 
 	/** Captured as typed, so an abandoned cart has somebody to remind. */
@@ -67,27 +73,38 @@
 		</label>
 
 		<div class="pair">
-			<label>
-				<!-- District in Dhaka, Emirate in Dubai. The shop's country decides. -->
-				<span>{data.areaLabel}</span>
-				<select bind:value={$form.district} required>
-					<option value="">Choose…</option>
-					{#each Object.entries(data.areas) as [group, list] (group)}
-						<optgroup label={group}>
-							{#each list as area (area)}
-								<option value={area}>{area}</option>
-							{/each}
-						</optgroup>
-					{/each}
-				</select>
-				{#if $errors.district}<em>{$errors.district}</em>{/if}
-			</label>
+			<!-- District in Dhaka, Emirate in Dubai. Typing beats scrolling forty
+			     options on a phone, which is what most of this market is on. -->
+			<Combobox
+				id="district"
+				name="district"
+				label={data.areaLabel}
+				bind:value={$form.district}
+				options={allAreas}
+				placeholder="Type to search…"
+				required
+				error={$errors.district?.[0] ?? ''}
+			/>
 
 			{#if data.subAreaLabel}
-				<label>
-					<span>{data.subAreaLabel}</span>
-					<input bind:value={$form.thana} autocomplete="address-level3" />
-				</label>
+				{#if hasSubAreas(data.country)}
+					<!-- Depends on the field above: pick Dhaka and this lists Dhaka's
+					     thanas, nothing else. Changing the district clears it. -->
+					<Combobox
+						id="thana"
+						name="thana"
+						label={data.subAreaLabel}
+						bind:value={$form.thana}
+						options={subAreas}
+						disabled={!$form.district}
+						placeholder={$form.district ? 'Type to search…' : `Choose a ${data.areaLabel.toLowerCase()} first`}
+					/>
+				{:else}
+					<label>
+						<span>{data.subAreaLabel}</span>
+						<input bind:value={$form.thana} autocomplete="address-level3" />
+					</label>
+				{/if}
 			{/if}
 		</div>
 
@@ -226,65 +243,12 @@
 		margin-block-end: 0.375rem;
 	}
 
-	input,
-	select,
-	textarea {
-		inline-size: 100%;
-		padding: 0.75rem;
-		border: 1px solid var(--c-line);
-		border-radius: var(--radius);
-		font: inherit;
-		background: var(--c-surface);
-	}
 
-	input[type='radio'] {
-		appearance: none;
-		inline-size: 1.125rem;
-		block-size: 1.125rem;
-		flex: none;
-		margin: 0.125rem 0 0;
-		padding: 0;
-		border: 1px solid var(--c-line);
-		border-radius: 50%;
-		background: var(--c-surface);
-		display: inline-grid;
-		place-content: center;
-		cursor: pointer;
-	}
 
-	input[type='radio']::before {
-		content: '';
-		inline-size: 0.4375rem;
-		block-size: 0.4375rem;
-		border-radius: 50%;
-		background: var(--c-accent-text);
-		transform: scale(0);
-		transition: transform 120ms cubic-bezier(0.2, 0, 0, 1);
-	}
 
-	input[type='radio']:checked {
-		background: var(--c-accent);
-		border-color: var(--c-accent);
-	}
 
-	input[type='radio']:checked::before {
-		transform: scale(1);
-	}
 
-	input[type='radio']:focus-visible {
-		outline: none;
-		box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent);
-	}
 
-	select {
-		appearance: none;
-		padding-inline-end: 2.25rem;
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-		background-repeat: no-repeat;
-		background-position: right 0.75rem center;
-		background-size: 1rem;
-		cursor: pointer;
-	}
 
 	small {
 		color: var(--c-muted);

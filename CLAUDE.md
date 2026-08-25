@@ -116,6 +116,12 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
   hand-written header — only SvelteKit can nonce its own hydration script. A
   hand-rolled `default-src 'self'` silently killed every bit of admin JS once.
 
+- **Form controls are styled once**, in the storefront layout for the shop and
+  `app.css` for the admin. A page that restyles its own inputs will drift.
+- **Address is two dependent fields**, not one free-text box a courier has to
+  guess at: a searchable first level and a second that lists only what belongs
+  to it. `subAreasOf` and `hasSubAreas` in `@fajr/schemas` own that mapping.
+
 ## The rest
 
 - **Money is integer minor units.** Never a float, never a bare `price`.

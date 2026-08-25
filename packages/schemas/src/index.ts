@@ -161,3 +161,4 @@ export const trackFormFor = (country: string | null | undefined) =>
 		code: z.string().trim().min(4, 'Enter your order code').max(12),
 		phone: phoneFor(country)
 	});
+export * from './areas.ts';

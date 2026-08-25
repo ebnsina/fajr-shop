@@ -35,6 +35,7 @@ export const load: PageServerLoad = async ({ cookies, parent }) => {
 		// The shop's own country decides the address fields, or a Dubai customer
 		// is asked to pick a Bangladeshi district.
 		areas: countryOf(store.country).areas,
+		country: store.country,
 		areaLabel: countryOf(store.country).areaLabel,
 		subAreaLabel: countryOf(store.country).subAreaLabel,
 		meta: { title: titled(store.name, 'Checkout'), noindex: true }

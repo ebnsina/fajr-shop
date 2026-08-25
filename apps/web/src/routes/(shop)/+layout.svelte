@@ -139,7 +139,7 @@
 	<button class="scrim" onclick={() => (menuOpen = false)} aria-label="Close menu"></button>
 {/if}
 
-<main id="main">{@render children()}</main>
+<main id="main" class="shop">{@render children()}</main>
 
 <footer>
 	<div class="cols">
@@ -181,6 +181,153 @@
 </footer>
 
 <style>
+
+	/* ── form controls ─────────────────────────────────────────────────
+	   Defined once for the whole storefront. Before this, only checkout
+	   styled its inputs, so the review, question and tracking forms fell
+	   back to whatever the browser draws. Everything below is logical-
+	   property based, so RTL needs no second pass. */
+
+	:global(.shop input:not([type='checkbox']):not([type='radio']):not([type='hidden'])),
+	:global(.shop select),
+	:global(.shop textarea) {
+		inline-size: 100%;
+		padding: 0.75rem;
+		border: 1px solid var(--c-line);
+		border-radius: var(--radius);
+		font: inherit;
+		color: inherit;
+		background: var(--c-surface);
+		transition: border-color 120ms ease, box-shadow 120ms ease;
+	}
+
+	/* One focus style everywhere: neutral border, 2px accent ring, 2px offset.
+	   The ring is drawn with box-shadow rather than outline so it follows the
+	   control's border-radius on every browser. */
+	:global(.shop input:focus-visible),
+	:global(.shop select:focus-visible),
+	:global(.shop textarea:focus-visible),
+	:global(.shop a:focus-visible),
+	:global(.shop button:focus-visible),
+	:global(.shop summary:focus-visible),
+	:global(.shop [tabindex]:focus-visible) {
+		outline: none;
+		border-color: var(--c-line);
+		box-shadow:
+			0 0 0 2px var(--c-surface),
+			0 0 0 4px var(--c-accent);
+	}
+
+	:global(.shop input[aria-invalid='true']),
+	:global(.shop textarea[aria-invalid='true']) {
+		border-color: var(--c-sale);
+	}
+
+	:global(.shop input:disabled),
+	:global(.shop select:disabled),
+	:global(.shop textarea:disabled) {
+		background: var(--c-bg);
+		color: var(--c-muted);
+		cursor: not-allowed;
+	}
+
+	:global(.shop select) {
+		appearance: none;
+		padding-inline-end: 2.25rem;
+		/* currentColor via mask, so the chevron follows the theme instead of
+		   being baked grey, and sits on the correct side in RTL. */
+		background-image: none;
+		cursor: pointer;
+	}
+	:global(.shop .select-wrap) {
+		position: relative;
+		display: block;
+	}
+	:global(.shop .select-wrap::after) {
+		content: '';
+		position: absolute;
+		inset-inline-end: 0.875rem;
+		inset-block-start: 50%;
+		inline-size: 0.625rem;
+		block-size: 0.625rem;
+		transform: translateY(-70%) rotate(45deg);
+		border-inline-end: 2px solid var(--c-muted);
+		border-block-end: 2px solid var(--c-muted);
+		pointer-events: none;
+	}
+
+	:global(.shop input[type='checkbox']),
+	:global(.shop input[type='radio']) {
+		appearance: none;
+		inline-size: 1.125rem;
+		block-size: 1.125rem;
+		flex: none;
+		margin: 0.125rem 0 0;
+		padding: 0;
+		border: 1px solid var(--c-line);
+		background: var(--c-surface);
+		display: inline-grid;
+		place-content: center;
+		cursor: pointer;
+		transition: background 120ms ease, border-color 120ms ease;
+	}
+	:global(.shop input[type='radio']) {
+		border-radius: 50%;
+	}
+	:global(.shop input[type='checkbox']) {
+		border-radius: calc(var(--radius) * 0.5);
+	}
+
+	:global(.shop input[type='radio']::before) {
+		content: '';
+		inline-size: 0.4375rem;
+		block-size: 0.4375rem;
+		border-radius: 50%;
+		background: var(--c-accent-text);
+		transform: scale(0);
+		transition: transform 120ms cubic-bezier(0.2, 0, 0, 1);
+	}
+	/* A tick drawn from two borders: no icon font, no SVG request. */
+	:global(.shop input[type='checkbox']::before) {
+		content: '';
+		inline-size: 0.3125rem;
+		block-size: 0.625rem;
+		margin-block-start: -0.125rem;
+		border-inline-end: 2px solid var(--c-accent-text);
+		border-block-end: 2px solid var(--c-accent-text);
+		transform: rotate(45deg) scale(0);
+		transition: transform 120ms cubic-bezier(0.2, 0, 0, 1);
+	}
+
+	:global(.shop input[type='checkbox']:checked),
+	:global(.shop input[type='radio']:checked) {
+		background: var(--c-accent);
+		border-color: var(--c-accent);
+	}
+	:global(.shop input[type='radio']:checked::before) {
+		transform: scale(1);
+	}
+	:global(.shop input[type='checkbox']:checked::before) {
+		transform: rotate(45deg) scale(1);
+	}
+
+	/* Touch targets stay at 44px on the phones this market actually uses. */
+	:global(.shop label:has(input[type='checkbox'])),
+	:global(.shop label:has(input[type='radio'])) {
+		min-block-size: 2.75rem;
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		cursor: pointer;
+	}
+
+	:global(.shop em[role='alert']) {
+		display: block;
+		margin-block-start: 0.375rem;
+		font-style: normal;
+		font-size: 0.8125rem;
+		color: var(--c-sale);
+	}
 	:global(body) {
 		background: var(--c-bg);
 		color: var(--c-text);

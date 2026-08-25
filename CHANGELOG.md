@@ -7,6 +7,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Dependent address fields.** The first field is a searchable combobox —
+  district in Dhaka, emirate in Dubai — and the second lists only what belongs
+  to it. Pick Dhaka and the area field searches Dhaka's forty-two thanas;
+  change the district and it clears itself rather than keeping a stale area.
+  Typing beats scrolling forty options on the phones this market runs on.
+- **Form controls styled once for the whole storefront.** Inputs, selects,
+  checkboxes, radios and textareas now match the theme everywhere, not just on
+  checkout. One focus style throughout: neutral border, 2px accent ring, 2px
+  offset. Touch targets stay at 44px, and every rule is logical-property based
+  so RTL needs no second pass.
+
 - **Integrations page.** Pick, connect, pause and remove couriers, payment
   providers, messaging, chat channels and analytics from one screen, filtered to
   the shop's own region. Secrets are masked once saved and never reach the
