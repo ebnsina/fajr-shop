@@ -7,7 +7,7 @@
 <h1>{data.q ? `${data.total} results for “${data.q}”` : 'Search'}</h1>
 
 {#if data.items.length}
-	<ProductGrid items={data.items} currency={data.store.currency} />
+	<ProductGrid items={data.items} currency={data.store.currency} locale={data.store.numberLocale} />
 {:else if data.q}
 	<p class="empty">Nothing matched. Try a shorter search.</p>
 {/if}

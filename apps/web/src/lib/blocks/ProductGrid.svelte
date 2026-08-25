@@ -1,12 +1,17 @@
 <script lang="ts">
 	import Grid from '$lib/components/ProductGrid.svelte';
-	let { props, products, currency }: { props: any; products: any[]; currency: string } = $props();
+	let { props, products, currency, locale }: {
+		props: any;
+		products: any[];
+		currency: string;
+		locale: string;
+	} = $props();
 </script>
 
 <section>
 	{#if props.heading}<h2>{props.heading}</h2>{/if}
 	{#if products.length}
-		<Grid items={products} {currency} />
+		<Grid items={products} {currency} {locale} />
 	{:else}
 		<p class="empty">Nothing to show here yet.</p>
 	{/if}

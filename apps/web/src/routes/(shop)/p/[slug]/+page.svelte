@@ -9,7 +9,7 @@
 	<p class="preview">Preview — this page is not published.</p>
 {/if}
 
-<BlockList blocks={data.page.blocks} data={data.blocks} currency={data.store.currency} />
+<BlockList blocks={data.page.blocks} data={data.blocks} currency={data.store.currency} locale={data.store.numberLocale} />
 
 <style>
 	.preview {

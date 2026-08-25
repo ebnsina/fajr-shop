@@ -64,7 +64,7 @@
 {/if}
 
 {#if data.items.length}
-	<ProductGrid items={data.items} currency={data.store.currency} />
+	<ProductGrid items={data.items} currency={data.store.currency} locale={data.store.numberLocale} />
 
 	{#if data.pages > 1}
 		<nav class="pager">

@@ -39,7 +39,7 @@
 					<li>{item.qty}× {item.title}{item.variantTitle ? ` · ${item.variantTitle}` : ''}</li>
 				{/each}
 			</ul>
-			<p class="total">{formatMoney(form.order.totalMinor, data.store.currency)}</p>
+			<p class="total">{formatMoney(form.order.totalMinor, data.store.currency, data.store.numberLocale)}</p>
 			<a href="/order/{form.order.publicCode}?p={encodeURIComponent(form.phone)}">Full details →</a>
 		</div>
 	{/if}

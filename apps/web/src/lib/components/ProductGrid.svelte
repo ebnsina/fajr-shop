@@ -2,10 +2,11 @@
 	import type { ProductCard } from '@fajr/core/catalog';
 	import { formatMoney } from '$lib/money';
 
-	let { items, currency = 'BDT', locale = 'bn-BD' }: {
+	// Both required: a default here printed dirhams in Bengali numerals.
+	let { items, currency, locale }: {
 		items: ProductCard[];
-		currency?: string;
-		locale?: string;
+		currency: string;
+		locale: string;
 	} = $props();
 </script>
 

@@ -7,8 +7,9 @@ import {
 import { upload } from '@fajr/core/media';
 import { createPage, updatePage, addBlock, updateBlock, setHome } from '@fajr/core/cms';
 import { updateSettings } from '@fajr/core/settings';
-import { db, menuItem, newId, sql } from '../index.ts';
+import { db, menuItem, review, question, newId, sql } from '../index.ts';
 import { tile } from './png.ts';
+import { REVIEW_POOL, REVIEWERS, GULF_REVIEWERS, QUESTION_POOL } from './social.ts';
 import type { P, Vertical } from './types.ts';
 import { fashion } from './fashion.ts';
 import { gulfFashion } from './gulf-fashion.ts';
@@ -39,6 +40,8 @@ if (!v) {
 // Destructive on purpose: seeding twice must produce one shop, not two.
 // Orders survive, so reports and CRM still have something to show.
 await db.write.execute(sql`
+	delete from review;
+	delete from question;
 	delete from block;
 	delete from page;
 	delete from menu_item;
@@ -100,6 +103,8 @@ for (const name of v.categories) {
 
 const taka = (n: number) => Math.round(n * 100);
 
+const seeded: { id: string; title: string }[] = [];
+
 async function seedProduct(spec: P) {
 	const id = await createProduct({
 		title: spec.t,
@@ -158,9 +163,58 @@ async function seedProduct(spec: P) {
 	}
 
 	await setProductImages(id, [await image(spec.t, spec.t)]);
+	seeded.push({ id, title: spec.t });
 }
 
 for (const spec of v.products) await seedProduct(spec);
+
+// ── reviews and questions ───────────────────────────────────────────────────
+
+// Deterministic from the title, so re-seeding does not reshuffle the ratings
+// and a screenshot stays comparable.
+const pick = <T,>(list: T[], key: string, salt: number): T => {
+	let h = 0;
+	for (let i = 0; i < key.length; i++) h = (Math.imul(h, 31) + key.charCodeAt(i)) >>> 0;
+	return list[(h + salt) % list.length]!;
+};
+
+const names = v.region === 'middle-east' ? GULF_REVIEWERS : REVIEWERS;
+
+for (const [index, prod] of seeded.entries()) {
+	// Not every product: a catalogue where all 50 items have reviews looks seeded.
+	if (index % 3 === 2) continue;
+
+	const howMany = (index % 4) + 1;
+	for (let n = 0; n < howMany; n++) {
+		const body = pick(REVIEW_POOL, prod.title, n);
+		await db.write.insert(review).values({
+			id: newId('rev'),
+			productId: prod.id,
+			rating: body.rating,
+			title: body.title,
+			body: body.body,
+			authorName: pick(names, prod.title, n * 7),
+			// Distinct per reviewer, or the unique index collapses them into one.
+			authorPhone: `+8801${String(700000000 + index * 97 + n * 13).slice(0, 9)}`,
+			isVerified: n % 2 === 0 ? 'yes' : 'no',
+			status: 'published'
+		});
+	}
+
+	if (index % 5 === 0) {
+		const qa = pick(QUESTION_POOL, prod.title, index);
+		await db.write.insert(question).values({
+			id: newId('qst'),
+			productId: prod.id,
+			body: qa.q,
+			askedName: pick(names, prod.title, index * 3),
+			askedPhone: `+8801${String(600000000 + index * 41).slice(0, 9)}`,
+			answer: qa.a,
+			answeredAt: new Date(),
+			status: 'published'
+		});
+	}
+}
 
 // ── navigation ──────────────────────────────────────────────────────────────
 
@@ -244,6 +298,6 @@ await updateSettings({
 const variants = v.products.reduce((n, p) => n + (p.opt?.[1].length ?? 1), 0);
 console.log(
 	`${v.key}: ${v.products.length} products, ${variants} variants, ` +
-		`${v.categories.length} categories, ${cache.size} images, home composed`
+		`${v.categories.length} categories, ${cache.size} images, reviews and Q&A seeded`
 );
 await db.close();

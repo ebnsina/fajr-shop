@@ -37,6 +37,9 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 			theme: store?.theme ?? 'fashion',
 			country: store?.country ?? 'BD',
 			locale: store?.defaultLocale ?? 'bn',
+			// bn + BD gives Bengali numerals; en + AE gives Western. Formatting
+			// follows the shop, never a default baked into a helper.
+			numberLocale: `${store?.defaultLocale ?? 'bn'}-${store?.country ?? 'BD'}`,
 			supportPhone: store?.supportPhone ?? null,
 			supportHours: store?.supportHours ?? null,
 			tagline: store?.tagline ?? null,

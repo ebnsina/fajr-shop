@@ -55,6 +55,8 @@ export const product = pgTable(
 		description: text(),
 		/** Short line for cards and meta descriptions. */
 		summary: text(),
+		/** One YouTube URL. Video sells clothing here more than any photo does. */
+		videoUrl: text('video_url'),
 		brandId: text().references(() => brand.id, { onDelete: 'set null' }),
 		/** One primary category for breadcrumbs and URLs; collections do the rest. */
 		categoryId: text().references(() => category.id, { onDelete: 'set null' }),

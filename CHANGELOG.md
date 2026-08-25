@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **A real product page.** Image carousel with an optional video, details and
+  specifications, customer reviews with a ratings breakdown and verified-purchase
+  badges, questions and answers, and a "you may also like" row. Reviews and
+  questions are moderated in the admin before anything appears publicly, and the
+  page emits `aggregateRating` and `review` structured data.
+
 - **Storefront and admin.** Catalogue with variants, options and per-category
   attributes; cart, checkout and cash on delivery; order admin with saved views,
   invoices and packing slips.
@@ -37,6 +43,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **The admin showed "Fajr Shop" instead of the merchant's own store name.**
 - **The enquiry forms rejected every Gulf phone number**, accepting only
   Bangladeshi mobiles.
+- **Every non-Bangladeshi shop printed prices in Bengali numerals.** The money
+  formatter defaulted to `bn-BD` and six of seven call sites omitted the locale,
+  so a Dubai storefront showed dirhams in Bengali digits. Formatting is now bound
+  to the store and the locale can no longer be left out.
 
 ### Changed
 

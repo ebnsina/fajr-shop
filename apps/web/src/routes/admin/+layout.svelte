@@ -2,6 +2,7 @@
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import {
 		Analytics01FreeIcons,
+		BubbleChatFreeIcons,
 		LinkSquare01FreeIcons,
 		DashboardSquare01FreeIcons,
 		File01FreeIcons,
@@ -46,7 +47,8 @@
 			items: [
 				{ href: '/admin/products', label: m.nav_products(), icon: PackageOpenFreeIcons, permission: 'catalog.read' },
 				{ href: '/admin/categories', label: m.nav_categories(), icon: FolderLibraryFreeIcons, permission: 'catalog.read' },
-				{ href: '/admin/media', label: m.nav_media(), icon: Image01FreeIcons, permission: 'catalog.read' }
+				{ href: '/admin/media', label: m.nav_media(), icon: Image01FreeIcons, permission: 'catalog.read' },
+				{ href: '/admin/reviews', label: m.nav_reviews(), icon: BubbleChatFreeIcons, permission: 'catalog.write' }
 			]
 		},
 		{

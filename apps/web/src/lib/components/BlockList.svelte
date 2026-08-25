@@ -6,8 +6,9 @@
 	let {
 		blocks,
 		data,
-		currency
-	}: { blocks: RenderedPage['blocks']; data: BlockData; currency: string } = $props();
+		currency,
+		locale
+	}: { blocks: RenderedPage['blocks']; data: BlockData; currency: string; locale: string } = $props();
 </script>
 
 <div class="stack">
@@ -20,6 +21,7 @@
 				products={data.products[block.id] ?? []}
 				categories={data.categories[block.id] ?? []}
 				{currency}
+				{locale}
 			/>
 		{/if}
 	{/each}

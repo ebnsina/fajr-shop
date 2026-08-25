@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { formatMoney } from '$lib/money';
+	import { moneyFor } from '$lib/money';
 
 	let { data, form } = $props();
-	const money = (m: number) => formatMoney(m, data.store.currency);
+	const money = $derived(moneyFor({ currency: data.store.currency, locale: data.store.numberLocale }));
 </script>
 
 

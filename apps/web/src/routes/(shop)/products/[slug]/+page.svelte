@@ -1,16 +1,45 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { formatMoney } from '$lib/money';
+	import { moneyFor } from '$lib/money';
 	import JsonLd from '$lib/components/JsonLd.svelte';
+	import Stars from '$lib/components/Stars.svelte';
+	import Rating from '$lib/components/Rating.svelte';
+	import ProductGrid from '$lib/components/ProductGrid.svelte';
 	import { page as appPage } from '$app/state';
 	import type { PageData } from './$types';
 
 	// The add-to-bag form posts to /cart?/add, so its result can't be inferred
 	// from this route — declare the shape that action actually returns.
-	let { data, form }: { data: PageData; form: { error?: string; added?: boolean } | null } = $props();
+	let {
+		data,
+		form
+	}: {
+		data: PageData;
+		form:
+			| {
+					error?: string;
+					added?: boolean;
+					reviewed?: boolean;
+					asked?: boolean;
+					reviewError?: string;
+					questionError?: string;
+			  }
+			| null;
+	} = $props();
 	const p = $derived(data.product);
 
 	let activeImage = $state(0);
+	// -1 means the video slide. Videos sell clothing here more than photos do,
+	// so it lives in the carousel rather than buried below.
+	let showingVideo = $state(false);
+
+	// youtu.be, /watch?v= and /embed/ all appear in a merchant's paste buffer.
+	const videoId = $derived.by(() => {
+		const raw = p.videoUrl;
+		if (!raw) return null;
+		const m = raw.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);
+		return m?.[1] ?? null;
+	});
 	/** optionId → selected optionValueId */
 	let picked = $state<Record<string, string>>({});
 
@@ -47,7 +76,7 @@
 	const buyable = $derived(Boolean(selected && (selected.available > 0 || selected.allowBackorder)));
 	const needsChoice = $derived(p.options.length > 0 && !selected);
 
-	const money = (m: number) => formatMoney(m, data.store.currency);
+	const money = $derived(moneyFor({ currency: data.store.currency, locale: data.store.numberLocale }));
 
 	// Product structured data with an AggregateOffer, so a listing with six variants shows one
 	// price range rather than six competing results.
@@ -61,6 +90,26 @@
 		description: p.metaDescription ?? p.summary ?? p.title,
 		image: p.images.map((i) => i.url),
 		...(p.category ? { category: p.category.name } : {}),
+		...(data.rating.count
+			? {
+					aggregateRating: {
+						'@type': 'AggregateRating',
+						ratingValue: data.rating.average,
+						reviewCount: data.rating.count
+					}
+				}
+			: {}),
+		...(data.reviews.length
+			? {
+					review: data.reviews.slice(0, 5).map((r) => ({
+						'@type': 'Review',
+						reviewRating: { '@type': 'Rating', ratingValue: r.rating },
+						author: { '@type': 'Person', name: r.authorName },
+						...(r.title ? { name: r.title } : {}),
+						reviewBody: r.body
+					}))
+				}
+			: {}),
 		offers: {
 			'@type': 'AggregateOffer',
 			priceCurrency: data.store.currency,
@@ -87,6 +136,10 @@
 	});
 
 	let adding = $state(false);
+	let newRating = $state(0);
+
+	const when = (d: Date | string) =>
+		new Intl.DateTimeFormat(data.store.numberLocale, { dateStyle: 'medium' }).format(new Date(d));
 </script>
 
 
@@ -101,7 +154,14 @@
 	<!-- gallery -->
 	<div class="gallery">
 		<div class="main">
-			{#if p.images[activeImage]}
+			{#if showingVideo && videoId}
+				<iframe
+					src="https://www.youtube-nocookie.com/embed/{videoId}"
+					title="{p.title} video"
+					allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+					allowfullscreen
+				></iframe>
+			{:else if p.images[activeImage]}
 				<img
 					src={p.images[activeImage].url}
 					alt={p.images[activeImage].alt ?? p.title}
@@ -113,20 +173,38 @@
 			{/if}
 		</div>
 
-		{#if p.images.length > 1}
+		{#if p.images.length > 1 || videoId}
 			<ul class="thumbs">
 				{#each p.images as image, i (image.url)}
 					<li>
 						<button
 							type="button"
-							aria-label="View image {i + 1}"
-							aria-current={i === activeImage}
-							onclick={() => (activeImage = i)}
+							aria-label="View image {i + 1} of {p.images.length}"
+							aria-current={!showingVideo && i === activeImage}
+							onclick={() => {
+								activeImage = i;
+								showingVideo = false;
+							}}
 						>
 							<img src={image.url} alt="" loading="lazy" />
 						</button>
 					</li>
 				{/each}
+
+				{#if videoId}
+					<li>
+						<button
+							type="button"
+							class="video-thumb"
+							aria-label="Watch the product video"
+							aria-current={showingVideo}
+							onclick={() => (showingVideo = true)}
+						>
+							<img src="https://i.ytimg.com/vi/{videoId}/mqdefault.jpg" alt="" loading="lazy" />
+							<span class="play" aria-hidden="true">▶</span>
+						</button>
+					</li>
+				{/if}
 			</ul>
 		{/if}
 	</div>
@@ -134,6 +212,14 @@
 	<!-- buy box -->
 	<div class="buy">
 		<h1>{p.title}</h1>
+
+		{#if data.rating.count}
+			<a href="#reviews" class="rating-link">
+				<Stars rating={data.rating.average} />
+				<span>{data.rating.average.toFixed(1)} · {data.rating.count} {data.rating.count === 1 ? 'review' : 'reviews'}</span>
+			</a>
+		{/if}
+
 		{#if p.summary}<p class="summary">{p.summary}</p>{/if}
 
 		<p class="price">
@@ -203,27 +289,408 @@
 
 		<p class="cod">Cash on delivery available.</p>
 
-		{#if data.specs.length}
-			<table class="specs">
-				<caption>Specifications</caption>
-				<tbody>
-					{#each data.specs as spec (spec.name)}
-						<tr>
-							<th scope="row">{spec.name}</th>
-							<td>{spec.value}{#if spec.unit}{' '}{spec.unit}{/if}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		{/if}
-
-		{#if p.description}
-			<div class="description">{p.description}</div>
-		{/if}
 	</div>
 </div>
 
+<!-- Everything below is full width: the buy column is for deciding, these are
+     for convincing. -->
+
+{#if p.description || data.specs.length}
+	<section class="panel" id="details">
+		<h2>Details</h2>
+		<div class="details">
+			{#if p.description}
+				<div class="description">{p.description}</div>
+			{:else}
+				<p class="muted">{p.summary ?? 'No description yet.'}</p>
+			{/if}
+
+			{#if data.specs.length}
+				<table class="specs">
+					<caption>Specifications</caption>
+					<tbody>
+						{#each data.specs as spec (spec.name)}
+							<tr>
+								<th scope="row">{spec.name}</th>
+								<td>{spec.value}{#if spec.unit}{' '}{spec.unit}{/if}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			{/if}
+		</div>
+	</section>
+{/if}
+
+<section class="panel" id="reviews">
+	<h2>Reviews</h2>
+
+	{#if data.rating.count}
+		<Rating summary={data.rating} />
+	{:else}
+		<p class="muted">No reviews yet. If you have bought this, yours would be the first.</p>
+	{/if}
+
+	{#if data.reviews.length}
+		<ul class="reviews">
+			{#each data.reviews as review (review.id)}
+				<li>
+					<div class="head">
+						<Stars rating={review.rating} />
+						<strong>{review.authorName}</strong>
+						{#if review.isVerified}
+							<span class="verified">Verified purchase</span>
+						{/if}
+						<time datetime={new Date(review.createdAt).toISOString()}>{when(review.createdAt)}</time>
+					</div>
+					{#if review.title}<p class="rtitle">{review.title}</p>{/if}
+					<p class="rbody">{review.body}</p>
+
+					{#if review.reply}
+						<div class="reply">
+							<p class="who">Reply from {data.store.name}</p>
+							<p>{review.reply}</p>
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	{/if}
+
+	<details class="writer">
+		<summary>Write a review</summary>
+
+		{#if form?.reviewed}
+			<p class="ok" role="status">
+				Thank you. Your review is with the shop and appears once they have read it.
+			</p>
+		{:else}
+			<form method="POST" action="?/review" use:enhance class="form">
+				{#if form?.reviewError}
+					<p class="err" role="alert">{form.reviewError}</p>
+				{/if}
+
+				<fieldset class="stars-input">
+					<legend>Your rating</legend>
+					{#each [1, 2, 3, 4, 5] as star (star)}
+						<label class="star-radio">
+							<input type="radio" name="rating" value={star} bind:group={newRating} required />
+							<span aria-hidden="true" class:on={newRating >= star}>★</span>
+							<span class="sr-only">{star} {star === 1 ? 'star' : 'stars'}</span>
+						</label>
+					{/each}
+				</fieldset>
+
+				<label>
+					<span>Your name</span>
+					<input name="name" required autocomplete="name" />
+				</label>
+
+				<label>
+					<span>Phone</span>
+					<input name="phone" type="tel" inputmode="numeric" required autocomplete="tel" />
+					<small>Not shown publicly. Used to confirm you ordered this.</small>
+				</label>
+
+				<label>
+					<span>Headline <em>(optional)</em></span>
+					<input name="title" maxlength="80" />
+				</label>
+
+				<label>
+					<span>Your review</span>
+					<textarea name="body" rows="4" required minlength="10"></textarea>
+				</label>
+
+				<button class="cta">Submit review</button>
+			</form>
+		{/if}
+	</details>
+</section>
+
+<section class="panel" id="questions">
+	<h2>Questions</h2>
+
+	{#if data.questions.length}
+		<ul class="qa">
+			{#each data.questions as item (item.id)}
+				<li>
+					<p class="q"><span aria-hidden="true">Q</span> {item.body}</p>
+					{#if item.answer}
+						<p class="a"><span aria-hidden="true">A</span> {item.answer}</p>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	{:else}
+		<p class="muted">No questions yet. Ask anything about size, fabric or delivery.</p>
+	{/if}
+
+	<details class="writer">
+		<summary>Ask a question</summary>
+
+		{#if form?.asked}
+			<p class="ok" role="status">
+				Asked. The shop will reply to you directly, and publish the answer here if it
+				helps other customers.
+			</p>
+		{:else}
+			<form method="POST" action="?/question" use:enhance class="form">
+				{#if form?.questionError}
+					<p class="err" role="alert">{form.questionError}</p>
+				{/if}
+
+				<label>
+					<span>Your name</span>
+					<input name="name" required autocomplete="name" />
+				</label>
+
+				<label>
+					<span>Phone</span>
+					<input name="phone" type="tel" inputmode="numeric" required autocomplete="tel" />
+					<small>So the shop can answer you directly. Never shown publicly.</small>
+				</label>
+
+				<label>
+					<span>Your question</span>
+					<textarea name="body" rows="3" required minlength="5"></textarea>
+				</label>
+
+				<button class="cta">Send question</button>
+			</form>
+		{/if}
+	</details>
+</section>
+
+{#if data.alsoLike.length}
+	<section class="panel" id="also-like">
+		<h2>You may also like</h2>
+		<ProductGrid
+			items={data.alsoLike}
+			currency={data.store.currency}
+			locale={data.store.numberLocale}
+		/>
+	</section>
+{/if}
+
 <style>
+	/* ── below the fold ─────────────────────────────────────────────── */
+
+	.panel {
+		border-block-start: 1px solid var(--c-line);
+		margin-block-start: 3rem;
+		padding-block-start: 2.5rem;
+	}
+	.panel h2 {
+		font-family: var(--font-display);
+		font-size: 1.375rem;
+		font-weight: 500;
+		margin: 0 0 1.5rem;
+	}
+	.muted {
+		color: var(--c-muted);
+	}
+
+	.details {
+		display: grid;
+		gap: 2rem;
+	}
+	@media (min-width: 56rem) {
+		.details {
+			grid-template-columns: 3fr 2fr;
+			gap: 3rem;
+			align-items: start;
+		}
+	}
+	.description {
+		white-space: pre-wrap;
+		line-height: var(--leading-body, 1.6);
+		max-inline-size: 62ch;
+	}
+
+	.rating-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--c-muted);
+		text-decoration: none;
+		margin-block-end: 0.75rem;
+	}
+	.rating-link:hover {
+		color: var(--c-text);
+	}
+
+	.reviews,
+	.qa {
+		list-style: none;
+		margin: 2rem 0 0;
+		padding: 0;
+		display: grid;
+		gap: 1.5rem;
+	}
+	.reviews li,
+	.qa li {
+		border-block-end: 1px solid var(--c-line);
+		padding-block-end: 1.5rem;
+	}
+	.reviews .head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.625rem;
+		font-size: 0.875rem;
+	}
+	.reviews time {
+		color: var(--c-muted);
+		margin-inline-start: auto;
+	}
+	.verified {
+		font-size: 0.75rem;
+		color: #1a7f4b;
+		border: 1px solid currentColor;
+		border-radius: 999px;
+		padding: 0.0625rem 0.5rem;
+	}
+	.rtitle {
+		font-weight: 600;
+		margin: 0.625rem 0 0.25rem;
+	}
+	.rbody {
+		margin: 0.25rem 0 0;
+		line-height: var(--leading-body, 1.6);
+	}
+	.reply {
+		margin-block-start: 0.875rem;
+		padding-inline-start: 0.875rem;
+		border-inline-start: 2px solid var(--c-line);
+	}
+	.reply .who {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		margin: 0 0 0.25rem;
+	}
+	.reply p {
+		margin: 0;
+		font-size: 0.9375rem;
+		color: var(--c-muted);
+	}
+
+	.qa .q,
+	.qa .a {
+		display: grid;
+		grid-template-columns: 1.5rem 1fr;
+		gap: 0.5rem;
+		margin: 0;
+		line-height: var(--leading-body, 1.6);
+	}
+	.qa .q span,
+	.qa .a span {
+		font-weight: 700;
+		font-size: 0.8125rem;
+		color: var(--c-muted);
+	}
+	.qa .a {
+		margin-block-start: 0.625rem;
+		color: var(--c-muted);
+	}
+
+	.writer {
+		margin-block-start: 2rem;
+	}
+	.writer summary {
+		cursor: pointer;
+		font-weight: 500;
+		padding: 0.625rem 0;
+	}
+	.form {
+		display: grid;
+		gap: 1rem;
+		max-inline-size: 34rem;
+		margin-block-start: 0.75rem;
+	}
+	.form label {
+		display: grid;
+		gap: 0.375rem;
+		font-size: 0.875rem;
+	}
+	.form label em {
+		font-style: normal;
+		color: var(--c-muted);
+	}
+	.form input,
+	.form textarea {
+		font: inherit;
+		padding: 0.625rem 0.75rem;
+		border: 1px solid var(--c-line);
+		border-radius: var(--radius);
+		background: var(--c-surface);
+		color: inherit;
+	}
+	.form small {
+		color: var(--c-muted);
+		font-size: 0.75rem;
+	}
+
+	.stars-input {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+	.stars-input legend {
+		font-size: 0.875rem;
+		margin-block-end: 0.375rem;
+	}
+	.star-radio {
+		cursor: pointer;
+		font-size: 1.75rem;
+		line-height: 1;
+		color: var(--c-line);
+	}
+	.star-radio span.on {
+		color: #e0a516;
+	}
+	/* Visually hidden, still focusable — the ring must land on the star. */
+	.star-radio input {
+		position: absolute;
+		opacity: 0;
+		inline-size: 1px;
+		block-size: 1px;
+	}
+	.star-radio:focus-within span[aria-hidden='true'] {
+		outline: 2px solid var(--c-accent);
+		outline-offset: 2px;
+		border-radius: 2px;
+	}
+	.sr-only {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+
+	.main iframe {
+		inline-size: 100%;
+		block-size: 100%;
+		border: 0;
+	}
+	.video-thumb {
+		position: relative;
+	}
+	.video-thumb .play {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		color: #fff;
+		font-size: 0.875rem;
+		background: rgb(0 0 0 / 0.35);
+	}
+
 	.crumbs {
 		font-size: 0.875rem;
 		color: var(--c-muted);

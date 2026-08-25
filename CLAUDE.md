@@ -96,7 +96,13 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
   own — Hind Siliguri for Bengali, Cairo for Arabic. A Latin face with a system
   fallback for Bangla or Arabic is not acceptable. Self-host via `@fontsource`:
   the CSP has no external font origin, so Google Fonts will not load.
-- **Use `Intl`** for every date, number and currency. No hand-rolled formatters.
+- **Use `Intl`** for every date, number and currency, and pass the store's own
+  locale — never a default. A `bn-BD` fallback printed dirhams in Bengali digits
+  on every Gulf shop. `moneyFor(store)` exists so a call site cannot forget.
+- **Customer-written text is moderated before it is public.** Reviews and
+  questions land pending and appear only once the merchant acts on them.
+- **Permission checks belong on the server.** The sidebar hides what a role
+  cannot do, but hiding is not enforcing — use `requirePermission` in the action.
 - **User-facing text is plain language** — no jargon, no error codes, no stack
   traces. Every route handles 404, 500, network failure and empty state.
 - **Keep meta and Open Graph current for every route.** In `apps/marketing` that

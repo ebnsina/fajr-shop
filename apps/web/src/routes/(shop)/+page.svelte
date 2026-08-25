@@ -7,7 +7,7 @@
 
 
 {#if data.page && data.blocks}
-	<BlockList blocks={data.page.blocks} data={data.blocks} currency={data.store.currency} />
+	<BlockList blocks={data.page.blocks} data={data.blocks} currency={data.store.currency} locale={data.store.numberLocale} />
 {:else if data.fallback}
 	<!-- No home page built yet. Still a shop, not an empty screen. -->
 	<section class="intro">
@@ -26,7 +26,7 @@
 	<section>
 		<h2>New arrivals</h2>
 		{#if data.fallback.newest.length}
-			<ProductGrid items={data.fallback.newest} currency={data.store.currency} />
+			<ProductGrid items={data.fallback.newest} currency={data.store.currency} locale={data.store.numberLocale} />
 		{:else}
 			<p class="empty">Nothing published yet.</p>
 		{/if}

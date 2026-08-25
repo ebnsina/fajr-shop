@@ -50,6 +50,13 @@
       "when": 1787647987578,
       "tag": "0006_fixed_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787649648827,
+      "tag": "0007_elite_norman_osborn",
+      "breakpoints": true
     }
   ]
 }

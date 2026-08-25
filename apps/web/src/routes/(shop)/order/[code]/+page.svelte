@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { formatMoney } from '$lib/money';
+	import { moneyFor } from '$lib/money';
 
 	let { data, form } = $props();
-	const money = (m: number) => formatMoney(m, data.store.currency);
+	const money = $derived(moneyFor({ currency: data.store.currency, locale: data.store.numberLocale }));
 
 	const owed = $derived(data.order.advanceMinor - data.order.paidMinor);
 	const needsPayment = $derived(owed > 0 && data.order.paymentStatus !== 'paid');

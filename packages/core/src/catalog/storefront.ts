@@ -141,9 +141,10 @@ export type StorefrontProduct = {
 	slug: string;
 	summary: string | null;
 	description: string | null;
+	videoUrl: string | null;
 	metaTitle: string | null;
 	metaDescription: string | null;
-	category: { name: string; slug: string } | null;
+	category: { id: string; name: string; slug: string } | null;
 	images: { url: string; alt: string | null; width: number | null; height: number | null }[];
 	options: { id: string; name: string; values: { id: string; value: string; swatchHex: string | null }[] }[];
 	variants: {
@@ -210,9 +211,10 @@ export async function productPage(slug: string): Promise<StorefrontProduct | nul
 		slug: row.slug,
 		summary: row.summary,
 		description: row.description,
+		videoUrl: row.videoUrl,
 		metaTitle: row.metaTitle,
 		metaDescription: row.metaDescription,
-		category: cat ? { name: cat.name, slug: cat.slug } : null,
+		category: cat ? { id: cat.id, name: cat.name, slug: cat.slug } : null,
 		images: images.map((i) => ({ url: publicUrl(i.key), alt: i.alt, width: i.width, height: i.height })),
 		options: [...grouped.values()],
 		variants: variants.map((v) => ({
@@ -258,3 +260,27 @@ export const collectionBySlug = (slug: string) =>
 	db.read.query.collection.findFirst({
 		where: and(eq(collection.slug, slug), eq(collection.isActive, true))
 	});
+
+// Same category, cheapest-first around this product's price, never itself.
+// One query with a join, because "you may also like" must not cost N+1.
+export async function related(
+	productId: string,
+	categoryId: string | null,
+	limit = 8
+): Promise<ProductCard[]> {
+	if (!categoryId) {
+		const fallback = await browse({ sort: 'newest', perPage: limit + 1 });
+		return fallback.items.filter((i) => i.id !== productId).slice(0, limit);
+	}
+
+	const result = await browse({ categoryId, sort: 'newest', perPage: limit + 1 });
+	const siblings = result.items.filter((i) => i.id !== productId);
+
+	// A thin category would show one lonely card, which looks broken; top it up
+	// from the newest across the shop instead.
+	if (siblings.length >= 4) return siblings.slice(0, limit);
+
+	const extra = await browse({ sort: 'newest', perPage: limit + 1 + siblings.length });
+	const seen = new Set([productId, ...siblings.map((s) => s.id)]);
+	return [...siblings, ...extra.items.filter((i) => !seen.has(i.id))].slice(0, limit);
+}

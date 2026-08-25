@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms';
-	import { formatMoney } from '$lib/money';
+	import { moneyFor } from '$lib/money';
 	import { BD_DIVISIONS } from '@fajr/schemas';
 	import { page } from '$app/state';
 
@@ -10,7 +10,7 @@
 	const { form, errors, enhance, submitting } = superForm(data.form, { resetForm: false });
 
 
-	const money = (m: number) => formatMoney(m, data.store.currency);
+	const money = $derived(moneyFor({ currency: data.store.currency, locale: data.store.numberLocale }));
 
 	/** Delivery depends on the district, so it updates as they choose. */
 	const inDhaka = $derived($form.district === 'Dhaka');
