@@ -122,6 +122,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **The marketing site is rebuilt on an editorial structure**: ink and bone with
+  one accent, sections opening with a label and a hairline rule, numbered
+  chapters separated by rules instead of cards, headings that rise into place
+  behind their own edge, and a section rhythm measured in viewport height.
+
 - **The marketing site has its own design system**, sharing nothing with the
   admin: Bricolage Grotesque over Inter Tight, an editorial type scale, pill
   buttons a size larger, and numbered rule-separated rows in place of boxed

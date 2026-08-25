@@ -98,6 +98,12 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
   cards. The admin is a tool — Mona Sans, blue, compact, boxed. Storefront
   themes carry the merchant's own colour. Reusing an admin component on the
   marketing site is what makes it look like a dashboard.
+- **Marketing commits to one dark look.** Ink and bone with a single accent;
+  hairlines at 7% and 13% carry the structure that borders and fills carry in
+  the admin. Sections open with a label and a rule, not a boxed heading; lists
+  are numbered chapters, not cards. The semantic tokens (`--surface-*`,
+  `--text-*`) still exist and simply resolve to ink and bone, so components did
+  not need rewriting.
 - **Motion never gates content.** Scroll reveals are CSS `animation-timeline`
   behind `@supports`, so an unsupporting browser just shows the section. Never
   hide content behind a class that JavaScript has to remove — a failed

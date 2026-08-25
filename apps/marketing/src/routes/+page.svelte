@@ -21,10 +21,11 @@
 
 
 <!-- hero -->
-<section class="mx-auto grid max-w-6xl gap-12 px-6 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+<section class="sec !pb-[clamp(56px,9vh,110px)]">
+	<div class="measure grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
 	<div>
 	<div
-		class="inline-flex rounded-2xl bg-sunken p-1"
+		class="inline-flex rounded-full border border-line p-1"
 		role="group"
 		aria-label="Choose your region"
 	>
@@ -32,20 +33,26 @@
 			<button
 				onclick={() => (regionId = r.id)}
 				aria-pressed={regionId === r.id}
-				class="rounded-xl px-4 py-2 text-sm font-medium transition
-				       {regionId === r.id ? 'bg-raised text-strong elevation-1' : 'text-muted hover:text-strong'}"
+				class="rounded-full px-5 py-2 text-sm font-medium transition
+				       {regionId === r.id
+					? 'bg-[var(--bone)] text-[var(--ink)]'
+					: 'text-muted hover:text-strong'}"
 			>
 				{r.label}
 			</button>
 		{/each}
 	</div>
 
-	<p class="eyebrow mt-6">{region.eyebrow}</p>
-	<h1 class="display display-xl mt-5 max-w-[18ch] text-strong">
-		{region.headline.lead}
+	<div class="sec-head mt-8 !mb-6">
+		<span class="eyebrow">{region.eyebrow}</span>
+		<span class="rule"></span>
+	</div>
+
+	<h1 class="display display-xl max-w-[16ch] text-strong">
+		<span class="mask-line"><span>{region.headline.lead}</span></span>
 		<!-- Its own line: the two halves are a pair, and reflowing them mid-phrase
 		     loses the turn the sentence is built on. -->
-		<span class="display-accent mt-1 block">{region.headline.trail}</span>
+		<span class="mask-line"><span class="display-accent">{region.headline.trail}</span></span>
 	</h1>
 
 	<p class="mt-7 max-w-[52ch] leading-relaxed text-muted" style="font-size: var(--text-lead)">
@@ -122,6 +129,7 @@
 			</p>
 		</div>
 	</div>
+	</div>
 </section>
 
 <!-- who this already speaks to, before any feature is claimed -->
@@ -159,20 +167,26 @@
 <!-- features -->
 <div id="what-it-does">
 	{#each SECTIONS as section (section.id)}
-		<section class="reveal mx-auto max-w-6xl px-6 py-16">
-			<p class="eyebrow">{section.eyebrow}</p>
-			<h2 class="display mt-4 max-w-3xl text-strong" style="font-size: var(--text-section)">
-				{section.title}
-			</h2>
+		<section class="sec">
+			<div class="measure">
+				<div class="sec-head">
+					<span class="eyebrow">{section.eyebrow}</span>
+					<span class="rule"></span>
+				</div>
 
-			<div class="mt-12">
-				{#each section.items as item, i (item.title)}
-					<div class="row">
-						<span class="row-index">{String(i + 1).padStart(2, '0')}</span>
-						<h3 class="row-title">{item.title}</h3>
-						<p class="row-body">{item.body}</p>
-					</div>
-				{/each}
+				<h2 class="display max-w-3xl text-strong" style="font-size: var(--text-section)">
+					<span class="mask-line"><span>{section.title}</span></span>
+				</h2>
+
+				<div class="mt-[clamp(2.5rem,6vh,4.5rem)]">
+					{#each section.items as item, i (item.title)}
+						<div class="chapter">
+							<span class="chapter-num">{String(i + 1).padStart(2, '0')}</span>
+							<h3 class="chapter-title">{item.title}</h3>
+							<p class="chapter-body">{item.body}</p>
+						</div>
+					{/each}
+				</div>
 			</div>
 		</section>
 	{/each}
