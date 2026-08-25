@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { HugeiconsIcon } from '@hugeicons/svelte';
-	import { Tick02FreeIcons } from '@hugeicons/core-free-icons';
+	import { Check } from '@lucide/svelte';
 	import { PLANS, OVERAGES, PRICING_FAQ, ROADMAP, CONTACT } from '$lib/content';
 
 	const taka = (n: number) => new Intl.NumberFormat('en-US').format(n);
@@ -30,7 +29,7 @@
 				<div class="flex items-center justify-between gap-2">
 					<h2 id="plan-{plan.id}" class="font-semibold text-strong">{plan.name}</h2>
 					{#if plan.featured}
-						<span class="rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-900 dark:bg-primary-900/40 dark:text-primary-200">
+						<span class="rounded-[var(--radius-pill)] bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-900 dark:bg-primary-900/40 dark:text-primary-200">
 							Most shops
 						</span>
 					{/if}
@@ -58,7 +57,7 @@
 				<ul class="mt-4 flex-1 space-y-2 text-sm">
 					{#each plan.includes as line (line)}
 						<li class="flex items-start gap-2">
-							<HugeiconsIcon icon={Tick02FreeIcons} size={16} class="mt-0.5 shrink-0 text-primary-600" aria-hidden="true" />
+							<Check size={16} class="mt-0.5 shrink-0 text-primary-600" aria-hidden="true" />
 							<span class="text-muted">{line}</span>
 						</li>
 					{/each}
@@ -93,7 +92,7 @@
 
 		<ul class="mt-5 grid gap-3 sm:grid-cols-3">
 			{#each OVERAGES as item (item.label)}
-				<li class="rounded-2xl bg-hover px-4 py-3">
+				<li class="rounded-[var(--radius-surface)] bg-hover px-4 py-3">
 					<p class="text-sm text-muted">{item.label}</p>
 					<p class="mt-1 font-mono text-sm text-strong">{item.price}</p>
 				</li>
@@ -116,7 +115,7 @@
 
 		<ul class="mt-4 flex flex-wrap gap-2">
 			{#each ROADMAP as item (item.title)}
-				<li class="rounded-full bg-hover px-3 py-1.5 text-sm text-muted">
+				<li class="rounded-[var(--radius-pill)] bg-hover px-3 py-1.5 text-sm text-muted">
 					{item.title}
 					<span class="ms-1 text-xs text-faint">· {item.when}</span>
 				</li>
@@ -140,7 +139,7 @@
 		{/each}
 	</div>
 
-	<div class="mt-10 rounded-3xl bg-sunken p-6 text-center">
+	<div class="mt-10 rounded-[var(--radius-panel)] bg-sunken p-6 text-center">
 		<p class="text-strong">Still not sure which plan fits?</p>
 		<p class="mt-1 text-sm text-muted">
 			Tell us your monthly order count and we will say which one — including if
@@ -148,7 +147,7 @@
 		</p>
 		<div class="mt-4 flex flex-wrap justify-center gap-3">
 			<a href="/contact" class="btn btn-primary">Book a demo</a>
-			<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-secondary">WhatsApp</a>
+			<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-whatsapp">WhatsApp</a>
 		</div>
 	</div>
 </section>

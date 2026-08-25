@@ -1,75 +1,158 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/bricolage-grotesque';
-@import '@fontsource-variable/inter-tight';
-@import '@fontsource-variable/geist-mono';
+
+/* This site is light, always — it is a story someone reads once, not a tool
+   they sit in at night. Pinning `dark:` to a class that is never set stops the
+   OS preference from half-flipping pages that still carry dark variants. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * The marketing site's own system, sharing nothing with the admin. The admin is
- * a tool — boxed cards, a compact scale, blue. This is a publication: a display
- * face with real character, an editorial scale, rules instead of boxes, and
- * type doing the work that borders do in a dashboard.
+ * All three faces are self-hosted from Fontshare: the CSP has no external font
+ * origin, so a CDN link would simply not load. Each is a single variable file.
  */
-@theme {
-	--font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Bricolage Grotesque Variable', 'Inter Tight Variable', sans-serif;
-	--font-mono: 'Geist Mono Variable', ui-monospace, monospace;
-
-	/* Editorial scale. Larger steps than a dashboard needs, because a landing
-	   page is read at arm's length and a tool is read at a desk. */
-	--text-hero: clamp(2.75rem, 1.6rem + 4.2vw, 4.25rem);
-	--text-section: clamp(2rem, 1.4rem + 2.2vw, 3rem);
-	--text-lead: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
-
-	--color-primary-50: oklch(0.97 0.014 287);
-	--color-primary-100: oklch(0.94 0.030 287);
-	--color-primary-200: oklch(0.89 0.058 287);
-	--color-primary-300: oklch(0.82 0.099 287);
-	--color-primary-400: oklch(0.73 0.152 287);
-	--color-primary-500: oklch(0.65 0.196 285);
-	--color-primary-600: oklch(0.58 0.222 283);
-	--color-primary-700: oklch(0.51 0.211 282);
-	--color-primary-800: oklch(0.44 0.176 282);
-	--color-primary-900: oklch(0.39 0.140 283);
-
-	--ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+@font-face {
+	font-family: 'Trench Slab';
+	src: url('./lib/fonts/trench-slab-variable.woff2') format('woff2');
+	font-weight: 300 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Chubbo';
+	src: url('./lib/fonts/chubbo-variable.woff2') format('woff2');
+	font-weight: 200 700;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Tabular';
+	src: url('./lib/fonts/tabular-variable.woff2') format('woff2');
+	font-weight: 300 700;
+	font-style: normal;
+	font-display: swap;
 }
 
-:root {
-	/* Ink, bone, and one ember. Hairlines carry the structure that borders and
-	   fills carry in a dashboard. */
-	--ink: oklch(0.145 0.008 265);
-	--ink-2: oklch(0.178 0.010 265);
-	--bone: oklch(0.925 0.006 95);
-	--bone-dim: oklch(0.775 0.008 95);
-	--line: oklch(0.925 0.006 95 / 0.13);
-	--line-soft: oklch(0.925 0.006 95 / 0.07);
+/*
+ * The marketing site's own system, sharing nothing with the admin. Daylight:
+ * white and cool grey, ink type, one working blue, and a single warm tone kept
+ * for a risk or a shortfall. Headings are Trench Slab, prose is Chubbo,
+ * and Tabular carries every label, button and caption. One light look — this is
+ * a story someone reads once, not a tool they sit in.
+ */
+@theme {
+	/* ---------------------------------------------------------------- type */
+	--font-sans: 'Chubbo', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Trench Slab', 'Chubbo', ui-serif, serif;
+	--font-mono: 'Tabular', ui-monospace, SFMono-Regular, monospace;
+	/* Preflight resolves body type through these, not through --font-sans; leave
+	   them unset and every paragraph quietly falls back to the system stack. */
+	--default-font-family: var(--font-sans);
+	--default-mono-font-family: var(--font-mono);
 
-	/* Fluid page gutter and section rhythm — a landing page breathes at a
-	   different rate from a tool. */
-	--pad: clamp(20px, 3.4vw, 56px);
+	/* Fluid, so a 360px Android still gets a headline rather than a caption. */
+	--text-hero: clamp(2rem, 0.2rem + 5.2vw, 4rem);
+	--text-section: clamp(1.75rem, 1.1rem + 2.6vw, 2.875rem);
+	--text-lead: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
+
+	/* -------------------------------------------------------------- colour */
+	/* One blue, sober rather than bright. 600 is the fill that carries white
+	   text at 5.7:1; 700 is the smallest text that clears 4.5:1 on paper. */
+	--color-primary-50: #eef3ff;
+	--color-primary-100: #dbe5ff;
+	--color-primary-200: #b9ccff;
+	--color-primary-300: #7fa8ff;
+	--color-primary-400: #5286f5;
+	--color-primary-500: #2f6bff;
+	--color-primary-600: #1e5ae8;
+	--color-primary-700: #1848b8;
+	--color-primary-800: #163a8f;
+	--color-primary-900: #142f6e;
+
+	/*
+	 * WhatsApp's own colours, because a WhatsApp button that is not green does
+	 * not read as WhatsApp. The bright mark is for icons and dots only — white
+	 * on #25d366 is 1.9:1 and fails — so a filled button uses the dark brand
+	 * green, which carries white at 8.6:1.
+	 */
+	--color-whatsapp: #25d366;
+	--color-whatsapp-ink: #075e54;
+
+	/* The one warm ramp, and it means something: a risk, a shortfall, an order
+	   held back. Never a call to action, never decoration. `warn-ink` on
+	   `warn-tint` clears 7:1. */
+	--color-warn-ink: #7a4d12;
+	--color-warn-line: #e6c9a4;
+	--color-warn-tint: #fdf3e7;
+	--color-warn-wash: #fdf8f1;
+
+	/* Neutrals, named for the job rather than the shade, so `border-line`,
+	   `text-muted` and `bg-sunken` are real utilities. */
+	--color-void: #0f1420;
+	--color-bone: #ffffff;
+	--color-line: rgb(15 20 32 / 0.1);
+	--color-line-strong: rgb(15 20 32 / 0.2);
+	--color-strong: #0f1420;
+	--color-body: #3a4459;
+	--color-muted: #58627a;
+	--color-faint: #79839a;
+	--color-raised: #ffffff;
+	--color-sunken: #f4f6f8;
+
+	/* -------------------------------------------------------------- motion */
+	/* Strong curves: the built-in CSS easings are too weak to read as motion. */
+	--ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+
+:root {
+	/* Everything below is an alias for a @theme colour above. One definition of
+	   each value, so a repaint is one edit and never two that drift. */
+	--ink: var(--color-void);
+	--paper: var(--color-bone);
+	--paper-2: var(--color-sunken);
+
+	--line: var(--color-line);
+	--line-soft: rgb(15 20 32 / 0.06);
+	--line-strong: var(--color-line-strong);
+
+	/* ------------------------------------------------------------- measure */
+	/* The width prose is read at. A line count is a consequence of this and the
+	   viewport — never something to force with an arbitrary ch value. */
+	--measure-lead: 58ch;
+	--measure-page: 76rem;
+
+	/* ------------------------------------------------------------- shape */
+	/* Three radii and a pill. A control is 2px, a surface is 6px, a surface
+	   holding surfaces is 12px — anything else is someone guessing. */
+	--radius-control: 2px;
+	--radius-surface: 6px;
+	--radius-panel: 12px;
+	--radius-pill: 999px;
+
+	--pad: clamp(20px, 3.4vw, 60px);
 	--sec-y: clamp(88px, 15vh, 190px);
 
-	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-	--ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
-	/* The semantic names stay, so components need no rewrite; only what they
-	   resolve to changes. The marketing site commits to one look — a landing
-	   page is a composition, not a tool someone sits in all day. */
-	--surface-sunken: var(--ink);
-	--surface-base: var(--ink);
-	--surface-raised: var(--ink-2);
-	--surface-hover: oklch(0.225 0.011 265);
-	--line-strong: oklch(0.925 0.006 95 / 0.24);
-	--text-strong: var(--bone);
-	--text: var(--bone-dim);
-	--text-muted: oklch(0.665 0.009 95);
-	--text-faint: oklch(0.545 0.009 95);
-	--ring: var(--color-primary-500);
+	/* The semantic names stay so components need no rewrite; only what they
+	   resolve to changes. Elevation is the surface stack, never a shadow. */
+	--surface-sunken: var(--paper-2);
+	--surface-base: var(--paper);
+	--surface-raised: var(--color-raised);
+	--surface-hover: var(--color-bone);
+	--text-strong: var(--color-strong);
+	--text: var(--color-body);
+	--text-muted: var(--color-muted);
+	--text-faint: var(--color-faint);
+	--ring: var(--color-primary-600);
 }
 
 body {
 	background: var(--surface-base);
 	color: var(--text);
+	font-family: var(--font-sans);
+	/* `pretty` on prose, not `balance`: it fixes the orphan on the last line
+	   without re-ragging the whole paragraph, and it has no line-count cap. */
+	text-wrap: pretty;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
@@ -78,25 +161,27 @@ body {
 	:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
 		outline: none;
 		box-shadow:
-			0 0 0 2px var(--surface-raised),
+			0 0 0 2px var(--surface-base),
 			0 0 0 4px var(--ring);
 	}
 }
 
 @layer components {
-	/* Marketing buttons are a size up from the admin's. A call to action on a
-	   landing page is the whole point of the page; in a tool it is one control
-	   among forty. */
+	/* A quiet terminal button: 2px corner, mono label. The 2px is an opinion —
+	   anything larger reads toy-like, and 0 reads unfinished. 44px tall, because
+	   most of this market is a thumb on a small Android. */
 	.btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		border-radius: 999px;
-		padding: 0.9375rem 1.75rem;
-		font-size: 1rem;
+		border-radius: var(--radius-control);
+		padding: 0.875rem 1.5rem;
+		font-family: var(--font-mono);
+		font-size: 0.8125rem;
 		font-weight: 500;
-		letter-spacing: -0.01em;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
 		line-height: 1;
 		white-space: nowrap;
 		cursor: pointer;
@@ -104,168 +189,330 @@ body {
 		transition:
 			background-color 140ms var(--ease-out-quint),
 			border-color 140ms var(--ease-out-quint),
-			color 140ms var(--ease-out-quint);
+			color 140ms var(--ease-out-quint),
+			transform 160ms var(--ease-out);
 	}
-	/* The header's is the one exception: a full-size pill in a 56px bar is
-	   out of scale with everything beside it. */
+	.btn:active {
+		transform: scale(0.97);
+	}
 	.btn-compact {
-		padding: 0.625rem 1.125rem;
-		font-size: 0.9375rem;
+		padding: 0.75rem 1rem;
 	}
 
 	.btn-primary {
 		background: var(--color-primary-600);
-		color: white;
+		color: #ffffff;
 		border: 1px solid transparent;
 	}
 	.btn-primary:hover {
-		background: var(--color-primary-700);
+		background: var(--color-primary-500);
 	}
-	.btn-primary:hover {
-		background: var(--color-primary-700);
+
+	/* The outline button, wearing WhatsApp's colour rather than its fill: a solid
+	   green block competes with the primary call to action beside it. */
+	.btn-whatsapp {
+		background: transparent;
+		color: var(--color-whatsapp-ink);
+		border: 1px solid var(--color-whatsapp);
+	}
+	.btn-whatsapp:hover {
+		background: color-mix(in oklab, var(--color-whatsapp) 12%, transparent);
+		border-color: var(--color-whatsapp-ink);
 	}
 
 	.btn-secondary {
-		background: var(--surface-raised);
-		color: var(--text);
-		border: 1px solid transparent;
-		box-shadow: var(--elevation-1);
+		background: transparent;
+		color: var(--text-strong);
+		border: 1px solid var(--line-strong);
 	}
 	.btn-secondary:hover {
-		background: var(--surface-hover);
+		border-color: var(--color-primary-600);
+		color: var(--color-primary-700);
 	}
 
 	/*
-	 * A panel, not a dashboard card: no fill, a rule rather than a box, and
-	 * space instead of a border doing the separating. Boxed cards on a
-	 * white-ish page are exactly what makes a marketing site look like an
-	 * admin screen.
+	 * Small print: captions, meta, notes. Same face as the prose — mono on every
+	 * label made the page read as a terminal, and this is a story.
 	 */
+	.chrome {
+		font-size: 0.875rem;
+		line-height: 1.55;
+		color: var(--text-muted);
+	}
+
+	/*
+	 * The two places mono earns its keep: a button, and a figure. Numbers want
+	 * fixed widths so a column of them lines up and a changing one does not
+	 * jump; everything else just wants to be read.
+	 */
+	.num {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0;
+		/* Mono runs a size larger than the prose at the same px; this puts an
+		   inline figure back on the same optical line as the words around it. */
+		font-size: 0.95em;
+	}
+
+	/*
+	 * The chapter label, with a short accent rule leading into it. This is the
+	 * brand device now — it marks where a chapter opens, which an underline
+	 * under the heading never actually said.
+	 */
+	/*
+	 * The chapter label is a chip, not a rule with a word after it. A leading
+	 * dash is the device every landing page uses and it reads as a stray hyphen
+	 * at small sizes; a tinted chip is the same family as the badges and pills,
+	 * so the page has one way of marking a small label.
+	 */
+	.eyebrow {
+		display: inline-flex;
+		align-items: center;
+		flex: 0 0 auto;
+		border-radius: var(--radius-control);
+		background: var(--color-primary-50);
+		padding: 0.3125rem 0.5625rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-primary-800);
+	}
+
+	/* What is included reads as a checklist, not as rows in a table. */
+	.check {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.625rem;
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: var(--text);
+	}
+	.check svg {
+		flex: 0 0 auto;
+		margin-block-start: 0.1875rem;
+		color: var(--color-primary-600);
+	}
+
+	/*
+	 * A product screen, drawn in the page rather than in an illustration: a
+	 * window bar, hairlines, real type. It is the actual interface, which is a
+	 * better picture of the product than any drawing of a parcel was.
+	 */
+	.screen {
+		border: 1px solid var(--line);
+		border-radius: var(--radius-surface);
+		background: var(--surface-raised);
+		overflow: hidden;
+	}
+	.screen-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.875rem;
+		border-block-end: 1px solid var(--line);
+		background: var(--surface-sunken);
+	}
+	.screen-dot {
+		inline-size: 8px;
+		block-size: 8px;
+		border-radius: var(--radius-pill);
+		background: var(--line-strong);
+	}
+	.screen-body {
+		padding: clamp(0.875rem, 1.6vw, 1.125rem);
+	}
+	/* A row of the kind every one of these screens is made of. */
+	.screen-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-block: 0.625rem;
+		border-block-start: 1px solid var(--line-soft);
+	}
+	/* The bar behind a ranked row — how often this courier actually delivers. */
+	.meter {
+		position: relative;
+		flex: 1 1 auto;
+		block-size: 26px;
+		border-radius: var(--radius-control);
+		background: var(--surface-sunken);
+		overflow: hidden;
+	}
+	.meter > span {
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 0;
+		background: var(--color-primary-600);
+		opacity: 0.16;
+	}
+	.meter > b {
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 0.625rem;
+		display: flex;
+		align-items: center;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--text-strong);
+	}
+
+	/*
+	 * A foldable, open. Most of this market is on a large Android and the phone
+	 * people want is a Fold — and a checkout is the one screen where a two-pane
+	 * layout is real rather than decorative: the form on one half, what you are
+	 * paying on the other.
+	 */
+	.fold {
+		position: relative;
+		inline-size: min(100%, 27rem);
+		border: 9px solid var(--ink);
+		/* Off the radius scale on purpose: a device bezel, not a surface. */
+		border-radius: 20px;
+		background: var(--surface-raised);
+		overflow: hidden;
+	}
+	.fold-panes {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+	.fold-panes > * + * {
+		border-inline-start: 1px solid var(--line);
+	}
+	/* The crease: a band of shade down the hinge, which is what it looks like
+	   when the screen is lit. */
+	.fold::after {
+		content: '';
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 50%;
+		inline-size: 12px;
+		translate: -50% 0;
+		background: rgb(15 20 32 / 0.045);
+		pointer-events: none;
+	}
+	/* The camera cut-out — the detail that makes a rectangle read as a device. */
+	.fold-lens {
+		position: absolute;
+		inset-block-start: 9px;
+		inset-inline-end: 25%;
+		inline-size: 7px;
+		block-size: 7px;
+		border-radius: var(--radius-pill);
+		background: var(--ink);
+		opacity: 0.8;
+	}
+
+	/* A phone, for the one screen that is genuinely a phone. */
+	.phone {
+		inline-size: 236px;
+		border: 8px solid var(--ink);
+		/* Not on the radius scale on purpose: this is a phone's bezel, and a
+		   phone with 6px corners is not a phone. */
+		border-radius: 26px;
+		background: var(--surface-raised);
+		overflow: hidden;
+	}
+
+
+	/*
+	 * One weight, and only a little negative tracking. A slab has thick serifs
+	 * doing the work already: tightening it the way a geometric sans wants jams
+	 * the serifs into each other.
+	 *
+	 * Their headings are also `text-transform: capitalize`. We do not copy that:
+	 * their headings are short phrases, ours are sentences with full stops, and
+	 * Title Case On A Sentence Like This reads as a mistake.
+	 */
+	.display {
+		font-family: var(--font-display);
+		/* `balance` is for short blocks — it evens the line lengths and browsers
+		   ignore it past ~6 lines, so it belongs on headings and nothing else. */
+		text-wrap: balance;
+		font-weight: 500;
+		letter-spacing: -0.4px;
+		line-height: 1.15;
+		color: var(--text-strong);
+	}
+	.display-xl {
+		font-size: var(--text-hero);
+		/* A cropped headline is worse than a smaller one. */
+		overflow-wrap: break-word;
+		line-height: 1.06;
+		letter-spacing: -0.8px;
+	}
+	.display-accent {
+		color: var(--color-primary-600);
+	}
+
 	.card {
 		position: relative;
 		border: 1px solid var(--line);
-		border-radius: 1rem;
-		padding: 1.5rem;
+		border-radius: var(--radius-surface);
+		padding: 1.25rem;
 		background: transparent;
 		transition:
-			border-color 160ms var(--ease-out-quint),
-			background-color 160ms var(--ease-out-quint);
+			border-color 160ms var(--ease-out),
+			background-color 160ms var(--ease-out);
 	}
-
-	/* An editorial row: a numbered rule-separated entry, which is how a
-	   publication lists things and how a dashboard never does. */
-	.row {
-		display: grid;
-		gap: 0.5rem 2rem;
-		padding-block: 2rem;
-		border-block-start: 1px solid var(--line);
-	}
-	@media (min-width: 48rem) {
-		.row {
-			grid-template-columns: 4rem 18rem 1fr;
-			align-items: baseline;
-		}
-	}
-	.row-index {
-		font-family: var(--font-mono);
-		font-size: 0.8125rem;
-		color: var(--text-faint);
-		font-variant-numeric: tabular-nums;
-	}
-	.row-title {
-		font-family: var(--font-display);
-		font-size: 1.25rem;
-		font-weight: 550;
-		letter-spacing: -0.02em;
-		color: var(--text-strong);
-	}
-	.row-body {
-		color: var(--text-muted);
-		line-height: 1.65;
-		max-inline-size: 46ch;
-	}
-	/* Only cards that are actually links lift; a static panel that moves under
-	   the cursor suggests an action that is not there. */
 	a.card:hover {
-		border-color: var(--line-strong);
+		border-color: var(--color-primary-500);
 		background: var(--surface-raised);
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.card,
-		a.card:hover {
-			transform: none;
-			transition: box-shadow 200ms;
-		}
 	}
 
 	.field {
 		inline-size: 100%;
 		background: var(--surface-raised);
-		color: var(--text);
-		border: 1px solid transparent;
-		border-radius: var(--radius-xl);
-		padding: 0.625rem 0.875rem;
+		color: var(--text-strong);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		padding: 0.75rem 0.875rem;
 		font-size: 0.9375rem;
-		box-shadow: var(--elevation-1);
 	}
 
-	/* Coming-soon markers. Muted on purpose: a roadmap badge that shouts
-	   competes with what the product already does today. */
+	/* Roadmap markers. Muted on purpose: a badge that shouts competes with what
+	   the product already does today. */
 	.badge-soon {
 		display: inline-flex;
 		align-items: center;
-		border-radius: 999px;
-		padding: 0.0625rem 0.5rem;
-		font-size: 0.6875rem;
+		border-radius: var(--radius-control);
+		padding: 0.1875rem 0.5rem;
+		font-size: 0.75rem;
 		font-weight: 500;
 		letter-spacing: 0.02em;
-		background: color-mix(in oklab, var(--color-primary-400) 16%, transparent);
-		color: var(--color-primary-200);
+		text-transform: uppercase;
+		border: 1px solid var(--color-primary-200);
+		background: var(--color-primary-50);
+		color: var(--color-primary-800);
 		white-space: nowrap;
 	}
 
-	/*
-	 * A section opens with a label, then a hairline running to the edge of the
-	 * measure. It does the work a heading border does, without drawing a box.
-	 */
-	.sec-head {
+	/* A figure and its caption, with no rule over it — the size does the
+	   separating, which a 2px line only repeated badly. */
+	.figure-block {
 		display: flex;
-		align-items: center;
-		gap: 1rem;
-		margin-block-end: clamp(30px, 5vh, 66px);
-	}
-	.rule {
-		flex: 1 1 auto;
-		block-size: 1px;
-		background: var(--line-soft);
+		flex-direction: column;
+		gap: 0.75rem;
 	}
 
-	/* Chapter numerals: large, light and tabular, warming to the accent when
-	   the row they belong to is hovered. */
-	.chapter-num {
-		font-family: var(--font-mono);
-		font-size: clamp(1.375rem, 2.2vw, 1.875rem);
-		font-weight: 300;
-		letter-spacing: -0.02em;
-		font-variant-numeric: tabular-nums;
-		line-height: 1;
-		color: var(--text-faint);
-		transition:
-			color 0.4s var(--ease-out),
-			transform 0.5s var(--ease-out);
-	}
 
+	/* A line that rises into place behind its own edge. The mask is the
+	   parent's overflow, so there is no clip-path to animate. */
 	/*
-	 * A line that rises into place behind its own edge, rather than fading.
-	 * The mask is the parent's overflow, so there is no clip-path to animate.
+	 * The clipping box itself has to clear the descenders, or every y, g and p
+	 * in a headline gets its tail cut off. The padding grows the box, the
+	 * negative margin takes the growth back out of the layout — putting the
+	 * pair on the inner span instead cancels out and clips exactly as before.
 	 */
 	.mask-line {
 		display: block;
 		overflow: hidden;
+		padding-block-end: 0.18em;
+		margin-block-end: -0.18em;
 	}
 	.mask-line > span {
 		display: block;
-		transition: transform 1.05s var(--ease-out);
 	}
 	@supports (animation-timeline: view()) {
 		@media (prefers-reduced-motion: no-preference) {
@@ -285,44 +532,88 @@ body {
 		}
 	}
 
-	/* Bricolage has an optical-size axis; at display sizes it wants the larger
-	   cut or the joins look soft. */
-	.display {
-		font-family: var(--font-display);
-		font-weight: 550;
-		font-variation-settings: 'opsz' 48;
-		letter-spacing: -0.03em;
-		line-height: 1.05;
-		text-wrap: balance;
-	}
-
-	/* Fluid, so the hero is genuinely large on a desktop without wrapping badly
-	   on a 360px Android — which is most of this market. */
-	.display-xl {
-		font-size: var(--text-hero);
-		letter-spacing: -0.035em;
-		line-height: 1.02;
-	}
-
-	/* The turning half sits back rather than lighting up. */
-	.display-accent {
-		color: var(--text-muted);
-	}
-
 	/*
-	 * Scroll reveal in pure CSS. Guarded by @supports, so a browser without
-	 * scroll-driven animations simply shows the content — and, more importantly,
-	 * a JS failure cannot leave the page permanently blank, which is exactly
-	 * what a class-on-<html> approach risks.
+	 * Scroll reveal in pure CSS, guarded by @supports, so a browser without
+	 * scroll-driven animations simply shows the content — and a JS failure
+	 * cannot leave the page permanently blank.
 	 */
 	@supports (animation-timeline: view()) {
 		@media (prefers-reduced-motion: no-preference) {
 			.reveal {
 				animation: reveal-in linear both;
 				animation-timeline: view();
-				/* Finishes as the section reaches the middle of the screen. */
 				animation-range: entry 0% cover 20%;
 			}
+		}
+	}
+	/*
+	 * A stagger, without a delay per element in the markup: each child simply
+	 * finishes its reveal a little later in the scroll than the one before it.
+	 */
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.stagger > * {
+				animation: reveal-in linear both;
+				animation-timeline: view();
+				animation-range: entry 0% cover 14%;
+			}
+			.stagger > :nth-child(2) {
+				animation-range: entry 0% cover 19%;
+			}
+			.stagger > :nth-child(3) {
+				animation-range: entry 0% cover 24%;
+			}
+			.stagger > :nth-child(4) {
+				animation-range: entry 0% cover 29%;
+			}
+			.stagger > :nth-child(n + 5) {
+				animation-range: entry 0% cover 34%;
+			}
+		}
+	}
+
+	/*
+	 * The one animation that is not scroll-driven: the hero arrives on load,
+	 * because there is no scroll to drive it yet. Pure CSS, so a failed
+	 * hydration cannot leave it stuck at zero opacity.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.enter > * {
+			animation: reveal-in 420ms var(--ease-out) both;
+		}
+		.enter > :nth-child(2) {
+			animation-delay: 50ms;
+		}
+		.enter > :nth-child(3) {
+			animation-delay: 100ms;
+		}
+		.enter > :nth-child(4) {
+			animation-delay: 150ms;
+		}
+		.enter > :nth-child(5) {
+			animation-delay: 200ms;
+		}
+	}
+
+	/* A figure that settles as it comes into view — slower and further than the
+	   text beside it, so the two do not move as one block. */
+	@supports (animation-timeline: view()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.rise {
+				animation: rise-in linear both;
+				animation-timeline: view();
+				animation-range: entry 0% cover 30%;
+			}
+		}
+	}
+	@keyframes rise-in {
+		from {
+			opacity: 0;
+			transform: translateY(26px) scale(0.985);
+		}
+		to {
+			opacity: 1;
+			transform: none;
 		}
 	}
 
@@ -336,57 +627,420 @@ body {
 			transform: none;
 		}
 	}
+	/* Reduced motion is not no feedback: the fade stays, the travel goes. */
+	@media (prefers-reduced-motion: reduce) {
+		.enter > * {
+			animation: fade-in 200ms var(--ease-out) both;
+			animation-delay: 0ms !important;
+		}
+	}
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
 
+	/* No rule under the header — it is the top of the hero, not a bar above it.
+	   The blur alone separates it once the page has scrolled. */
 	.site-header {
 		position: sticky;
 		inset-block-start: 0;
 		z-index: 30;
-		border-block-end: 1px solid var(--line);
-		background: color-mix(in oklab, var(--surface-base) 86%, transparent);
-		backdrop-filter: blur(12px);
-		-webkit-backdrop-filter: blur(12px);
+		padding-block: 0.75rem;
+		background: color-mix(in oklab, var(--surface-base) 82%, transparent);
+		backdrop-filter: blur(10px) saturate(120%);
+		-webkit-backdrop-filter: blur(10px) saturate(120%);
+	}
+	.nav-link {
+		display: inline-flex;
+		align-items: center;
+		min-block-size: 44px;
+		padding-inline: 0.75rem;
+		font-size: 0.9375rem;
+		color: var(--text-muted);
+		text-decoration: none;
+		transition: color 140ms var(--ease-out-quint);
+	}
+	.nav-link:hover,
+	.nav-link[aria-current='page'] {
+		color: var(--text-strong);
 	}
 
 	/*
-	 * The trust strip. No logos yet, so the names carry it — which is the point
-	 * anyway: a Dhaka merchant reads "Steadfast" and knows we understand them.
-	 * Duplicated in the markup so the loop has no seam.
+	 * The chapters stack. Each one sticks under the header while the next slides
+	 * up over it, so five sections read as one pile being dealt rather than five
+	 * pages scrolled past — and the top edge of every card you have already read
+	 * stays in view, which is the progress bar.
 	 */
-	.marquee {
-		display: flex;
-		overflow: hidden;
-		mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-		-webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+	.stack {
+		position: relative;
 	}
-	.marquee > ul {
-		display: flex;
-		flex-shrink: 0;
-		align-items: center;
-		gap: 3.5rem;
-		padding-inline-end: 3.5rem;
-		margin: 0;
-		padding-block: 0;
-		padding-inline-start: 0;
-		list-style: none;
-		animation: marquee 38s linear infinite;
+	/*
+	 * A sticky child can only stick while its container is still on screen. The
+	 * last card's container ends at the card, so its sticky range is nothing and
+	 * it scrolls past like an ordinary section while the four above it stack.
+	 * This is the range it needs to park like the others.
+	 */
+	.stack::after {
+		content: '';
+		display: block;
+		block-size: clamp(140px, 34vh, 340px);
 	}
-	.marquee:hover > ul {
-		animation-play-state: paused;
+	.stack-card {
+		position: sticky;
+		/*
+		 * A card has to fit the screen to stack: pinned, anything past the fold
+		 * can never be scrolled to, and the next card starts covering it before
+		 * it has been read. This is the ceiling, and it is why the feature tiles
+		 * live in their own section rather than inside a chapter.
+		 */
+		max-block-size: calc(100svh - 92px - var(--i) * 14px);
+		overflow: clip;
+		/* Each card parks a few pixels lower than the one before, so the stack
+		   fans instead of hiding itself. */
+		inset-block-start: calc(92px + var(--i) * 14px);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--surface-base);
+		padding: clamp(1.5rem, 4vw, 3.25rem);
+		margin-block-end: clamp(1.5rem, 4vh, 3rem);
 	}
-	@keyframes marquee {
-		to {
-			transform: translateX(-100%);
-		}
-	}
-	/* Endless horizontal motion is exactly the kind a vestibular disorder
-	   reacts to, so it simply stops and becomes a scrollable strip. */
 	@media (prefers-reduced-motion: reduce) {
-		.marquee > ul {
-			animation: none;
+		.stack-card {
+			position: static;
 		}
-		.marquee {
-			overflow-x: auto;
+	}
+	/* The numeral is the score: which chapter of how many. */
+	.stack-count {
+		display: flex;
+		align-items: baseline;
+		gap: 0.375rem;
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		font-size: 0.75rem;
+		letter-spacing: 0.02em;
+		color: var(--text-faint);
+	}
+	.stack-count b {
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		font-weight: 500;
+		line-height: 1;
+		color: var(--color-primary-600);
+	}
+	/* A rule that fills as the chapters are read. */
+	.stack-rail {
+		position: relative;
+		flex: 1 1 auto;
+		block-size: 2px;
+		border-radius: var(--radius-control);
+		background: var(--line);
+		overflow: hidden;
+	}
+	.stack-rail::after {
+		content: '';
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 0;
+		inline-size: calc(var(--done) * 100%);
+		background: var(--color-primary-600);
+	}
+
+	/*
+	 * The index: one grid, not three lists side by side. Column-major flow with
+	 * fixed rows means row four of the first column lines up with row four of the
+	 * third, and the cells share their rules instead of leaving gutters — a table
+	 * of contents, which is what this is.
+	 */
+	.index {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		/* A table is a box: the outer edge closes on all four sides, and the
+		   inner rules are what divide it. */
+		border: 1px solid var(--line);
+		border-radius: var(--radius-surface);
+		overflow: clip;
+	}
+	@media (min-width: 64rem) {
+		.index {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-rows: auto repeat(4, 1fr);
+			grid-auto-flow: column;
 		}
+	}
+	.index-head {
+		font-family: var(--font-display);
+		font-size: 1.0625rem;
+		font-weight: 500;
+		letter-spacing: -0.2px;
+		color: var(--text-strong);
+		padding: 0.875rem clamp(1rem, 2vw, 1.5rem);
+		background: var(--color-primary-50);
+		border-block-end: 1px solid var(--line);
+	}
+	.index-row {
+		display: grid;
+		grid-template-columns: 2rem minmax(0, 1fr);
+		gap: 0.25rem 0.75rem;
+		align-content: start;
+		padding: 1rem clamp(1rem, 2vw, 1.5rem);
+		border-block-end: 1px solid var(--line);
+	}
+	/* The shared rules, drawn once: no doubling, and nothing against the outer
+	   border of the box. */
+	.index > :last-child {
+		border-block-end: 0;
+	}
+	@media (min-width: 64rem) {
+		.index-head:not(:first-child),
+		.index-row {
+			border-inline-start: 1px solid var(--line);
+		}
+		.index > :nth-child(5n + 1) {
+			border-inline-start: 0;
+		}
+		/* Row five of each column is the last one down that column. */
+		.index > :nth-child(5n) {
+			border-block-end: 0;
+		}
+	}
+	.index-num {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		font-size: 0.75rem;
+		color: var(--text-faint);
+	}
+	.index-title {
+		display: block;
+		font-weight: 600;
+		font-size: 0.9375rem;
+		color: var(--text-strong);
+	}
+	.index-body {
+		display: block;
+		margin-block-start: 0.25rem;
+		font-size: 0.875rem;
+		line-height: 1.6;
+		color: var(--text-muted);
+	}
+
+	/*
+	 * A bento wall: tiles of different weights, the big ones carrying a screen
+	 * and the small ones a single claim. Six columns so a tile can take a half,
+	 * a third or two thirds without a second grid.
+	 */
+	.bento {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	@media (min-width: 52rem) {
+		.bento {
+			grid-template-columns: repeat(6, minmax(0, 1fr));
+			gap: 1.25rem;
+		}
+	}
+	.tile {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		grid-column: span 2;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-surface);
+		background: var(--surface-raised);
+		padding: clamp(1.125rem, 2.2vw, 1.5rem);
+	}
+	.tile-wide,
+	.tile-tall {
+		grid-column: span 2;
+	}
+	@media (min-width: 52rem) {
+		.tile-wide {
+			grid-column: span 4;
+		}
+		.tile-tall {
+			grid-column: span 3;
+		}
+	}
+	.tile:hover {
+		border-color: var(--color-primary-500);
+	}
+	@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+		.tile {
+			transition:
+				border-color 160ms var(--ease-out),
+				transform 160ms var(--ease-out);
+		}
+		.tile:hover {
+			transform: translateY(-2px);
+		}
+	}
+	/* A bare grid cell, for when a list item has to hold the tile rather than
+	   be one. `display: contents` would drop the <li> from the a11y tree. */
+	.cell {
+		grid-column: span 2;
+		display: flex;
+	}
+	.tile-title {
+		font-family: var(--font-display);
+		font-size: 1.1875rem;
+		font-weight: 500;
+		letter-spacing: -0.5px;
+		color: var(--text-strong);
+	}
+	.tile-body {
+		font-size: 0.9375rem;
+		line-height: 1.65;
+		color: var(--text-muted);
+	}
+
+	/*
+	 * The footer sits still while the page slides off it. Pure CSS: the content
+	 * is opaque and one layer above, the footer is pinned to the bottom one
+	 * layer below, so the last scroll uncovers it rather than pushing it up.
+	 */
+	.page-body {
+		position: relative;
+		z-index: 2;
+		background: var(--surface-base);
+	}
+	.site-footer {
+		position: sticky;
+		inset-block-end: 0;
+		z-index: 1;
+	}
+
+	/*
+	 * A real <dialog>: the platform gives the focus trap, Escape, inertness of
+	 * the page behind, and the top layer. Rebuilding those in Svelte would be
+	 * worse in every way.
+	 */
+	.modal {
+		inline-size: min(100% - 2rem, 34rem);
+		max-block-size: min(88svh, 44rem);
+		margin: auto;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--surface-raised);
+		color: var(--text);
+		padding: clamp(1.25rem, 3vw, 2rem);
+		overflow: auto;
+	}
+	.modal::backdrop {
+		background: rgb(15 20 32 / 0.4);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.modal[open] {
+			animation: modal-in 220ms var(--ease-out) both;
+		}
+		.modal[open]::backdrop {
+			animation: fade-in 220ms var(--ease-out) both;
+		}
+	}
+	@keyframes modal-in {
+		from {
+			opacity: 0;
+			/* Never from scale(0): nothing in the world appears from nothing. */
+			transform: translateY(8px) scale(0.97);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	/*
+	 * A link is a link: no box, no fill, and an arrow that steps up and to the
+	 * right when you point at it. The arrow is hidden at rest so a column of
+	 * links stays a clean column, and it moves rather than appears, which is
+	 * what makes it read as "this goes somewhere".
+	 */
+	.link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3125rem;
+		color: var(--color-primary-700);
+		text-decoration: none;
+	}
+	.link:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.link svg {
+		opacity: 0;
+		translate: -3px 3px;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.link svg {
+			transition:
+				opacity 160ms var(--ease-out),
+				translate 160ms var(--ease-out);
+		}
+	}
+	.link:hover svg,
+	.link:focus-visible svg {
+		opacity: 1;
+		translate: 0 0;
+	}
+	/* On ink, the link is bone and the arrow with it. */
+	.link-inverse {
+		color: var(--color-bone);
+	}
+
+	/*
+	 * A form written as a sentence. Six stacked boxes read as paperwork; the same
+	 * six answers inside one sentence read as a conversation, which is what this
+	 * page is asking for. The labels still exist for a screen reader — they are
+	 * just not the visual scaffolding.
+	 */
+	.sentence {
+		font-size: clamp(1.0625rem, 1.4vw, 1.3125rem);
+		line-height: 2.3;
+		color: var(--text-body, var(--text));
+	}
+	.inline-field {
+		display: inline-block;
+		inline-size: auto;
+		min-inline-size: 7ch;
+		max-inline-size: 100%;
+		border: 0;
+		border-block-end: 2px solid var(--color-primary-300);
+		border-radius: 0;
+		background: transparent;
+		padding: 0 0.25rem;
+		font: inherit;
+		font-weight: 600;
+		color: var(--text-strong);
+		transition: border-color 160ms var(--ease-out);
+	}
+	.inline-field::placeholder {
+		font-weight: 400;
+		color: var(--text-faint);
+	}
+	.inline-field:focus {
+		outline: none;
+		border-block-end-color: var(--color-primary-600);
+		background: var(--color-primary-50);
+	}
+	.inline-field[aria-invalid='true'] {
+		border-block-end-color: var(--color-warn-ink);
+	}
+	/* The select keeps its caret but loses the box. */
+	select.inline-field {
+		appearance: none;
+		padding-inline-end: 1.25rem;
+		background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+			linear-gradient(135deg, currentColor 50%, transparent 50%);
+		background-position:
+			right 0.5rem center,
+			right 0.25rem center;
+		background-size:
+			4px 4px,
+			4px 4px;
+		background-repeat: no-repeat;
 	}
 
 	.sr-only {
@@ -398,64 +1052,331 @@ body {
 		white-space: nowrap;
 	}
 
-	/* Fluid gutter and a section rhythm that is a whole viewport-fraction, not
-	   a fixed 4rem. Space is what a landing page has that a tool does not. */
 	.sec {
 		padding-block: var(--sec-y);
-		padding-inline: var(--pad);
 	}
-	.measure {
-		margin-inline: auto;
-		max-inline-size: 76rem;
+	/* A section that owns the screen: used where the thing in it is the point,
+	   not an illustration beside a paragraph. */
+	.sec-full {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-block-size: calc(100svh - 92px);
 	}
 
-	/* A rule-separated chapter: index, title, body — the reference's
-	   44px / 1fr / meta grid, at our measure. */
-	.chapter {
-		display: grid;
-		gap: 0.75rem 2.5rem;
-		padding-block: clamp(1.75rem, 3.4vh, 2.75rem);
-		border-block-start: 1px solid var(--line-soft);
-		transition: border-color 0.4s var(--ease-out);
+	/* A full viewport, less the header, so the first screen is the whole story
+	   opening rather than a band with more visible under it. */
+	.sec-hero {
+		display: flex;
+		align-items: center;
+		min-block-size: calc(100svh - 92px);
+		padding-block: clamp(32px, 6vh, 72px);
 	}
-	.chapter:last-child {
-		border-block-end: 1px solid var(--line-soft);
+
+	/*
+	 * The hero stage: the dashboard sits under the words and runs off the bottom
+	 * of the screen, so the fold cuts it rather than a caption explaining it.
+	 * Only the top third is ever visible, and that is the part carrying the
+	 * point — a queue of orders with one of them stopped.
+	 */
+	.stage {
+		overflow: clip;
+		max-block-size: min(42vh, 380px);
+		/*
+		 * The screen dissolves at the cut rather than being sliced through a row.
+		 * A hard edge here reads as the next section landing on top of the hero;
+		 * a fade reads as the screen carrying on past the fold, which is what it
+		 * is actually doing. (The one mask on the site — not a decorative fill.)
+		 */
+		mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
+		-webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
 	}
-	@media (min-width: 52rem) {
-		.chapter {
-			grid-template-columns: 3.5rem minmax(0, 20rem) minmax(0, 1fr);
-			align-items: baseline;
+	.stage > * {
+		margin-inline: auto;
+		max-inline-size: 68rem;
+	}
+
+	/*
+	 * It leans back at rest and stands up as the page scrolls — a screen turning
+	 * to face you is what makes it read as an object in a room rather than a
+	 * diagram. Driven by the document's own scroll, because at load it is
+	 * already in view and a view() timeline would have nothing left to run.
+	 */
+	.lift {
+		transform: perspective(1800px) rotateX(20deg) scale(0.97);
+		transform-origin: 50% 0;
+	}
+	@supports (animation-timeline: scroll()) {
+		@media (prefers-reduced-motion: no-preference) {
+			.lift {
+				animation: lift-flat linear both;
+				animation-timeline: scroll(root block);
+				animation-range: 0 420px;
+			}
 		}
 	}
-	.chapter:hover {
-		border-color: var(--line);
+	@keyframes lift-flat {
+		from {
+			transform: perspective(1800px) rotateX(20deg) scale(0.97);
+		}
+		to {
+			transform: perspective(1800px) rotateX(3deg) scale(1);
+		}
 	}
-	.chapter:hover .chapter-num {
-		color: var(--color-primary-400);
-		transform: translate3d(0, -2px, 0);
-	}
-	.chapter-title {
-		font-family: var(--font-display);
-		font-size: clamp(1.125rem, 1.5vw, 1.375rem);
-		font-weight: 500;
-		letter-spacing: -0.02em;
-		color: var(--text-strong);
-	}
-	.chapter-body {
-		font-size: clamp(0.9375rem, 1vw, 1.0625rem);
-		font-weight: 300;
-		line-height: 1.72;
-		color: var(--text-muted);
-		max-inline-size: 46ch;
+	@media (prefers-reduced-motion: reduce) {
+		.lift {
+			transform: none;
+		}
 	}
 
-	.eyebrow {
+	/*
+	 * The globe. A dot grid of land on a barely-there sphere, with the pins
+	 * labelled in place — a map, not a decoration, so a merchant can find their
+	 * own country on it before reading a word.
+	 */
+	.globe-wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	/* The caption the reference has under the sphere: what it is, once. */
+	.globe-wrap::after {
+		content: 'Interactive — drag to spin';
+		margin-block-start: 1rem;
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-primary-700);
+	}
+	.globe {
+		position: relative;
+		inline-size: min(100%, clamp(17rem, 52vmin, 32rem));
+		aspect-ratio: 1;
+		touch-action: none;
+	}
+	.globe-edge {
+		fill: none;
+		stroke: var(--color-line);
+	}
+	.globe-face {
+		fill: var(--color-bone);
+	}
+	.globe-grid path {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 0.5;
+	}
+	.globe-land circle {
+		fill: var(--color-primary-600);
+	}
+	/* The hop from one region to the next: one shop, however many markets. */
+	.globe-route {
+		fill: none;
+		stroke: var(--color-primary-500);
+		stroke-width: 1;
+		stroke-dasharray: 3 3;
+		opacity: 0.75;
+	}
+	/* A pin is its own label: a chip pinned to the point, not a dot with a
+	   legend somewhere else. */
+	/* A market is a dot until it is chosen; the region carries the name, so
+	   eight labels never stack on top of each other. */
+	.dot {
+		position: absolute;
+		translate: -50% -50%;
+		inline-size: 9px;
+		block-size: 9px;
+		border-radius: var(--radius-pill);
+		border: 2px solid var(--color-bone);
+		background: var(--color-primary-400);
+		cursor: pointer;
+	}
+	.dot[data-on='true'] {
+		inline-size: 13px;
+		block-size: 13px;
+		background: var(--color-primary-600);
+	}
+	/* The label sits above its dot, not on it. */
+	.pin {
+		position: absolute;
+		translate: -50% -185%;
+		display: inline-flex;
+		align-items: center;
+		border-radius: var(--radius-control);
+		padding: 0.1875rem 0.4375rem;
+		background: var(--color-bone);
+		border: 1px solid var(--color-line-strong);
+		font-family: var(--font-mono);
+		font-size: 0.6875rem;
+		line-height: 1;
+		white-space: nowrap;
+		color: var(--text-muted);
+		cursor: pointer;
+	}
+	.pin[data-on='true'] {
+		background: var(--color-primary-600);
+		border-color: transparent;
+		color: #fff;
+		/* The chosen one sits above its neighbours when they overlap. */
+		z-index: 1;
+	}
+	/* The region is the quiet label: no chip, just the word on the sphere. */
+	.pin-region {
+		translate: -50% 120%;
+		background: transparent;
+		border-color: transparent;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+
+	/* The admin at a glance: rail, queue, and the one order that stopped. */
+	.dash {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+	}
+	@media (min-width: 52rem) {
+		.dash {
+			grid-template-columns: 12.5rem minmax(0, 1fr) 17rem;
+		}
+	}
+	.dash-rail {
+		display: none;
+		border-inline-end: 1px solid var(--line);
+		padding: 0.75rem;
+	}
+	.dash-side {
+		display: none;
+		border-inline-start: 1px solid var(--line);
+		padding: 0.875rem;
+	}
+	@media (min-width: 52rem) {
+		.dash-rail,
+		.dash-side {
+			display: block;
+		}
+	}
+	.dash-item {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-control);
+		padding: 0.4375rem 0.5rem;
+		font-size: 0.875rem;
+		color: var(--text-muted);
+	}
+	.dash-item[data-on='true'] {
+		background: var(--color-primary-50);
+		color: var(--color-primary-800);
+		font-weight: 500;
+	}
+	.dash-row {
+		display: grid;
+		grid-template-columns: 4.25rem minmax(0, 1fr) 6.5rem 5.5rem 3.5rem;
+		align-items: center;
+		gap: 0.75rem;
+		border-block-start: 1px solid var(--line-soft);
+		padding: 0.5625rem 0.875rem;
+		font-size: 0.875rem;
+	}
+	.dash-row[data-flagged='true'] {
+		background: var(--color-warn-wash);
+	}
+	.dash-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		border-block-end: 1px solid var(--line);
+		padding: 0.875rem 1rem;
+	}
+	/* The small square controls every admin has in its top corner. */
+	.dash-btn {
+		display: grid;
+		place-items: center;
+		inline-size: 28px;
+		block-size: 28px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		color: var(--text-muted);
+	}
+	.dash-search {
+		display: flex;
+		align-items: center;
+		gap: 0.4375rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		padding: 0.375rem 0.5rem;
+		font-size: 0.8125rem;
+		color: var(--text-faint);
+	}
+	/* A figure with its label under it, three across, divided by hairlines. */
+	.dash-stats {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		border-block-end: 1px solid var(--line);
+	}
+	.dash-stat {
+		padding: 0.75rem 1rem;
+	}
+	.dash-stat + .dash-stat {
+		border-inline-start: 1px solid var(--line);
+	}
+	.dash-stat b {
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		font-weight: 500;
+		line-height: 1.1;
+		color: var(--text-strong);
+	}
+	/* Initials, because a real queue has a person on every row. */
+	.avatar {
+		display: grid;
+		place-items: center;
 		flex: 0 0 auto;
+		inline-size: 26px;
+		block-size: 26px;
+		border-radius: var(--radius-pill);
+		background: var(--color-primary-50);
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--color-primary-800);
+	}
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		border-radius: var(--radius-pill);
+		padding: 0.125rem 0.5rem;
 		font-size: 0.75rem;
 		font-weight: 500;
-		/* Wide tracking is what makes a small label read as a label. */
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--color-primary-400);
+		background: var(--surface-sunken);
+		color: var(--text-muted);
 	}
+	.pill[data-tone='risk'] {
+		background: var(--color-warn-tint);
+		color: var(--color-warn-ink);
+	}
+	.pill[data-tone='ok'] {
+		background: var(--color-primary-50);
+		color: var(--color-primary-800);
+	}
+	/* The feed down the right: who is waiting on a call, and since when. */
+	.feed-item {
+		display: flex;
+		gap: 0.625rem;
+		border-block-start: 1px solid var(--line-soft);
+		padding-block: 0.625rem;
+	}
+	/* Every band's content sits in this and nothing else, so a full-bleed
+	   background never takes its text with it. */
+	.wrap {
+		margin-inline: auto;
+		inline-size: 100%;
+		max-inline-size: var(--measure-page);
+		padding-inline: var(--pad);
+	}
+
+	/* A rule-separated chapter: index, title, body. */
 }

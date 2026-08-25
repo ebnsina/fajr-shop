@@ -1,44 +1,59 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { HugeiconsIcon } from '@hugeicons/svelte';
-	import { WhatsappFreeIcons, Call02FreeIcons, Mail01FreeIcons } from '@hugeicons/core-free-icons';
+	import { MessageCircle, Phone, Mail } from '@lucide/svelte';
+	import Arrow from '$lib/Arrow.svelte';
 	import { PLANS, CONTACT } from '$lib/content';
 
 	let { data, form } = $props();
 	let busy = $state(false);
+
+	// WhatsApp first: it is the channel this market actually answers.
+	const CHANNELS = [
+		{
+			href: `https://wa.me/${CONTACT.whatsapp}`,
+			icon: MessageCircle,
+			label: 'WhatsApp',
+			value: 'Usually answered within the hour',
+			brand: true
+		},
+		{ href: `tel:${CONTACT.phone}`, icon: Phone, label: 'Call', value: CONTACT.phone },
+		{ href: `mailto:${CONTACT.email}`, icon: Mail, label: 'Email', value: CONTACT.email }
+	];
+
+	// Every field's message, gathered under the sentence — an error hanging off
+	// an inline input would push the words around as you type.
+	const problems = $derived(Object.values(form?.errors ?? {}) as string[]);
 </script>
 
-
-<section class="mx-auto max-w-5xl px-6 py-16">
-	<div class="grid gap-10 lg:grid-cols-2">
+<section class="sec">
+	<div class="wrap grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
 		<div>
-			<p class="eyebrow">Talk to us</p>
-			<h1 class="display mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
-				Twenty minutes, on your numbers
-			</h1>
-			<p class="mt-5 text-lg text-muted">
+			<p class="eyebrow mb-6">Talk to us</p>
+			<h1 class="display" style="font-size: var(--text-section)">Twenty minutes, on your numbers</h1>
+			<p class="mt-6 leading-relaxed text-body" style="font-size: var(--text-lead)">
 				Tell us your monthly orders and roughly what comes back. We will show you
 				the same screens your staff would use, and be honest if this is not worth
 				it for you yet.
 			</p>
 
-			<!-- WhatsApp first: it is the channel this market actually answers. -->
-			<ul class="mt-8 space-y-3">
-				{#each [
-					{ href: `https://wa.me/${CONTACT.whatsapp}`, icon: WhatsappFreeIcons, label: 'WhatsApp', value: 'Fastest — usually within the hour' },
-					{ href: `tel:${CONTACT.phone}`, icon: Call02FreeIcons, label: 'Phone', value: CONTACT.phone },
-					{ href: `mailto:${CONTACT.email}`, icon: Mail01FreeIcons, label: 'Email', value: CONTACT.email }
-				] as item (item.label)}
-					<li>
-						<a href={item.href} class="card flex items-center gap-4 !py-4">
-							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
-								<HugeiconsIcon icon={item.icon} size={18} aria-hidden="true" />
-							</span>
-							<span>
-								<span class="block font-medium text-strong">{item.label}</span>
-								<span class="block text-sm text-muted">{item.value}</span>
-							</span>
-						</a>
+			<!-- Three ways to reach a person, as links rather than three boxes. -->
+			<ul class="mt-10 space-y-4 border-t border-line pt-8">
+				{#each CHANNELS as c (c.label)}
+					<li class="flex items-start gap-3">
+						<c.icon
+							size={17}
+							aria-hidden="true"
+							class="mt-1 shrink-0 {c.brand ? 'text-[var(--color-whatsapp-ink)]' : 'text-faint'}"
+						/>
+						<span>
+							<a
+								href={c.href}
+								class="link font-medium {c.brand ? '!text-[var(--color-whatsapp-ink)]' : ''}"
+							>
+								{c.label} <Arrow />
+							</a>
+							<span class="chrome block">{c.value}</span>
+						</span>
 					</li>
 				{/each}
 			</ul>
@@ -46,15 +61,21 @@
 
 		<div>
 			{#if form?.sent}
-				<div class="card">
-					<h2 class="display font-semibold text-strong">Got it</h2>
-					<p class="mt-2 text-muted">
+				<div class="tile !p-8">
+					<h2 class="tile-title text-xl">Got it</h2>
+					<p class="mt-2 leading-relaxed text-muted">
 						We will call the number you gave us, usually the same day. If it is
 						urgent, WhatsApp is faster.
 					</p>
-					<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-secondary mt-5">Message on WhatsApp</a>
+					<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-whatsapp mt-6 self-start">
+						Message on WhatsApp
+					</a>
 				</div>
 			{:else}
+				<!--
+				  The enquiry as one sentence: the same six answers a stack of boxes
+				  asks for, in the shape a person would actually say them.
+				-->
 				<form
 					method="POST"
 					use:enhance={() => {
@@ -64,77 +85,76 @@
 							busy = false;
 						};
 					}}
-					class="card space-y-4"
+					class="tile !p-[clamp(1.5rem,3vw,2.5rem)]"
 				>
-					<h2 class="display font-semibold text-strong">Or leave your number</h2>
+					<p class="eyebrow mb-6 self-start">Or leave your number</p>
 
-					{#if form?.errors?.form}
-						<p class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300" role="alert">
-							{form.errors.form}
-						</p>
-					{/if}
-
-					<div>
-						<label class="mb-1.5 block text-sm font-medium text-body" for="name">Your name</label>
-						<input
-							id="name"
-							name="name"
-							required
-							value={form?.name ?? ''}
-							aria-invalid={form?.errors?.name ? 'true' : undefined}
-							aria-describedby={form?.errors?.name ? 'name-error' : undefined}
-							class="field"
+					<p class="sentence">
+						I run
+						<label class="sr-only" for="shop">Shop name</label><input
+							id="shop"
+							name="shop"
+							class="inline-field"
+							style="inline-size: 14ch"
+							placeholder="shop name"
+							value={form?.shop ?? ''}
+						/>, taking about
+						<label class="sr-only" for="orders">Orders a month</label><input
+							id="orders"
+							name="orders"
+							inputmode="numeric"
+							class="inline-field"
+							style="inline-size: 6ch"
+							placeholder="400"
+							value={form?.orders ?? ''}
 						/>
-						{#if form?.errors?.name}
-							<p id="name-error" class="mt-1.5 text-sm text-red-700 dark:text-red-300" role="alert">
-								{form.errors.name}
-							</p>
-						{/if}
-					</div>
-
-					<div>
-						<label class="mb-1.5 block text-sm font-medium text-body" for="phone">Phone</label>
-						<input
+						orders a month, and I am looking at
+						<label class="sr-only" for="plan">Plan you are looking at</label><select
+							id="plan"
+							name="plan"
+							class="inline-field"
+							value={data.plan ?? ''}
+						>
+							<option value="">a plan you can suggest</option>
+							{#each PLANS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
+						</select>.
+						Call me on
+						<label class="sr-only" for="phone">Phone</label><input
 							id="phone"
 							name="phone"
 							type="tel"
 							inputmode="numeric"
-							placeholder="01XXXXXXXXX"
 							required
+							class="inline-field"
+							style="inline-size: 14ch"
+							placeholder="01XXXXXXXXX"
 							value={form?.phone ?? ''}
 							aria-invalid={form?.errors?.phone ? 'true' : undefined}
-							aria-describedby={form?.errors?.phone ? 'phone-error' : undefined}
-							class="field"
 						/>
-						{#if form?.errors?.phone}
-							<p id="phone-error" class="mt-1.5 text-sm text-red-700 dark:text-red-300" role="alert">
-								{form.errors.phone}
-							</p>
-						{/if}
-					</div>
+						— my name is
+						<label class="sr-only" for="name">Your name</label><input
+							id="name"
+							name="name"
+							required
+							class="inline-field"
+							style="inline-size: 13ch"
+							placeholder="your name"
+							value={form?.name ?? ''}
+							aria-invalid={form?.errors?.name ? 'true' : undefined}
+						/>.
+					</p>
 
-					<div class="grid gap-4 sm:grid-cols-2">
-						<div>
-							<label class="mb-1.5 block text-sm font-medium text-body" for="shop">Shop name</label>
-							<input id="shop" name="shop" value={form?.shop ?? ''} class="field" />
-						</div>
-						<div>
-							<label class="mb-1.5 block text-sm font-medium text-body" for="orders">Orders a month</label>
-							<input id="orders" name="orders" inputmode="numeric" placeholder="e.g. 400" value={form?.orders ?? ''} class="field" />
-						</div>
-					</div>
+					{#if problems.length}
+						<ul class="mt-5 space-y-1" role="alert">
+							{#each problems as problem (problem)}
+								<li class="chrome !text-warn-ink">{problem}</li>
+							{/each}
+						</ul>
+					{/if}
 
-					<div>
-						<label class="mb-1.5 block text-sm font-medium text-body" for="plan">Plan you are looking at</label>
-						<select id="plan" name="plan" value={data.plan ?? ''} class="field">
-							<option value="">Not sure yet</option>
-							{#each PLANS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-						</select>
-					</div>
-
-					<div>
-						<label class="mb-1.5 block text-sm font-medium text-body" for="message">Anything else</label>
-						<textarea id="message" name="message" rows="3" class="field">{form?.message ?? ''}</textarea>
+					<div class="mt-8 border-t border-line pt-6">
+						<label class="chrome" for="message">Anything else? (optional)</label>
+						<textarea id="message" name="message" rows="2" class="field mt-2">{form?.message ?? ''}</textarea>
 					</div>
 
 					<!-- Honeypot: hidden from people, irresistible to bots. -->
@@ -143,14 +163,15 @@
 						<input id="company" name="company" tabindex="-1" autocomplete="off" />
 					</div>
 
-					<button disabled={busy} class="btn btn-primary w-full">
-						{busy ? 'Sending…' : 'Send'}
-					</button>
-
-					<p class="text-xs text-faint">
-						We use your number to call you about this enquiry. Nothing else, and we
-						do not sell it.
-					</p>
+					<div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+						<p class="chrome max-w-[38ch]">
+							We use your number to call you about this enquiry. Nothing else, and
+							we do not sell it.
+						</p>
+						<button disabled={busy} class="btn btn-primary">
+							{busy ? 'Sending…' : 'Send'}
+						</button>
+					</div>
 				</form>
 			{/if}
 		</div>

@@ -51,18 +51,9 @@ importers:
 
   apps/marketing:
     dependencies:
-      '@fontsource-variable/bricolage-grotesque':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource-variable/inter-tight':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@hugeicons/core-free-icons':
-        specifier: ^4.3.0
-        version: 4.3.0
-      '@hugeicons/svelte':
-        specifier: ^1.1.5
-        version: 1.1.5(svelte@5.56.10)
+      '@lucide/svelte':
+        specifier: ^1.34.0
+        version: 1.34.0(svelte@5.56.10)
       drizzle-orm:
         specifier: ^0.44.7
         version: 0.44.7(kysely@0.28.17)(pg@8.23.0)(postgres@3.4.9)
@@ -73,9 +64,6 @@ importers:
         specifier: ^1.4.2
         version: 1.4.2(typescript@6.0.3)
     devDependencies:
-      '@fontsource-variable/geist-mono':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@fontsource-variable/mona-sans':
         specifier: ^5.3.0
         version: 5.3.0
@@ -827,17 +815,11 @@ packages:
   '@exodus/schemasafe@1.3.0':
     resolution: {integrity: sha512-5Aap/GaRupgNx/feGBwLLTVv8OQFfv3pq2lPRzPg9R+IOBnDgghTGW7l7EuVXOvg5cc/xSAlRW8rBrjIC3Nvqw==}
 
-  '@fontsource-variable/bricolage-grotesque@5.3.0':
-    resolution: {integrity: sha512-TLi9Q4hJjS2UvoTMRSS2nHu6c4R56lAw60NR9QYtVRCHn0XtsFpiEhNffZ8Glsoxu6wEEwLKBP8lb94J52PNBA==}
-
   '@fontsource-variable/cairo@5.3.0':
     resolution: {integrity: sha512-zkxIsVQ406AJXD1qaldeOj+CIsMzRMXRT2x6fkYjNJE2DFsqGMzNGFhdrZdZagq3qX9JwaMaZetMc7/oUlpfpg==}
 
   '@fontsource-variable/geist-mono@5.3.0':
     resolution: {integrity: sha512-vBbuwDEo9AkrqADMXOrlAR3DFcJi4/JxeuU43FoiQERnNwsfXNnvxvReZG02cQKmyk4DZkZdBZX3oTDvy2zBAw==}
-
-  '@fontsource-variable/inter-tight@5.3.0':
-    resolution: {integrity: sha512-ZhZZ29sNZ15P1K+cUt13GeBRYON0akgmNiftshUeDLos7X7zGcRgPzt434879Xhq1QbwlW3M/apBMk7jWabwvA==}
 
   '@fontsource-variable/mona-sans@5.3.0':
     resolution: {integrity: sha512-PkxRB3KI4z9Gjpk7vVqgO3GMSyQuOIIj4TaRDbvbcDj8SzWwI38jvLTQxJM/cTRorhcT7h8qjcllR+qjRtM/Fg==}
@@ -935,6 +917,11 @@ packages:
 
   '@lix-js/sdk@0.12.3':
     resolution: {integrity: sha512-T2194yoZsM2S9kyRmI8UtEJL0fgXYAkeY9jZ/PVyC0K78/wmBvrqOSt9SdvgYxM5qnZ57re3NLOjVlV+X5hWxQ==}
+
+  '@lucide/svelte@1.34.0':
+    resolution: {integrity: sha512-sHFL8KVSaPXv0dsmdUTq4q/tj8clT2XYejnoSg0mHObpXWn/9SfET4f14v/7VOba1IsbPIW9+sWaq+Qq1wTdNA==}
+    peerDependencies:
+      svelte: ^5
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
@@ -2788,13 +2775,9 @@ snapshots:
   '@exodus/schemasafe@1.3.0':
     optional: true
 
-  '@fontsource-variable/bricolage-grotesque@5.3.0': {}
-
   '@fontsource-variable/cairo@5.3.0': {}
 
   '@fontsource-variable/geist-mono@5.3.0': {}
-
-  '@fontsource-variable/inter-tight@5.3.0': {}
 
   '@fontsource-variable/mona-sans@5.3.0': {}
 
@@ -2895,6 +2878,10 @@ snapshots:
       '@lix-js/sdk-linux-arm64': 0.12.3
       '@lix-js/sdk-linux-x64': 0.12.3
       '@lix-js/sdk-win32-x64': 0.12.3
+
+  '@lucide/svelte@1.34.0(svelte@5.56.10)':
+    dependencies:
+      svelte: 5.56.10
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true

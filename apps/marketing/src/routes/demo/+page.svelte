@@ -1,23 +1,19 @@
 <script lang="ts">
-	import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/svelte';
-	import {
-		Shirt01FreeIcons, Baby01FreeIcons, RiceBowl01FreeIcons,
-		LaptopProgrammingFreeIcons, SparklesFreeIcons, Sofa01FreeIcons,
-		ArrowRight01FreeIcons
-	} from '@hugeicons/core-free-icons';
+	import type { Component } from 'svelte';
+	import { Shirt, Baby, ShoppingBasket, Laptop, Sparkles, Sofa, ArrowRight } from '@lucide/svelte';
 	import { DEMOS } from '$lib/content';
 	import { REGIONS } from '$lib/regions';
 
-	const ICON: Record<string, IconSvgElement> = {
-		fashion: Shirt01FreeIcons,
-		kids: Baby01FreeIcons,
-		grocery: RiceBowl01FreeIcons,
-		tech: LaptopProgrammingFreeIcons,
-		beauty: SparklesFreeIcons,
-		home: Sofa01FreeIcons,
-		'gulf-fashion': Shirt01FreeIcons,
-		'gulf-tech': LaptopProgrammingFreeIcons,
-		'gulf-grocery': RiceBowl01FreeIcons
+	const ICON: Record<string, Component> = {
+		fashion: Shirt,
+		kids: Baby,
+		grocery: ShoppingBasket,
+		tech: Laptop,
+		beauty: Sparkles,
+		home: Sofa,
+		'gulf-fashion': Shirt,
+		'gulf-tech': Laptop,
+		'gulf-grocery': ShoppingBasket
 	};
 
 	// Grouped by region: a Dubai merchant should not have to read past six
@@ -56,10 +52,11 @@
 
 			<ul class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 				{#each group.demos as demo (demo.key)}
+					{@const Icon = ICON[demo.key]}
 			<li>
 				<a href="/demo/{demo.key}" class="card group flex h-full flex-col">
-					<span class="grid size-11 place-items-center rounded-xl bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
-						<HugeiconsIcon icon={ICON[demo.key]} size={20} aria-hidden="true" />
+					<span class="grid size-11 place-items-center rounded-[var(--radius-surface)] bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+						<Icon size={20} aria-hidden="true" />
 					</span>
 
 					<h2 class="display mt-4 font-semibold text-strong">{demo.label}</h2>
@@ -78,12 +75,7 @@
 					</p>
 					<span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary-700 dark:text-primary-300">
 						Open this demo
-						<HugeiconsIcon
-							icon={ArrowRight01FreeIcons}
-							size={16}
-							aria-hidden="true"
-							class="transition group-hover:translate-x-0.5"
-						/>
+						<ArrowRight size={16} aria-hidden="true" class="transition group-hover:translate-x-0.5" />
 					</span>
 				</a>
 			</li>

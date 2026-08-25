@@ -15,26 +15,26 @@ export const OPERATIONS: Feature[] = [
 	},
 	{
 		title: 'Courier routing by area',
-		body: 'We track which courier actually delivers in each thana, from your own parcels, and send each order the way most likely to arrive. Nobody else can see your data.'
+		body: 'We track which courier actually delivers on each street, from your own parcels, and send each order the way most likely to arrive. Nobody else can see your data.'
 	},
 	{
 		title: 'COD reconciliation',
-		body: 'Match a courier payout to the parcels it covers and see the gap immediately. This is the money most BD shops quietly lose.'
+		body: 'Match a courier payout to the parcels it covers and see the gap immediately. This is the money most shops quietly lose.'
 	}
 ];
 
 export const STOREFRONT: Feature[] = [
 	{
 		title: 'One-page checkout, no account',
-		body: 'Name, phone, address. Account creation is the biggest drop-off in BD checkout, so there is not one.'
+		body: 'Name, phone, address. Account creation is the single biggest drop-off at checkout, so there is not one.'
 	},
 	{
 		title: 'Bangla throughout',
-		body: 'Bangla prices, Bangla SMS, and a Bangla admin for staff who work faster in it. Not a translation bolted on afterwards.'
+		body: 'Prices, SMS and an admin in the language your customers read, for staff who work faster in it. Not a translation bolted on afterwards.'
 	},
 	{
 		title: 'Built for slow connections',
-		body: 'Under a second on a 3G Dhaka connection. Every image is served from a CDN and only the code a page needs is sent.'
+		body: 'Under a second on a 3G connection. Every image is served from a CDN and only the code a page needs is sent.'
 	},
 	{
 		title: 'Drag-and-drop campaign pages',
@@ -45,11 +45,11 @@ export const STOREFRONT: Feature[] = [
 export const RUNNING: Feature[] = [
 	{
 		title: 'Order tracking without a login',
-		body: 'Customers check their own order with a code and their phone number, which takes the "where is my order?" load off Messenger.'
+		body: 'Customers check their own order with a code and their phone number, which takes the "where is my order?" load off your inbox.'
 	},
 	{
 		title: 'SMS that people actually read',
-		body: 'Order confirmed, on the way, delivered — in Bangla, through a local gateway at BDT 0.25 a message.'
+		body: 'Order confirmed, on the way, delivered — in the language your customers read, through a local gateway at BDT 0.25 a message.'
 	},
 	{
 		title: 'Facebook Conversions API',
@@ -67,7 +67,7 @@ export type RoadmapItem = { title: string; body: string; when: string };
 export const ROADMAP: RoadmapItem[] = [
 	{
 		title: 'AI chat agent',
-		body: 'Answers "where is my order?" on Messenger and WhatsApp, in Banglish, using your real order data. Starts as a draft-suggester your staff approve, then handles the safe questions on its own.',
+		body: 'Answers "where is my order?" on Messenger and WhatsApp, in the language your customers actually type, using your real order data. Starts as a draft-suggester your staff approve, then handles the safe questions on its own.',
 		when: 'Next'
 	},
 	{
@@ -82,12 +82,12 @@ export const ROADMAP: RoadmapItem[] = [
 	},
 	{
 		title: 'Voice verification calls',
-		body: 'Automated confirmation calls in Bangla for COD orders. Ships only if it confirms as reliably as your staff do.',
+		body: 'Automated confirmation calls for COD orders. Ships only if it confirms as reliably as your staff do.',
 		when: 'Later'
 	},
 	{
 		title: 'UAE and the Gulf',
-		body: 'Same shop, Arabic and English, Gulf payment rails and couriers. The groundwork is already in place.',
+		body: 'Same shop, Arabic and English, with the payment rails and couriers used there. The groundwork is already in place.',
 		when: 'Later'
 	},
 	{
@@ -228,6 +228,14 @@ export const META: Record<string, { title: string; description: string }> = {
 		title: 'Book a demo — Fajr Shop',
 		description: 'Twenty minutes on your own numbers. WhatsApp, phone or the form.'
 	},
+	'/privacy': {
+		title: 'Privacy — Fajr Shop',
+		description: 'What this site collects, why we hold it, and how to have it deleted. Short, because we collect very little.'
+	},
+	'/terms': {
+		title: 'Terms — Fajr Shop',
+		description: 'The plain version of what you are agreeing to: what you pay, what you own, and how to leave.'
+	},
 	'/demo': {
 		title: 'Live demo shops — Fajr Shop',
 		description: 'Six real storefronts, one per trade, seeded with a full catalogue. Pick the one closest to yours.'
@@ -303,6 +311,96 @@ export const DEMOS: Demo[] = [
 		shows: ['Halal certification on every item', 'Origin country as a filter', 'Ramadan delivery slots'],
 		products: 40, theme: 'Gulf theme'
 	}
+];
+
+
+/*
+ * The page is one story, told in order: the shop that grew, the parcels that
+ * came back, the three places the money leaks, the shop itself, and the work
+ * after the order. Every section on the landing page is a beat of it, so the
+ * copy lives here rather than being scattered through the markup.
+ */
+export type Beat = {
+	id: string;
+	chapter: string;
+	title: [string, string];
+	body: string;
+	// Optional aside: the sentence that turns the beat, set apart on the page.
+	aside?: string;
+};
+
+export const STORY: Beat[] = [
+	{
+		id: 'growth',
+		chapter: 'Chapter one',
+		title: ['It started on', 'a Facebook page'],
+		body: 'One post did well, then another, and suddenly you were taking orders in the comments and writing addresses into a notebook. Nobody plans that part. It works right up until the day it does not.',
+		aside: 'Two hundred orders a month is where the notebook stops working.'
+	},
+	{
+		id: 'returns',
+		chapter: 'Chapter two',
+		title: ['Then the parcels', 'started coming back'],
+		body: 'Cash on delivery is what makes the sale here, and it is also what makes the loss. A refused parcel costs you the delivery both ways, the packaging, and the hour your staff spent on the confirmation call. Nothing on your website even knows it happened.',
+		aside: 'You already know which numbers are trouble. Your shop does not.'
+	},
+	{
+		id: 'operations',
+		chapter: 'Chapter three',
+		title: ['So we built', 'the other half'],
+		body: 'Not another page builder. The operational half: every order scored against courier return history before you accept it, routed to whichever courier actually delivers on that street, and reconciled against the payout when the money finally lands.'
+	},
+	{
+		id: 'storefront',
+		chapter: 'Chapter four',
+		title: ['The shop itself', 'stays out of the way'],
+		body: 'Three fields to check out, no account to create, the language your customers read throughout, and under a second to load on a slow connection. They came from an ad and will leave in eight seconds if the page makes them wait.'
+	},
+	{
+		id: 'running',
+		chapter: 'Chapter five',
+		title: ['And the work', 'after the order'],
+		body: 'The order is not the end of it. Customers ask where their parcel is, ad platforms lose conversions to blockers, and somebody has to know the real return rate. That is a day of work a week, and it is the day we take back.'
+	}
+];
+
+/** Where the story lands: the sentence the page is building towards. */
+export const CLOSE = {
+	chapter: 'Last chapter',
+	title: ['Show us your', 'return rate'] as [string, string],
+	body: 'Twenty minutes on a call, on your own numbers. If we cannot see a way to cut what you lose to returns, we will say so and you will have lost twenty minutes.'
+};
+
+
+/*
+ * The one place the geography is stated. Everywhere else on the site says what
+ * happens, not where — a merchant does not need to be told their own city four
+ * times to believe we understand it.
+ *
+ * Nothing here counts the regions. The copy said "two markets" and the markup
+ * said "both", so adding a third would have meant a rewrite in two files to say
+ * something the data already knows.
+ */
+export const WHERE = {
+	headline: ['Markets that look alike', 'and sell nothing alike'] as [string, string],
+	body: 'Each one is its own business rather than a translation of the last. Everything else on this page works the same way in all of them.'
+};
+
+/*
+ * Where we can be found, and the pages a footer is expected to carry. Both live
+ * here rather than in the layout so a changed handle is one edit, not a hunt.
+ * ponytail: handles are ours to confirm before launch — nothing links to an
+ * account that does not exist yet.
+ */
+export const SOCIAL = [
+	{ label: 'Facebook', href: 'https://facebook.com/fajrshop' },
+	{ label: 'LinkedIn', href: 'https://linkedin.com/company/fajr-shop' },
+	{ label: 'YouTube', href: 'https://youtube.com/@fajrshop' }
+];
+
+export const LEGAL = [
+	{ label: 'Privacy', href: '/privacy' },
+	{ label: 'Terms', href: '/terms' }
 ];
 
 export const CONTACT = {

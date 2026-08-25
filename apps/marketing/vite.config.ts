@@ -7,7 +7,7 @@ export default defineConfig({
 	// 5173 belongs to apps/web; the two run side by side in dev.
 	server: { port: 5174 },
 	// Lucide ships raw .svelte files; SSR must compile them.
-	ssr: { noExternal: ['@hugeicons/svelte'] },
+	ssr: { noExternal: ['@lucide/svelte'] },
 	plugins: [
 		tailwindcss(),
 		sveltekit({

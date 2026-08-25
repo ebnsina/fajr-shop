@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { HugeiconsIcon } from '@hugeicons/svelte';
-	import { Cancel01FreeIcons, Menu01FreeIcons } from '@hugeicons/core-free-icons';
+	import { X, Menu } from '@lucide/svelte';
+	import Arrow from '$lib/Arrow.svelte';
+	import Mark from '$lib/Mark.svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 	import { page } from '$app/state';
-	import { CONTACT, META, SITE_URL } from '$lib/content';
+	import { CONTACT, META, SITE_URL, SOCIAL, LEGAL } from '$lib/content';
 
 	let { children } = $props();
 	let open = $state(false);
@@ -37,24 +38,35 @@
 	<meta property="og:site_name" content="Fajr Shop" />
 	<meta property="og:locale" content="en_GB" />
 	<meta name="twitter:card" content="summary_large_image" />
+	<!-- The share card is how this site travels here: a link pasted into
+	     WhatsApp. An absolute URL, because a relative one is ignored by every
+	     crawler that matters. -->
+	<meta property="og:image" content={new URL('/og.png', SITE_URL).href} />
+	<meta property="og:image:width" content="1511" />
+	<meta property="og:image:height" content="793" />
+	<meta property="og:image:alt" content="Fajr Shop — your return rate is the problem, not your website" />
+	<meta name="twitter:image" content={new URL('/og.png', SITE_URL).href} />
+	<meta name="theme-color" content="#ffffff" />
 </svelte:head>
 
-<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-strong focus:px-4 focus:py-3 focus:text-raised">
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:bg-bone focus:px-4 focus:py-3 focus:text-void">
 	Skip to content
 </a>
 
 <header class="site-header">
-	<div class="mx-auto flex max-w-6xl items-center gap-3 px-6 py-3.5">
-		<a href="/" class="flex items-center gap-2.5">
-			<span class="grid size-8 place-items-center rounded-xl bg-primary-600 text-sm font-semibold text-white">F</span>
-			<span class="font-semibold tracking-tight text-strong">Fajr Shop</span>
+	<!-- Three tracks, so the nav is centred on the page rather than on whatever
+	     is left after the wordmark. -->
+	<div class="wrap grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+		<a href="/" class="flex items-center gap-2.5 justify-self-start py-2" aria-label="Fajr Shop, home">
+			<Mark />
+			<span class="display text-[1.0625rem] font-medium tracking-[-0.3px] text-strong">Fajr Shop</span>
 		</a>
 
-		<nav class="ms-6 hidden items-center gap-6 text-sm md:flex" aria-label="Main">
+		<nav class="hidden items-center justify-center md:flex" aria-label="Main">
 			{#each NAV as item (item.href)}
 				<a
 					href={item.href}
-					class="text-muted transition hover:text-strong"
+					class="nav-link chrome hover:text-strong"
 					aria-current={page.url.pathname === item.href ? 'page' : undefined}
 				>
 					{item.label}
@@ -62,7 +74,7 @@
 			{/each}
 		</nav>
 
-		<div class="ms-auto flex items-center gap-2">
+		<div class="col-start-3 flex items-center justify-end gap-2">
 			<a href="/contact" class="btn btn-primary btn-compact">Book a demo</a>
 			<button
 				class="btn btn-secondary btn-compact !px-3 md:hidden"
@@ -70,15 +82,15 @@
 				aria-label={open ? 'Close menu' : 'Open menu'}
 				aria-expanded={open}
 			>
-				{#if open}<HugeiconsIcon icon={Cancel01FreeIcons} size={18} aria-hidden="true" />{:else}<HugeiconsIcon icon={Menu01FreeIcons} size={18} aria-hidden="true" />{/if}
+				{#if open}<X size={18} aria-hidden="true" />{:else}<Menu size={18} aria-hidden="true" />{/if}
 			</button>
 		</div>
 	</div>
 
 	{#if open}
-		<nav class="border-t border-line px-6 py-2 md:hidden" aria-label="Main">
+		<nav class="wrap border-t border-line md:hidden" aria-label="Main">
 			{#each NAV as item (item.href)}
-				<a href={item.href} onclick={() => (open = false)} class="block border-b border-line py-3 text-sm last:border-0">
+				<a href={item.href} onclick={() => (open = false)} class="chrome flex min-h-11 items-center border-b border-line last:border-0">
 					{item.label}
 				</a>
 			{/each}
@@ -86,46 +98,64 @@
 	{/if}
 </header>
 
-<main id="main">{@render children()}</main>
+<!-- Opaque and one layer up, so the last scroll slides it off the footer. -->
+<main id="main" class="page-body">{@render children()}</main>
 
-<footer class="mt-24 border-t border-line bg-sunken">
-	<div class="mx-auto grid max-w-6xl gap-8 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
-		<div>
-			<p class="font-semibold tracking-tight text-strong">Fajr Shop</p>
-			<p class="mt-2 text-sm text-muted">
-				Ecommerce built for how South Asia and the Gulf actually sell: cash on delivery,
-				courier returns, and Facebook traffic.
-			</p>
+<footer class="site-footer bg-strong text-bone">
+	<div class="wrap py-[clamp(56px,10vh,110px)]">
+		<!-- The first column is prose and the other three are lists, so it gets
+		     the room to read at a sensible measure. -->
+		<div class="stagger grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr_1fr]">
+			<div>
+				<h2 class="flex items-center gap-2.5">
+					<Mark size={20} tone="bone" />
+					<span class="display text-[1.0625rem] font-medium tracking-[-0.3px] text-bone">Fajr Shop</span>
+				</h2>
+				<p class="mt-4 max-w-[46ch] leading-relaxed text-[var(--color-primary-200)]">
+					Ecommerce for shops that sell cash on delivery, lose money to returns,
+					and get most of their traffic from an ad. We set up and run each one
+					ourselves, which caps how many merchants we take on — and is why
+					support is same-day rather than a ticket queue.
+				</p>
+			</div>
+
+			<div>
+				<h2 class="chrome uppercase tracking-[0.12em] !text-[var(--color-primary-300)]">The story so far</h2>
+				<ul class="mt-4 space-y-2.5">
+					<li><a href="/#what-it-does" class="link link-inverse">What it does <Arrow /></a></li>
+					<li><a href="/#roadmap" class="link link-inverse">What comes next <Arrow /></a></li>
+					<li><a href="/pricing" class="link link-inverse">What it costs <Arrow /></a></li>
+				</ul>
+			</div>
+
+			<div>
+				<h2 class="chrome uppercase tracking-[0.12em] !text-[var(--color-primary-300)]">Start yours</h2>
+				<ul class="mt-4 space-y-2.5">
+					<li><a href="/demo" class="link link-inverse">Open a demo shop <Arrow /></a></li>
+					<li><a href="/contact" class="link link-inverse">Book a demo call <Arrow /></a></li>
+					<li><a href="https://wa.me/{CONTACT.whatsapp}" class="link link-inverse">WhatsApp us <Arrow /></a></li>
+					<li><a href="mailto:{CONTACT.email}" class="link link-inverse">{CONTACT.email} <Arrow /></a></li>
+				</ul>
+			</div>
+
+			<div>
+				<h2 class="chrome uppercase tracking-[0.12em] !text-[var(--color-primary-300)]">Follow along</h2>
+				<ul class="mt-4 space-y-2.5">
+					{#each SOCIAL as s (s.label)}
+						<li><a href={s.href} rel="me noopener" class="text-bone hover:underline">{s.label}</a></li>
+					{/each}
+					<li><a href="https://wa.me/{CONTACT.whatsapp}" class="link link-inverse">WhatsApp <Arrow /></a></li>
+				</ul>
+			</div>
 		</div>
 
-		<div>
-			<h2 class="display text-xs font-medium uppercase tracking-wide text-faint">Product</h2>
-			<ul class="mt-3 space-y-2 text-sm">
-				<li><a href="/#what-it-does" class="text-muted hover:text-strong">What it does</a></li>
-				<li><a href="/#roadmap" class="text-muted hover:text-strong">Roadmap</a></li>
-				<li><a href="/pricing" class="text-muted hover:text-strong">Pricing</a></li>
+		<div class="mt-16 flex flex-wrap items-center justify-between gap-4">
+			<p class="chrome !text-[var(--color-primary-300)]">© {year} Fajr Shop.</p>
+			<ul class="chrome flex flex-wrap gap-x-6 gap-y-2 !text-[var(--color-primary-300)]">
+				{#each LEGAL as l (l.href)}
+					<li><a href={l.href} class="link link-inverse">{l.label} <Arrow /></a></li>
+				{/each}
 			</ul>
-		</div>
-
-		<div>
-			<h2 class="display text-xs font-medium uppercase tracking-wide text-faint">Talk to us</h2>
-			<ul class="mt-3 space-y-2 text-sm">
-				<li><a href="/contact" class="text-muted hover:text-strong">Book a demo</a></li>
-				<li><a href="https://wa.me/{CONTACT.whatsapp}" class="text-muted hover:text-strong">WhatsApp</a></li>
-				<li><a href="mailto:{CONTACT.email}" class="text-muted hover:text-strong">{CONTACT.email}</a></li>
-			</ul>
-		</div>
-
-		<div>
-			<h2 class="display text-xs font-medium uppercase tracking-wide text-faint">Honest notes</h2>
-			<p class="mt-3 text-sm text-muted">
-				We set up and run each shop ourselves. That caps how many merchants we
-				take on, and it is why support is same-day rather than a ticket queue.
-			</p>
 		</div>
 	</div>
-
-	<p class="mx-auto max-w-6xl border-t border-line px-6 py-6 text-xs text-faint">
-		© {year} Fajr Shop.
-	</p>
 </footer>

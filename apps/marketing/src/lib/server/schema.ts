@@ -6,7 +6,9 @@ export const lead = pgTable(
 	'lead',
 	{
 		id: text().primaryKey(),
-		// 'demo' or 'contact' — the two ways someone reaches us.
+		// 'demo', 'contact' or 'feature' — why they wrote in. Upserted with the
+		// phone, so the same person can ask for a demo and request a feature
+		// without either overwriting the other.
 		kind: text().notNull(),
 		// Which demo shop they asked for, when the lead came from one.
 		demo: text(),

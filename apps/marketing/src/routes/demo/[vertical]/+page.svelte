@@ -1,11 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import * as v from 'valibot';
-	import { HugeiconsIcon } from '@hugeicons/svelte';
-	import {
-		SquareLock01FreeIcons, CheckmarkCircle02FreeIcons,
-		StoreLocation01FreeIcons, UserSettings01FreeIcons, WhatsappFreeIcons
-	} from '@hugeicons/core-free-icons';
+	import { CircleCheck, Store, UserCog, MessageCircle } from '@lucide/svelte';
 	import { kycSchema, fieldErrors, ORDER_BANDS } from '$lib/kyc';
 	import { CONTACT } from '$lib/content';
 
@@ -33,13 +29,6 @@
 		};
 	});
 
-	// Declared with literal keys so reading form?.[id] stays type-safe.
-	const FIELDS = [
-		{ id: 'name', label: 'Your name', type: 'text', hint: '' },
-		{ id: 'phone', label: 'Phone', type: 'tel', hint: 'So we can call if you get stuck' },
-		{ id: 'shop', label: 'Shop or page name', type: 'text', hint: '' }
-	] as const;
-
 	function validate() {
 		const parsed = v.safeParse(kycSchema, values);
 		clientErrors = parsed.success ? {} : fieldErrors(parsed.issues);
@@ -47,12 +36,12 @@
 	}
 </script>
 
-<section class="mx-auto max-w-5xl px-6 py-16">
+<section class="sec">
 	{#if form?.credentials}
 		{@const c = form.credentials}
-		<div class="mx-auto max-w-2xl">
-			<span class="grid size-12 place-items-center rounded-2xl bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300">
-				<HugeiconsIcon icon={CheckmarkCircle02FreeIcons} size={24} aria-hidden="true" />
+		<div class="wrap max-w-3xl">
+			<span class="grid size-12 place-items-center rounded-[var(--radius-surface)] bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300">
+				<CircleCheck size={24} aria-hidden="true" />
 			</span>
 			<h1 class="display mt-4 text-2xl font-semibold tracking-tight text-strong">
 				You are in — {data.demo.shop}
@@ -65,7 +54,7 @@
 			<dl class="mt-8 space-y-4">
 				<div class="card">
 					<dt class="flex items-center gap-2 text-sm font-medium text-strong">
-						<HugeiconsIcon icon={StoreLocation01FreeIcons} size={16} aria-hidden="true" />
+						<Store size={16} aria-hidden="true" />
 						Storefront
 					</dt>
 					<dd class="mt-2">
@@ -77,7 +66,7 @@
 
 				<div class="card">
 					<dt class="flex items-center gap-2 text-sm font-medium text-strong">
-						<HugeiconsIcon icon={UserSettings01FreeIcons} size={16} aria-hidden="true" />
+						<UserCog size={16} aria-hidden="true" />
 						Admin
 					</dt>
 					<dd class="mt-2 space-y-2">
@@ -100,12 +89,12 @@
 			</p>
 
 			<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-secondary mt-8 inline-flex items-center gap-2">
-				<HugeiconsIcon icon={WhatsappFreeIcons} size={16} aria-hidden="true" />
+				<MessageCircle size={16} aria-hidden="true" />
 				Ask a question while you look
 			</a>
 		</div>
 	{:else}
-		<div class="grid gap-10 lg:grid-cols-2">
+		<div class="wrap grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
 			<div>
 				<p class="eyebrow">{data.demo.label}</p>
 				<h1 class="display mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
@@ -116,8 +105,7 @@
 				<ul class="mt-6 space-y-2 text-muted">
 					{#each data.demo.shows as item (item)}
 						<li class="flex gap-2.5">
-							<HugeiconsIcon
-								icon={CheckmarkCircle02FreeIcons}
+							<CircleCheck
 								size={18}
 								aria-hidden="true"
 								class="mt-0.5 shrink-0 text-primary-600 dark:text-primary-400"
@@ -133,6 +121,10 @@
 			</div>
 
 			<div>
+				<!--
+				  The gate as one sentence, the same as the contact form: the five
+				  answers a merchant would say out loud, not five boxes to fill in.
+				-->
 				<form
 					method="POST"
 					onsubmit={(e) => {
@@ -145,75 +137,78 @@
 							busy = false;
 						};
 					}}
-					class="card space-y-4"
+					class="tile !p-[clamp(1.5rem,3vw,2.5rem)]"
 				>
-					<div class="flex items-center gap-2">
-						<HugeiconsIcon icon={SquareLock01FreeIcons} size={18} aria-hidden="true" class="text-muted" />
-						<h2 class="display font-semibold text-strong">Five details, then the login</h2>
-					</div>
-					<p class="text-sm text-muted">
+					<p class="eyebrow mb-5 self-start">Five details, then the login</p>
+					<p class="chrome max-w-[46ch]">
 						We ask so we can follow up usefully, not to sell you anything on a
 						timer. No card, no signup.
 					</p>
 
-					{#if errors.form}
-						<p class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300" role="alert">
-							{errors.form}
-						</p>
-					{/if}
-
-					{#each FIELDS as f (f.id)}
-						<div>
-							<label class="mb-1.5 block text-sm font-medium text-body" for={f.id}>{f.label}</label>
-							<input
-								id={f.id}
-								name={f.id}
-								type={f.type}
-								inputmode={f.id === 'phone' ? 'numeric' : undefined}
-								placeholder={f.id === 'phone' ? '01XXXXXXXXX' : undefined}
-								bind:value={values[f.id]}
-								aria-invalid={errors[f.id] ? 'true' : undefined}
-								aria-describedby={errors[f.id] ? `${f.id}-error` : undefined}
-								class="field"
-							/>
-							{#if errors[f.id]}
-								<p id="{f.id}-error" class="mt-1.5 text-sm text-red-700 dark:text-red-300" role="alert">
-									{errors[f.id]}
-								</p>
-							{:else if f.hint}
-								<p class="mt-1.5 text-xs text-faint">{f.hint}</p>
-							{/if}
-						</div>
-					{/each}
-
-					<div>
-						<label class="mb-1.5 block text-sm font-medium text-body" for="orders">Orders a month</label>
-						<select
+					<p class="sentence mt-6">
+						I run
+						<label class="sr-only" for="shop">Shop or page name</label><input
+							id="shop"
+							name="shop"
+							class="inline-field"
+							style="inline-size: 14ch"
+							placeholder="shop name"
+							bind:value={values.shop}
+							aria-invalid={errors.shop ? 'true' : undefined}
+						/>, selling
+						<label class="sr-only" for="selling">What do you sell?</label><input
+							id="selling"
+							name="selling"
+							class="inline-field"
+							style="inline-size: 12ch"
+							placeholder="sarees"
+							bind:value={values.selling}
+						/>, at about
+						<label class="sr-only" for="orders">Orders a month</label><select
 							id="orders"
 							name="orders"
+							class="inline-field"
 							bind:value={values.orders}
 							aria-invalid={errors.orders ? 'true' : undefined}
-							aria-describedby={errors.orders ? 'orders-error' : undefined}
-							class="field"
 						>
-							<option value="">Pick one</option>
+							<option value="">pick a size</option>
 							{#each ORDER_BANDS as band (band.value)}
 								<option value={band.value}>{band.label}</option>
 							{/each}
-						</select>
-						{#if errors.orders}
-							<p id="orders-error" class="mt-1.5 text-sm text-red-700 dark:text-red-300" role="alert">
-								{errors.orders}
-							</p>
-						{/if}
-					</div>
+						</select>.
+						Call me on
+						<label class="sr-only" for="phone">Phone</label><input
+							id="phone"
+							name="phone"
+							type="tel"
+							inputmode="numeric"
+							class="inline-field"
+							style="inline-size: 14ch"
+							placeholder="01XXXXXXXXX"
+							bind:value={values.phone}
+							aria-invalid={errors.phone ? 'true' : undefined}
+						/>
+						— my name is
+						<label class="sr-only" for="name">Your name</label><input
+							id="name"
+							name="name"
+							class="inline-field"
+							style="inline-size: 13ch"
+							placeholder="your name"
+							bind:value={values.name}
+							aria-invalid={errors.name ? 'true' : undefined}
+						/>.
+					</p>
 
-					<div>
-						<label class="mb-1.5 block text-sm font-medium text-body" for="selling">
-							What do you sell? <span class="font-normal text-faint">(optional)</span>
-						</label>
-						<input id="selling" name="selling" bind:value={values.selling} class="field" />
-					</div>
+					<!-- Gathered here rather than under each field: an error hanging off
+					     an inline input pushes the words around as you type. -->
+					{#if Object.values(errors).filter(Boolean).length}
+						<ul class="mt-5 space-y-1" role="alert">
+							{#each Object.values(errors).filter(Boolean) as problem (problem)}
+								<li class="chrome !text-warn-ink">{problem}</li>
+							{/each}
+						</ul>
+					{/if}
 
 					<!-- Honeypot: hidden from people, irresistible to bots. -->
 					<div class="hidden" aria-hidden="true">
@@ -221,14 +216,15 @@
 						<input id="company" name="company" tabindex="-1" autocomplete="off" />
 					</div>
 
-					<button disabled={busy} class="btn btn-primary w-full">
-						{busy ? 'Opening…' : 'Show me the login'}
-					</button>
-
-					<p class="text-xs text-faint">
-						We use your number to follow up about this demo. Nothing else, and we
-						do not sell it.
-					</p>
+					<div class="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
+						<p class="chrome max-w-[38ch]">
+							We use your number to follow up about this demo. Nothing else, and
+							we do not sell it.
+						</p>
+						<button disabled={busy} class="btn btn-primary">
+							{busy ? 'Opening…' : 'Open'}
+						</button>
+					</div>
 				</form>
 			</div>
 		</div>

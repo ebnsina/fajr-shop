@@ -5,7 +5,9 @@ import { db } from './db';
 import { lead } from './schema';
 
 export type Lead = {
-	kind: 'demo' | 'contact';
+	// 'feature' is a request for something we do not build yet — same person,
+	// same pipeline, different reason for writing in.
+	kind: 'demo' | 'contact' | 'feature';
 	name: string;
 	phone: string;
 	demo?: string;

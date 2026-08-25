@@ -7,6 +7,87 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Request a feature, from the roadmap.** A button under the roadmap opens a
+  dialog asking what your shop needs; it is stored with the other enquiries as a
+  lead of kind `feature`, so what merchants ask for twice is visible next to who
+  asked. Works without JavaScript — the trigger falls back to the contact page —
+  and a failed write still leaves the request in the log rather than losing it.
+
+### Changed
+
+- **A real logo, and a real share card.** The mark is a sun breaking a horizon —
+  Fajr is dawn — used for the favicon and beside the wordmark, which is now set
+  in the display face rather than in mono. Links pasted into WhatsApp finally
+  carry an image: `og.png`, with the headline and the pitch on it.
+
+
+- **The contact form reads as a sentence.** "I run ___, taking about ___ orders
+  a month, and I am looking at ___. Call me on ___ — my name is ___." Six boxes
+  in a stack asked for exactly the same thing and read as paperwork. The ways to
+  reach a person are links now rather than three cards, and every link on the
+  site carries an arrow that steps up and to the right when you point at it.
+
+
+- **The marketing site is a different product from the admin now.** It is one
+  story told in chapters — the shop that grew on a Facebook page, the parcels
+  that came back, the operational half we built, the storefront, the work after
+  the order — with every word in `STORY`/`WHERE`/`CLOSE` in `content.ts` rather
+  than scattered through the markup.
+
+  - **Light always**, white and cool grey, one working blue, and one warm ramp
+    that only ever marks a risk or a shortfall. `dark:` is pinned to a class
+    nothing sets, so a stray dark variant cannot half-flip a page.
+  - **Three self-hosted faces**: Trench Slab for headings, Chubbo for prose,
+    Tabular for buttons and figures — and nothing else, because mono on every
+    label made a story read like a terminal.
+  - **The hero is the admin itself.** Centred words over a real order queue —
+    rail, morning counts, customer, area, courier, risk score — leaning back and
+    running off the bottom of the fold, standing up as you scroll.
+  - **Nothing counts the regions.** The copy no longer says "two markets" or
+    "both"; the number of markets, which of them is still in build, and the hops
+    drawn between them all come from `REGIONS`. A third one is a row of data.
+  - **The markets get the whole screen**: a dot-matrix globe of real land that
+    turns on its own, spins on drag, labels both regions and draws the hop
+    between them. Pick a market on the sphere or from the row under it.
+  - **The mockups are finished, not wireframed**: the storefront shows real
+    products, prices and swatches, and the checkout is filled in with a name,
+    an address and an order summary. Section labels are tinted chips rather than
+    a leading dash, and what a plan includes is a checklist rather than rows
+    separated by rules.
+  - **The summary is an index**, not twelve more cards: one aligned grid of
+    numbered rows with shared rules, and the checkout shown on an unfolded
+    foldable — the phone this market actually wants — where the form and what
+    you are paying sit on opposite halves.
+  - **WhatsApp buttons are WhatsApp green.**
+    they are the outline style in WhatsApp's green, so they read as WhatsApp
+    without competing with the primary action beside them.
+  - **The footer carries socials and the legal links**, and `/privacy` and
+    `/terms` are real pages written from what the site actually does rather than
+    boilerplate.
+  - **One radius scale**: 2px controls, 6px surfaces, 12px panels, pills for
+    counts and statuses. Ad-hoc 3px, 4px, 5px, 10px, 14px and `rounded-3xl`
+    values are gone from every page.
+  - **The chapters are dealt as a stack** — each sticks under the header while
+    the next slides over it, numbered `01 / 05` with a rule that fills as you
+    read. Every card fits the screen, so the twelve feature tiles moved into
+    their own wall underneath rather than making each chapter twice the height
+    of the viewport.
+  - **Features are a bento wall** of tiles carrying the product's own screens,
+    built in markup: courier ranking, COD reconciliation, one-page checkout, the
+    message thread after delivery.
+  - **The footer is revealed**, not scrolled to — the page slides off it.
+  - **Motion follows a real standard**: strong `ease-out` curves, sub-300ms UI
+    transitions, hover motion gated to real pointers, a press state on every
+    button, 30–80ms stagger, and reduced motion that fades rather than nothing.
+  - **Typography is set by what each thing is**: headings balance, prose uses
+    `pretty`, and the lead's width is a reading measure rather than a number
+    chosen to force a line count.
+
+  Pricing, contact and the demo pages follow the same system. Icons are Lucide
+  in this app; `apps/web` is still on Hugeicons.
+
+### Added
+
 - **The storefront API.** Shop settings and address shape, catalogue browse and
   search with facets, a full product with reviews and related items, a cart a
   client holds by token, checkout, and order tracking. Seventeen documented
@@ -119,6 +200,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   formatter defaulted to `bn-BD` and six of seven call sites omitted the locale,
   so a Dubai storefront showed dirhams in Bengali digits. Formatting is now bound
   to the store and the locale can no longer be left out.
+
+### Added
+
+- **Request a feature, from the roadmap.** A button under the roadmap opens a
+  dialog asking what your shop needs; it is stored with the other enquiries as a
+  lead of kind `feature`, so what merchants ask for twice is visible next to who
+  asked. Works without JavaScript — the trigger falls back to the contact page —
+  and a failed write still leaves the request in the log rather than losing it.
 
 ### Changed
 
