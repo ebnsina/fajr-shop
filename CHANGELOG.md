@@ -116,6 +116,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **The marketing site has its own identity.** Fajr means dawn, so the palette is
+  that hour — saffron on indigo — with Fraunces for headlines and Instrument
+  Sans for text. The admin deliberately stays neutral: it is the merchant's
+  workspace, and their storefront owns the colour there.
+- **The dashboard leads with what costs money.** Revenue against the previous
+  thirty days with a sparkline, the return rate, and the COD couriers still owe
+  you — then a single "needs you" queue covering calls, packing, unanswered
+  messages, reviews and low stock. It says "—" rather than inventing a return
+  rate from four parcels.
+
 - **The landing page covers two regions.** South Asia and the Gulf swap the
   headline, the numbers, the currency and the couriers and wallets named — the
   Gulf is marked *in build* rather than implied to be finished.

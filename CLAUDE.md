@@ -91,6 +91,11 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
 - **Never hardcode config or fall back for a missing env var** — throw, with the
   variable named in the message. A wrong default is worse than a stopped page.
 - **Icons are Hugeicons** (`@hugeicons/svelte`) and validation is **Valibot**.
+- **Three identities, on purpose.** `apps/marketing` is Fajr Shop's own brand —
+  dawn: saffron on indigo, Fraunces for display, Instrument Sans for text. The
+  admin stays neutral (Mona Sans, blue) because it is the merchant's workspace.
+  Storefront themes carry the merchant's own colour. Never bleed one into
+  another.
 - **Type is chosen per theme, and must cover the theme's script.** Mona Sans and
   Geist Mono are the admin and marketing defaults; storefront themes pick their
   own — Hind Siliguri for Bengali, Cairo for Arabic. A Latin face with a system

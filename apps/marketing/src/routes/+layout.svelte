@@ -99,7 +99,7 @@
 		</div>
 
 		<div>
-			<h2 class="text-xs font-medium uppercase tracking-wide text-faint">Product</h2>
+			<h2 class="display text-xs font-medium uppercase tracking-wide text-faint">Product</h2>
 			<ul class="mt-3 space-y-2 text-sm">
 				<li><a href="/#what-it-does" class="text-muted hover:text-strong">What it does</a></li>
 				<li><a href="/#roadmap" class="text-muted hover:text-strong">Roadmap</a></li>
@@ -108,7 +108,7 @@
 		</div>
 
 		<div>
-			<h2 class="text-xs font-medium uppercase tracking-wide text-faint">Talk to us</h2>
+			<h2 class="display text-xs font-medium uppercase tracking-wide text-faint">Talk to us</h2>
 			<ul class="mt-3 space-y-2 text-sm">
 				<li><a href="/contact" class="text-muted hover:text-strong">Book a demo</a></li>
 				<li><a href="https://wa.me/{CONTACT.whatsapp}" class="text-muted hover:text-strong">WhatsApp</a></li>
@@ -117,7 +117,7 @@
 		</div>
 
 		<div>
-			<h2 class="text-xs font-medium uppercase tracking-wide text-faint">Honest notes</h2>
+			<h2 class="display text-xs font-medium uppercase tracking-wide text-faint">Honest notes</h2>
 			<p class="mt-3 text-sm text-muted">
 				We set up and run each shop ourselves. That caps how many merchants we
 				take on, and it is why support is same-day rather than a ticket queue.

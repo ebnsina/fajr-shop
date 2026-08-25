@@ -54,7 +54,7 @@
 			<span class="grid size-12 place-items-center rounded-2xl bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300">
 				<HugeiconsIcon icon={CheckmarkCircle02FreeIcons} size={24} aria-hidden="true" />
 			</span>
-			<h1 class="mt-4 text-2xl font-semibold tracking-tight text-strong">
+			<h1 class="display mt-4 text-2xl font-semibold tracking-tight text-strong">
 				You are in — {data.demo.shop}
 			</h1>
 			<p class="mt-2 text-muted">
@@ -108,7 +108,7 @@
 		<div class="grid gap-10 lg:grid-cols-2">
 			<div>
 				<p class="eyebrow">{data.demo.label}</p>
-				<h1 class="mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
+				<h1 class="display mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
 					{data.demo.shop}
 				</h1>
 				<p class="mt-5 text-lg text-muted">{data.demo.tagline}</p>
@@ -149,7 +149,7 @@
 				>
 					<div class="flex items-center gap-2">
 						<HugeiconsIcon icon={SquareLock01FreeIcons} size={18} aria-hidden="true" class="text-muted" />
-						<h2 class="font-semibold text-strong">Five details, then the login</h2>
+						<h2 class="display font-semibold text-strong">Five details, then the login</h2>
 					</div>
 					<p class="text-sm text-muted">
 						We ask so we can follow up usefully, not to sell you anything on a

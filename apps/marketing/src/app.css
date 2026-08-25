@@ -1,37 +1,50 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/mona-sans';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/instrument-sans';
 @import '@fontsource-variable/geist-mono';
 
 /*
- * The same identity as the admin — this is one company, and a merchant who
- * signs up should recognise the product they were shown.
+ * Fajr is dawn. The palette is that hour: a deep indigo night warming into a
+ * saffron horizon. Deliberately not the admin's blue — the admin is the
+ * merchant's workspace and their own storefront owns the colour there, while
+ * this site is the company's and needs a face of its own.
  */
 @theme {
-	--font-sans: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
 	--font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
-	--color-primary-50: oklch(0.97 0.014 254);
-	--color-primary-100: oklch(0.93 0.032 255);
-	--color-primary-200: oklch(0.88 0.059 254);
-	--color-primary-300: oklch(0.81 0.096 254);
-	--color-primary-400: oklch(0.71 0.143 255);
-	--color-primary-500: oklch(0.62 0.188 259);
-	--color-primary-600: oklch(0.55 0.216 262);
-	--color-primary-700: oklch(0.49 0.203 263);
-	--color-primary-800: oklch(0.42 0.169 264);
-	--color-primary-900: oklch(0.38 0.132 265);
+	/* Saffron: the horizon, and what every call to action is painted in. */
+	--color-primary-50: oklch(0.97 0.024 78);
+	--color-primary-100: oklch(0.94 0.052 76);
+	--color-primary-200: oklch(0.89 0.093 73);
+	--color-primary-300: oklch(0.83 0.132 68);
+	--color-primary-400: oklch(0.76 0.157 60);
+	--color-primary-500: oklch(0.69 0.169 51);
+	--color-primary-600: oklch(0.61 0.166 45);
+	--color-primary-700: oklch(0.52 0.146 42);
+	--color-primary-800: oklch(0.43 0.116 42);
+	--color-primary-900: oklch(0.37 0.092 43);
+
+	/* Indigo: the night the horizon sits against. Used for depth, never for text. */
+	--color-night-500: oklch(0.42 0.086 274);
+	--color-night-700: oklch(0.30 0.070 276);
+	--color-night-900: oklch(0.21 0.048 278);
+	--color-night-950: oklch(0.16 0.036 280);
 }
 
 :root {
-	--surface-sunken: oklch(0.968 0.002 250);
-	--surface-base: oklch(0.985 0.001 250);
+	/* Warm greys, not blue ones: a cool neutral under a saffron accent reads
+	   as a mistake rather than a decision. */
+	--surface-sunken: oklch(0.972 0.005 76);
+	--surface-base: oklch(0.987 0.003 76);
 	--surface-raised: oklch(1 0 0);
-	--surface-hover: oklch(0.955 0.003 250);
-	--line: oklch(0.922 0.004 250);
-	--text-strong: oklch(0.21 0.006 265);
-	--text: oklch(0.32 0.006 265);
-	--text-muted: oklch(0.55 0.008 265);
-	--text-faint: oklch(0.68 0.008 265);
+	--surface-hover: oklch(0.958 0.007 76);
+	--line: oklch(0.923 0.008 76);
+	--text-strong: oklch(0.22 0.018 278);
+	--text: oklch(0.33 0.015 278);
+	--text-muted: oklch(0.55 0.012 278);
+	--text-faint: oklch(0.67 0.010 278);
 	--ring: var(--color-primary-500);
 	--elevation-1:
 		0 0 0 1px oklch(0.2 0.01 265 / 0.04),
@@ -45,15 +58,16 @@
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
-		--surface-sunken: oklch(0.16 0.004 265);
-		--surface-base: oklch(0.196 0.005 265);
-		--surface-raised: oklch(0.235 0.006 265);
-		--surface-hover: oklch(0.275 0.007 265);
-		--line: oklch(0.31 0.008 265);
-		--text-strong: oklch(0.97 0.002 265);
-		--text: oklch(0.89 0.003 265);
-		--text-muted: oklch(0.68 0.008 265);
-		--text-faint: oklch(0.55 0.008 265);
+		/* Night, not black: the dark mode is the other half of the same hour. */
+		--surface-sunken: oklch(0.155 0.030 280);
+		--surface-base: oklch(0.192 0.034 279);
+		--surface-raised: oklch(0.232 0.036 278);
+		--surface-hover: oklch(0.272 0.038 278);
+		--line: oklch(0.315 0.036 278);
+		--text-strong: oklch(0.97 0.006 76);
+		--text: oklch(0.89 0.008 76);
+		--text-muted: oklch(0.70 0.014 76);
+		--text-faint: oklch(0.57 0.014 76);
 		--ring: var(--color-primary-400);
 		--elevation-1: 0 0 0 1px oklch(1 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.3);
 		--elevation-2: 0 0 0 1px oklch(1 0 0 / 0.07), 0 4px 16px oklch(0 0 0 / 0.4);
@@ -170,6 +184,16 @@ body {
 			background: color-mix(in oklab, var(--color-amber-200) 16%, transparent);
 			color: var(--color-amber-200);
 		}
+	}
+
+	/* Fraunces on headings is where the brand actually shows. Its optical size
+	   axis wants a nudge at display sizes or it reads too delicate. */
+	.display {
+		font-family: var(--font-display);
+		font-variation-settings: 'SOFT' 0, 'WONK' 1, 'opsz' 36;
+		font-weight: 600;
+		letter-spacing: -0.02em;
+		line-height: 1.05;
 	}
 
 	.eyebrow {

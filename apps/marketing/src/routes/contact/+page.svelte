@@ -13,7 +13,7 @@
 	<div class="grid gap-10 lg:grid-cols-2">
 		<div>
 			<p class="eyebrow">Talk to us</p>
-			<h1 class="mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
+			<h1 class="display mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
 				Twenty minutes, on your numbers
 			</h1>
 			<p class="mt-5 text-lg text-muted">
@@ -47,7 +47,7 @@
 		<div>
 			{#if form?.sent}
 				<div class="card">
-					<h2 class="font-semibold text-strong">Got it</h2>
+					<h2 class="display font-semibold text-strong">Got it</h2>
 					<p class="mt-2 text-muted">
 						We will call the number you gave us, usually the same day. If it is
 						urgent, WhatsApp is faster.
@@ -66,7 +66,7 @@
 					}}
 					class="card space-y-4"
 				>
-					<h2 class="font-semibold text-strong">Or leave your number</h2>
+					<h2 class="display font-semibold text-strong">Or leave your number</h2>
 
 					{#if form?.errors?.form}
 						<p class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300" role="alert">

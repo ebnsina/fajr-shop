@@ -9,7 +9,7 @@
 
 <section class="mx-auto max-w-6xl px-6 pb-12 pt-16">
 	<p class="eyebrow">Pricing</p>
-	<h1 class="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
+	<h1 class="display mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
 		Priced on what it costs to run your shop well
 	</h1>
 	<p class="mt-5 max-w-2xl text-lg text-muted">
@@ -85,7 +85,7 @@
 <!-- overages -->
 <section class="mx-auto max-w-6xl px-6 py-14">
 	<div class="card">
-		<h2 class="font-semibold text-strong">Costs that scale with use are billed with use</h2>
+		<h2 class="display font-semibold text-strong">Costs that scale with use are billed with use</h2>
 		<p class="mt-2 max-w-2xl text-sm text-muted">
 			SMS and fraud lookups cost us money per order, so they are metered rather
 			than hidden in a bigger flat fee. A quiet month is genuinely cheaper.
@@ -106,7 +106,7 @@
 <section class="mx-auto max-w-6xl px-6 pb-14">
 	<div class="card">
 		<div class="flex flex-wrap items-center gap-3">
-			<h2 class="font-semibold text-strong">Not included yet</h2>
+			<h2 class="display font-semibold text-strong">Not included yet</h2>
 			<span class="badge-soon">Coming soon</span>
 		</div>
 		<p class="mt-2 max-w-2xl text-sm text-muted">
@@ -127,7 +127,7 @@
 
 <!-- faq -->
 <section class="mx-auto max-w-3xl px-6 pb-16">
-	<h2 class="text-2xl font-semibold tracking-tight text-strong">Questions we get asked</h2>
+	<h2 class="display text-2xl font-semibold tracking-tight text-strong">Questions we get asked</h2>
 
 	<div class="mt-6 divide-y divide-line">
 		{#each PRICING_FAQ as item (item.q)}

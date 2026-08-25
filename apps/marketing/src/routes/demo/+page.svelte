@@ -33,7 +33,7 @@
 
 <section class="mx-auto max-w-6xl px-6 py-16">
 	<p class="eyebrow">Live demos</p>
-	<h1 class="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
+	<h1 class="display mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
 		Nine real shops, across two regions
 	</h1>
 	<p class="mt-5 max-w-2xl text-lg text-muted">
@@ -46,7 +46,7 @@
 	{#each grouped as group (group.region.id)}
 		<section class="mt-12">
 			<div class="flex flex-wrap items-baseline gap-3">
-				<h2 class="text-xl font-semibold tracking-tight text-strong">{group.region.label}</h2>
+				<h2 class="display text-xl font-semibold tracking-tight text-strong">{group.region.label}</h2>
 				<p class="text-sm text-muted">{group.region.markets.join(' · ')}</p>
 				{#if group.region.status === 'building'}
 					<span class="badge-soon">In build</span>
@@ -62,7 +62,7 @@
 						<HugeiconsIcon icon={ICON[demo.key]} size={20} aria-hidden="true" />
 					</span>
 
-					<h2 class="mt-4 font-semibold text-strong">{demo.label}</h2>
+					<h2 class="display mt-4 font-semibold text-strong">{demo.label}</h2>
 					<p class="mt-1 text-sm text-muted">{demo.tagline}</p>
 
 					<ul class="mt-4 space-y-1.5 text-sm text-muted">

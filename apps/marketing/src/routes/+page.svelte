@@ -21,7 +21,8 @@
 
 
 <!-- hero -->
-<section class="mx-auto max-w-6xl px-6 pb-16 pt-14 sm:pt-20">
+<section class="mx-auto grid max-w-6xl gap-12 px-6 pb-16 pt-14 sm:pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+	<div>
 	<div
 		class="inline-flex rounded-2xl bg-sunken p-1"
 		role="group"
@@ -40,9 +41,11 @@
 	</div>
 
 	<p class="eyebrow mt-6">{region.eyebrow}</p>
-	<h1 class="mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-strong sm:text-5xl">
+	<h1 class="display mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-strong sm:text-5xl">
 		{region.headline.lead}
-		<span class="text-muted">{region.headline.trail}</span>
+		<!-- Its own line: the two halves are a pair, and reflowing them mid-phrase
+		     loses the turn the sentence is built on. -->
+		<span class="mt-1 block text-muted">{region.headline.trail}</span>
 	</h1>
 
 	<p class="mt-6 max-w-2xl text-lg text-muted">{region.pitch}</p>
@@ -82,6 +85,45 @@
 			{region.note}
 		</p>
 	{/if}
+	</div>
+
+	<!-- Showing the product beats describing it. This is the screen the pitch is
+	     actually about: an order stopped before it was accepted. -->
+	<div class="relative" aria-hidden="true">
+		<div class="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-primary-500/20 via-primary-500/5 to-transparent blur-2xl"></div>
+
+		<div class="relative rounded-3xl bg-raised p-5 elevation-2">
+			<div class="flex items-center justify-between">
+				<p class="text-xs font-medium uppercase tracking-wide text-faint">Incoming order</p>
+				<span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-300">
+					High risk
+				</span>
+			</div>
+
+			<p class="mt-3 font-mono text-lg text-strong">{region.id === 'middle-east' ? 'AED 690' : 'BDT 4,250'}</p>
+			<p class="text-sm text-muted">{region.id === 'middle-east' ? '+971 50 •••  ••67' : '+880 17•• ••••78'}</p>
+
+			<dl class="mt-4 space-y-2 border-t border-line pt-4 text-sm">
+				<div class="flex justify-between gap-3">
+					<dt class="text-muted">Delivered before</dt>
+					<dd class="font-mono tabular-nums text-body">3</dd>
+				</div>
+				<div class="flex justify-between gap-3">
+					<dt class="text-muted">Returned before</dt>
+					<dd class="font-mono tabular-nums text-red-700 dark:text-red-400">9</dd>
+				</div>
+				<div class="flex justify-between gap-3">
+					<dt class="text-muted">Risk score</dt>
+					<dd class="font-mono tabular-nums text-body">74 / 100</dd>
+				</div>
+			</dl>
+
+			<p class="mt-4 rounded-2xl bg-sunken p-3 text-sm text-body">
+				<span class="font-medium text-strong">Ask for payment in advance.</span>
+				Nine of this number's last twelve parcels came back.
+			</p>
+		</div>
+	</div>
 </section>
 
 <!-- the problem, in numbers -->
@@ -101,7 +143,7 @@
 	{#each SECTIONS as section (section.id)}
 		<section class="mx-auto max-w-6xl px-6 py-16">
 			<p class="eyebrow">{section.eyebrow}</p>
-			<h2 class="mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
+			<h2 class="display mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
 				{section.title}
 			</h2>
 
@@ -120,7 +162,7 @@
 <!-- live demos, one per trade -->
 <section class="mx-auto max-w-6xl px-6 py-16">
 	<p class="eyebrow">See it working</p>
-	<h2 class="mt-3 text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
+	<h2 class="display mt-3 text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
 		A demo shop for your trade, not someone else's
 	</h2>
 	<p class="mt-4 max-w-2xl text-muted">
@@ -149,7 +191,7 @@
 <section id="roadmap" class="border-y border-line bg-sunken">
 	<div class="mx-auto max-w-6xl px-6 py-16">
 		<p class="eyebrow">On the way</p>
-		<h2 class="mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
+		<h2 class="display mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
 			What we are building next
 		</h2>
 		<p class="mt-3 max-w-2xl text-muted">
@@ -176,7 +218,7 @@
 	<div class="card !p-8 lg:flex lg:items-center lg:gap-10">
 		<div class="lg:flex-1">
 			<p class="eyebrow">Pricing</p>
-			<h2 class="mt-3 text-2xl font-semibold tracking-tight text-strong">
+			<h2 class="display mt-3 text-2xl font-semibold tracking-tight text-strong">
 				One flat fee. We never touch your revenue.
 			</h2>
 			<p class="mt-3 text-muted">
@@ -206,7 +248,7 @@
 <!-- close -->
 <section class="mx-auto max-w-6xl px-6 pb-8">
 	<div class="rounded-3xl bg-primary-600 p-8 text-white sm:p-12">
-		<h2 class="max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">
+		<h2 class="display max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">
 			Show us your return rate. We will show you ours.
 		</h2>
 		<p class="mt-3 max-w-2xl text-primary-100">
