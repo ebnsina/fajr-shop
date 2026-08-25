@@ -1,0 +1,55 @@
+# Local dev: Postgres only. api/web/worker run on the host via `pnpm dev`.
+# The production compose file lives in deploy/ and runs all four.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fajr
+      POSTGRES_PASSWORD: fajr
+      POSTGRES_DB: fajr
+    ports:
+      - '5440:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fajr']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # R2 is S3-compatible, so dev runs MinIO and the app has one storage path.
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: fajr
+      MINIO_ROOT_PASSWORD: fajrfajr
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Creates the bucket once, then exits.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 fajr fajrfajr &&
+      mc mb --ignore-existing local/fajr-media &&
+      mc anonymous set download local/fajr-media
+      "
+
+volumes:
+  pgdata:
+  miniodata:

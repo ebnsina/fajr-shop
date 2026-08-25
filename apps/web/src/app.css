@@ -1,0 +1,478 @@
+@import 'tailwindcss';
+
+/* Self-hosted: a webfont request to a third party is the slowest thing on a
+   Dhaka 3G connection, and it leaks every visitor to another domain. */
+@import '@fontsource-variable/mona-sans';
+@import '@fontsource-variable/geist-mono';
+
+/* ── design tokens ─────────────────────────────────────────────────────────
+   The admin has one identity. Storefront themes are per-merchant config and
+   live in $lib/themes.ts — these tokens never reach a customer-facing page.  */
+@theme {
+	--font-sans: 'Mona Sans Variable', 'Mona Sans', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+
+	/* Blue primary. -2 is the focus ring, chosen so it reads on both grounds. */
+	--color-primary-50: oklch(0.97 0.014 254);
+	--color-primary-100: oklch(0.93 0.032 255);
+	--color-primary-200: oklch(0.88 0.059 254);
+	--color-primary-300: oklch(0.81 0.096 254);
+	--color-primary-400: oklch(0.71 0.143 255);
+	--color-primary-500: oklch(0.62 0.188 259);
+	--color-primary-600: oklch(0.55 0.216 262);
+	--color-primary-700: oklch(0.49 0.203 263);
+	--color-primary-800: oklch(0.42 0.169 264);
+	--color-primary-900: oklch(0.38 0.132 265);
+
+	--radius-button: var(--radius-xl);
+	--radius-card: var(--radius-3xl);
+}
+
+/* ── surfaces ──────────────────────────────────────────────────────────────
+   Light mode is shades of white, dark mode is shades of charcoal. Depth comes
+   from the steps between them, not from shadows.                            */
+:root {
+	--surface-sunken: oklch(0.968 0.002 250); /* the shell behind the inset */
+	--surface-base: oklch(0.985 0.001 250); /* sidebar, header */
+	--surface-raised: oklch(1 0 0); /* the inset panel, cards */
+	--surface-hover: oklch(0.955 0.003 250);
+	--surface-active: oklch(0.93 0.004 250);
+
+	--line: oklch(0.922 0.004 250);
+	--line-strong: oklch(0.87 0.006 250);
+
+	--elevation-1:
+		0 0 0 1px oklch(0.2 0.01 265 / 0.04),
+		0 1px 2px oklch(0.2 0.01 265 / 0.04),
+		0 2px 8px oklch(0.2 0.01 265 / 0.04);
+	--elevation-2:
+		0 0 0 1px oklch(0.2 0.01 265 / 0.05),
+		0 2px 4px oklch(0.2 0.01 265 / 0.05),
+		0 8px 24px oklch(0.2 0.01 265 / 0.06);
+
+	--text-strong: oklch(0.21 0.006 265);
+	--text: oklch(0.32 0.006 265);
+	--text-muted: oklch(0.55 0.008 265);
+	--text-faint: oklch(0.68 0.008 265);
+
+	--ring: var(--color-primary-500);
+	--chevron-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+	--chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--surface-sunken: oklch(0.16 0.004 265);
+		--surface-base: oklch(0.196 0.005 265);
+		--surface-raised: oklch(0.235 0.006 265);
+		--surface-hover: oklch(0.275 0.007 265);
+		--surface-active: oklch(0.31 0.008 265);
+
+		--line: oklch(0.31 0.008 265);
+		--line-strong: oklch(0.38 0.01 265);
+
+		--elevation-1:
+			0 0 0 1px oklch(1 0 0 / 0.06),
+			0 1px 2px oklch(0 0 0 / 0.3);
+		--elevation-2:
+			0 0 0 1px oklch(1 0 0 / 0.07),
+			0 4px 16px oklch(0 0 0 / 0.4);
+
+		--text-strong: oklch(0.97 0.002 265);
+		--text: oklch(0.89 0.003 265);
+		--text-muted: oklch(0.68 0.008 265);
+		--text-faint: oklch(0.55 0.008 265);
+
+		--ring: var(--color-primary-400);
+		--chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+	}
+}
+
+:root[data-theme='dark'] {
+	--surface-sunken: oklch(0.16 0.004 265);
+	--surface-base: oklch(0.196 0.005 265);
+	--surface-raised: oklch(0.235 0.006 265);
+	--surface-hover: oklch(0.275 0.007 265);
+	--surface-active: oklch(0.31 0.008 265);
+
+	--line: oklch(0.31 0.008 265);
+	--line-strong: oklch(0.38 0.01 265);
+
+	--elevation-1:
+		0 0 0 1px oklch(1 0 0 / 0.06),
+		0 1px 2px oklch(0 0 0 / 0.3);
+	--elevation-2:
+		0 0 0 1px oklch(1 0 0 / 0.07),
+		0 4px 16px oklch(0 0 0 / 0.4);
+
+	--text-strong: oklch(0.97 0.002 265);
+	--text: oklch(0.89 0.003 265);
+	--text-muted: oklch(0.68 0.008 265);
+	--text-faint: oklch(0.55 0.008 265);
+
+	--ring: var(--color-primary-400);
+	--chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+@utility elevated {
+	box-shadow: var(--elevation-1);
+}
+
+@utility elevated-lg {
+	box-shadow: var(--elevation-2);
+}
+
+@theme inline {
+	--color-sunken: var(--surface-sunken);
+	--color-base: var(--surface-base);
+	--color-raised: var(--surface-raised);
+	--color-hover: var(--surface-hover);
+	--color-active: var(--surface-active);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-strong: var(--text-strong);
+	--color-body: var(--text);
+	--color-muted: var(--text-muted);
+	--color-faint: var(--text-faint);
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+/* ── focus ─────────────────────────────────────────────────────────────────
+   One focus treatment everywhere, and it is never removed. Keyboard users are
+   a small share of visitors and a large share of the people running the shop. */
+@layer base {
+	:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+		outline: none;
+		border-color: var(--color-slate-200);
+		box-shadow:
+			0 0 0 2px var(--surface-raised),
+			0 0 0 4px var(--ring);
+	}
+}
+
+/* ── components ────────────────────────────────────────────────────────────
+   Semantic classes rather than repeating a dozen utilities per element. The
+   point is that changing the button radius is one edit, not sixty.          */
+@layer components {
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border-radius: var(--radius-button);
+		padding: 0.5rem 0.875rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		line-height: 1.25rem;
+		white-space: nowrap;
+		cursor: pointer;
+		transition: background-color 120ms, border-color 120ms, color 120ms;
+	}
+
+	.btn:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+
+	.btn-primary {
+		background: var(--color-primary-600);
+		color: white;
+		border: 1px solid transparent;
+	}
+	.btn-primary:hover:not(:disabled) {
+		background: var(--color-primary-700);
+	}
+
+	.btn-secondary {
+		background: var(--surface-raised);
+		color: var(--text);
+		border: 1px solid transparent;
+		box-shadow: var(--elevation-1);
+	}
+	.btn-secondary:hover:not(:disabled) {
+		background: var(--surface-hover);
+	}
+
+	.btn-ghost {
+		background: transparent;
+		color: var(--text-muted);
+		border: 1px solid transparent;
+	}
+	.btn-ghost:hover:not(:disabled) {
+		background: var(--surface-hover);
+		color: var(--text);
+	}
+
+	.btn-danger {
+		background: var(--surface-raised);
+		color: var(--color-red-600);
+		border: 1px solid transparent;
+		box-shadow: var(--elevation-1);
+	}
+	.btn-danger:hover:not(:disabled) {
+		background: var(--color-red-50);
+	}
+
+	/* Elevation, not outlines. One soft low shadow, plus a hairline ring at
+	   very low alpha so a card still has an edge on a white ground and in dark
+	   mode where shadows barely register. */
+	.card {
+		background: var(--surface-raised);
+		border-radius: var(--radius-card);
+		padding: 1.5rem;
+		box-shadow: var(--elevation-1);
+	}
+
+	.field {
+		inline-size: 100%;
+		background: var(--surface-raised);
+		color: var(--text);
+		border: 1px solid transparent;
+		border-radius: var(--radius-button);
+		padding: 0.5rem 0.75rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		box-shadow: var(--elevation-1);
+	}
+
+	.field::placeholder {
+		color: var(--text-faint);
+	}
+
+	/* ── native controls, rebranded ────────────────────────────────────────
+	   These stay real <select>/<input> elements: keyboard behaviour, screen
+	   reader semantics and form submission are all native. Only the paint is
+	   ours, so nothing has to be reimplemented and nothing can drift out of
+	   sync with the platform.                                              */
+	select.field {
+		appearance: none;
+		padding-inline-end: 2rem;
+		background-image: var(--chevron);
+		background-repeat: no-repeat;
+		background-position: right 0.625rem center;
+		background-size: 1rem;
+		cursor: pointer;
+	}
+
+	:where([dir='rtl']) select.field {
+		background-position: left 0.625rem center;
+	}
+
+	select.field option {
+		background: var(--surface-raised);
+		color: var(--text);
+	}
+
+	input[type='checkbox'],
+	input[type='radio'] {
+		appearance: none;
+		flex: none;
+		inline-size: 1.125rem;
+		block-size: 1.125rem;
+		margin: 0;
+		background: var(--surface-raised);
+		box-shadow: var(--elevation-1);
+		cursor: pointer;
+		transition: background-color 120ms, box-shadow 120ms;
+		display: inline-grid;
+		place-content: center;
+	}
+
+	input[type='checkbox'] {
+		border-radius: 0.375rem;
+	}
+
+	input[type='radio'] {
+		border-radius: 50%;
+	}
+
+	input[type='checkbox']::before,
+	input[type='radio']::before {
+		content: '';
+		transform: scale(0);
+		transition: transform 120ms cubic-bezier(0.2, 0, 0, 1);
+	}
+
+	input[type='checkbox']::before {
+		inline-size: 0.625rem;
+		block-size: 0.625rem;
+		background: white;
+		clip-path: polygon(14% 44%, 0 65%, 41% 100%, 100% 16%, 82% 0%, 37% 66%);
+	}
+
+	input[type='radio']::before {
+		inline-size: 0.4375rem;
+		block-size: 0.4375rem;
+		border-radius: 50%;
+		background: white;
+	}
+
+	input[type='checkbox']:checked,
+	input[type='radio']:checked {
+		background: var(--color-primary-600);
+		box-shadow: none;
+	}
+
+	input[type='checkbox']:checked::before,
+	input[type='radio']:checked::before {
+		transform: scale(1);
+	}
+
+	input[type='checkbox']:disabled,
+	input[type='radio']:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* Native number spinners are ugly and misfire on touch; the value is typed. */
+	input[type='number'].field {
+		appearance: textfield;
+	}
+
+	input[type='number'].field::-webkit-outer-spin-button,
+	input[type='number'].field::-webkit-inner-spin-button {
+		appearance: none;
+		margin: 0;
+	}
+
+	/* Native disclosure triangles are OS chrome and look nothing like the rest. */
+	details > summary {
+		list-style: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	details > summary::-webkit-details-marker {
+		display: none;
+	}
+
+	details > summary::before {
+		content: '';
+		inline-size: 1rem;
+		block-size: 1rem;
+		flex: none;
+		background: currentColor;
+		mask: var(--chevron-mask) center / contain no-repeat;
+		transform: rotate(-90deg);
+		transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
+	}
+
+	:where([dir='rtl']) details > summary::before {
+		transform: rotate(90deg);
+	}
+
+	details[open] > summary::before {
+		transform: rotate(0deg);
+	}
+
+	/* ── badges ────────────────────────────────────────────────────────────
+	   Status text is small and often the only thing distinguishing two rows, so
+	   it has to clear WCAG AA (4.5:1) in both themes. The earlier -700 on -50
+	   pairing measured around 3:1 and read as washed out; these use a darker
+	   foreground on light and a light foreground on a deep, low-chroma ground
+	   in dark.                                                              */
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		border-radius: 999px;
+		padding: 0.125rem 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		line-height: 1.125rem;
+		white-space: nowrap;
+	}
+
+	.badge[data-tone='neutral'] {
+		background: var(--color-slate-100);
+		color: var(--color-slate-800);
+	}
+	.badge[data-tone='info'] {
+		background: var(--color-primary-100);
+		color: var(--color-primary-900);
+	}
+	.badge[data-tone='success'] {
+		background: var(--color-green-100);
+		color: var(--color-green-900);
+	}
+	.badge[data-tone='warning'] {
+		background: var(--color-amber-100);
+		color: var(--color-amber-900);
+	}
+	.badge[data-tone='danger'] {
+		background: var(--color-red-100);
+		color: var(--color-red-900);
+	}
+
+	:root[data-theme='dark'] .badge[data-tone='neutral'],
+	:root[data-theme='dark'] .badge[data-tone='info'],
+	:root[data-theme='dark'] .badge[data-tone='success'],
+	:root[data-theme='dark'] .badge[data-tone='warning'],
+	:root[data-theme='dark'] .badge[data-tone='danger'] {
+		background: color-mix(in oklab, currentColor 16%, transparent);
+	}
+
+	:root[data-theme='dark'] .badge[data-tone='neutral'] {
+		color: var(--color-slate-200);
+	}
+	:root[data-theme='dark'] .badge[data-tone='info'] {
+		color: var(--color-primary-200);
+	}
+	:root[data-theme='dark'] .badge[data-tone='success'] {
+		color: var(--color-green-200);
+	}
+	:root[data-theme='dark'] .badge[data-tone='warning'] {
+		color: var(--color-amber-200);
+	}
+	:root[data-theme='dark'] .badge[data-tone='danger'] {
+		color: var(--color-red-200);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) .badge[data-tone='neutral'],
+		:root:not([data-theme='light']) .badge[data-tone='info'],
+		:root:not([data-theme='light']) .badge[data-tone='success'],
+		:root:not([data-theme='light']) .badge[data-tone='warning'],
+		:root:not([data-theme='light']) .badge[data-tone='danger'] {
+			background: color-mix(in oklab, currentColor 16%, transparent);
+		}
+		:root:not([data-theme='light']) .badge[data-tone='neutral'] {
+			color: var(--color-slate-200);
+		}
+		:root:not([data-theme='light']) .badge[data-tone='info'] {
+			color: var(--color-primary-200);
+		}
+		:root:not([data-theme='light']) .badge[data-tone='success'] {
+			color: var(--color-green-200);
+		}
+		:root:not([data-theme='light']) .badge[data-tone='warning'] {
+			color: var(--color-amber-200);
+		}
+		:root:not([data-theme='light']) .badge[data-tone='danger'] {
+			color: var(--color-red-200);
+		}
+	}
+
+	.label {
+		display: block;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		color: var(--text);
+		margin-block-end: 0.375rem;
+	}
+
+	.hint {
+		font-size: 0.75rem;
+		color: var(--text-muted);
+	}
+
+	.error-text {
+		font-size: 0.75rem;
+		color: var(--color-red-600);
+	}
+}

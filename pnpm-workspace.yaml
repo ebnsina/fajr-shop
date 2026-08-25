@@ -1,0 +1,17 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  '@hugeicons/svelte': set this to true or false
+  esbuild: set this to true or false
+
+minimumReleaseAgeExclude:
+  - '@lucide/svelte@1.34.0'
+
+# superforms' zod adapter imports its types from `zod/v3`. Left alone its helper
+# resolves a second zod (v4), the schema type gets a different identity than the
+# one our schemas were built with, and `form.data` silently infers as `unknown`.
+# One zod, one identity.
+overrides:
+  zod: ^3.25.76

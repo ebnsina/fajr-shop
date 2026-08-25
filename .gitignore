@@ -1,0 +1,13 @@
+node_modules
+dist
+.svelte-kit
+build
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Internal planning and local reference material stay out of the public repo.
+docs/
+data/

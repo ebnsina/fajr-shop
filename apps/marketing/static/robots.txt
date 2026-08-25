@@ -1,0 +1,5 @@
+# A marketing site wants to be crawled; there is nothing public to hide.
+User-agent: *
+Disallow: /leads.csv
+
+Sitemap: https://fajr.shop/sitemap.xml

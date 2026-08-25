@@ -1,0 +1,27 @@
+{
+  "name": "fajr-shop",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "check": "pnpm -r check",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @fajr/db generate",
+    "db:migrate": "pnpm --filter @fajr/db migrate",
+    "db:studio": "pnpm --filter @fajr/db studio",
+    "up": "docker compose up -d",
+    "down": "docker compose down",
+    "db:seed": "pnpm --filter @fajr/db seed",
+    "db:seed:demo": "pnpm --filter @fajr/db seed:demo",
+    "db:seed:tech": "pnpm --filter @fajr/db seed:tech",
+    "loadtest": "node scripts/loadtest.mjs",
+    "db:seed:vertical": "pnpm --filter @fajr/db seed:vertical"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

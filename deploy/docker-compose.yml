@@ -1,0 +1,108 @@
+# Production stack for one merchant. Three services, one image, one box.
+#
+# The API, the web app and the worker are the same build with different
+# entrypoints — which is what makes "move the worker to its own machine" a
+# deploy change rather than a refactor.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fajr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-fajr}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-fajr}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Never published: only the app services reach it, over the compose network.
+    expose:
+      - '5432'
+
+  web:
+    image: ${IMAGE:-fajr-shop:latest}
+    restart: always
+    command: ['node', 'apps/web/build/index.js']
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-fajr}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fajr}
+      # Required: adapter-node derives its origin from this, and the cross-site
+      # POST check compares against it. Wrong here means every form 403s.
+      ORIGIN: ${ORIGIN:?set ORIGIN to the public https URL}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY}
+      STORAGE_BUCKET: ${STORAGE_BUCKET}
+      STORAGE_PUBLIC_URL: ${STORAGE_PUBLIC_URL}
+      SMS_PROVIDER: ${SMS_PROVIDER:-console}
+      SMS_API_KEY: ${SMS_API_KEY}
+      SMS_SENDER_ID: ${SMS_SENDER_ID}
+      COURIERS: ${COURIERS}
+      STEADFAST_API_KEY: ${STEADFAST_API_KEY}
+      STEADFAST_SECRET_KEY: ${STEADFAST_SECRET_KEY}
+      FRAUD_API_URL: ${FRAUD_API_URL}
+      FRAUD_API_KEY: ${FRAUD_API_KEY}
+      SSLCOMMERZ_STORE_ID: ${SSLCOMMERZ_STORE_ID}
+      SSLCOMMERZ_STORE_PASSWORD: ${SSLCOMMERZ_STORE_PASSWORD}
+      FB_PIXEL_ID: ${FB_PIXEL_ID}
+      FB_CAPI_TOKEN: ${FB_CAPI_TOKEN}
+      APP_VERSION: ${IMAGE:-dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://localhost:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    expose:
+      - '3000'
+
+  worker:
+    image: ${IMAGE:-fajr-shop:latest}
+    restart: always
+    command: ['node', 'apps/worker/src/index.ts']
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-fajr}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-fajr}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY}
+      STORAGE_BUCKET: ${STORAGE_BUCKET}
+      STORAGE_PUBLIC_URL: ${STORAGE_PUBLIC_URL}
+      SMS_PROVIDER: ${SMS_PROVIDER:-console}
+      SMS_API_KEY: ${SMS_API_KEY}
+      SMS_SENDER_ID: ${SMS_SENDER_ID}
+      COURIERS: ${COURIERS}
+      STEADFAST_API_KEY: ${STEADFAST_API_KEY}
+      STEADFAST_SECRET_KEY: ${STEADFAST_SECRET_KEY}
+      FB_PIXEL_ID: ${FB_PIXEL_ID}
+      FB_CAPI_TOKEN: ${FB_CAPI_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN}
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  caddydata:
+  caddyconfig:
