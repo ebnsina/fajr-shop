@@ -63,9 +63,9 @@
 		</nav>
 
 		<div class="ms-auto flex items-center gap-2">
-			<a href="/contact" class="btn btn-primary !px-4 !py-2 !text-sm">Book a demo</a>
+			<a href="/contact" class="btn btn-primary btn-compact">Book a demo</a>
 			<button
-				class="btn btn-secondary !px-2.5 !py-2 md:hidden"
+				class="btn btn-secondary btn-compact !px-3 md:hidden"
 				onclick={() => (open = !open)}
 				aria-label={open ? 'Close menu' : 'Open menu'}
 				aria-expanded={open}

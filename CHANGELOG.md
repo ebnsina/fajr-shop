@@ -122,6 +122,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **The marketing site has its own design system**, sharing nothing with the
+  admin: Bricolage Grotesque over Inter Tight, an editorial type scale, pill
+  buttons a size larger, and numbered rule-separated rows in place of boxed
+  cards — because boxed cards are what made it read like a dashboard.
+
 - **The landing page keeps the structure and drops the decoration.** A bento
   grid where the flagship feature gets twice the room, a marquee of the couriers
   and wallets each region already uses, and a hero sized as a headline — but

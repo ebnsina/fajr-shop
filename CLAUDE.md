@@ -91,11 +91,13 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
 - **Never hardcode config or fall back for a missing env var** — throw, with the
   variable named in the message. A wrong default is worse than a stopped page.
 - **Icons are Hugeicons** (`@hugeicons/svelte`) and validation is **Valibot**.
-- **Three identities, on purpose.** `apps/marketing` is Fajr Shop's own brand —
-  Geist throughout, one violet accent, near-neutral surfaces, restraint over
-  decoration. The admin stays neutral (Mona Sans, blue) because it is the
-  merchant's workspace. Storefront themes carry the merchant's own colour.
-  Never bleed one into another.
+- **Three identities, on purpose, and they share no components.** `apps/marketing`
+  has its own system: Bricolage Grotesque for display, Inter Tight for text, an
+  editorial scale (`--text-hero`, `--text-section`, `--text-lead`), pill buttons
+  a size larger than the admin's, and rule-separated rows instead of boxed
+  cards. The admin is a tool — Mona Sans, blue, compact, boxed. Storefront
+  themes carry the merchant's own colour. Reusing an admin component on the
+  marketing site is what makes it look like a dashboard.
 - **Motion never gates content.** Scroll reveals are CSS `animation-timeline`
   behind `@supports`, so an unsupporting browser just shows the section. Never
   hide content behind a class that JavaScript has to remove — a failed

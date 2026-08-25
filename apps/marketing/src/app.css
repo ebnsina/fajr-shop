@@ -1,17 +1,24 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/geist';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/inter-tight';
 @import '@fontsource-variable/geist-mono';
 
 /*
- * One typeface, one accent, a lot of restraint. Geist across display and text
- * with tight tracking at large sizes; a single violet that does all the work.
- * Deliberately not the admin's blue — the admin is the merchant's workspace and
- * their own storefront owns the colour there.
+ * The marketing site's own system, sharing nothing with the admin. The admin is
+ * a tool — boxed cards, a compact scale, blue. This is a publication: a display
+ * face with real character, an editorial scale, rules instead of boxes, and
+ * type doing the work that borders do in a dashboard.
  */
 @theme {
-	--font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'Inter Tight Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Bricolage Grotesque Variable', 'Inter Tight Variable', sans-serif;
 	--font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+
+	/* Editorial scale. Larger steps than a dashboard needs, because a landing
+	   page is read at arm's length and a tool is read at a desk. */
+	--text-hero: clamp(2.75rem, 1.6rem + 4.2vw, 4.25rem);
+	--text-section: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+	--text-lead: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);
 
 	--color-primary-50: oklch(0.97 0.014 287);
 	--color-primary-100: oklch(0.94 0.030 287);
@@ -111,21 +118,33 @@ body {
 }
 
 @layer components {
+	/* Marketing buttons are a size up from the admin's. A call to action on a
+	   landing page is the whole point of the page; in a tool it is one control
+	   among forty. */
 	.btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5rem;
-		border-radius: var(--radius-xl);
-		padding: 0.75rem 1.25rem;
-		font-size: 0.9375rem;
+		border-radius: 999px;
+		padding: 0.9375rem 1.75rem;
+		font-size: 1rem;
 		font-weight: 500;
+		letter-spacing: -0.01em;
+		line-height: 1;
 		white-space: nowrap;
 		cursor: pointer;
 		text-decoration: none;
 		transition:
 			background-color 140ms var(--ease-out-quint),
-			border-color 140ms var(--ease-out-quint);
+			border-color 140ms var(--ease-out-quint),
+			color 140ms var(--ease-out-quint);
+	}
+	/* The header's is the one exception: a full-size pill in a 56px bar is
+	   out of scale with everything beside it. */
+	.btn-compact {
+		padding: 0.625rem 1.125rem;
+		font-size: 0.9375rem;
 	}
 
 	.btn-primary {
@@ -150,22 +169,60 @@ body {
 		background: var(--surface-hover);
 	}
 
-	/* One hairline and a flat surface. Everything else was decoration. */
+	/*
+	 * A panel, not a dashboard card: no fill, a rule rather than a box, and
+	 * space instead of a border doing the separating. Boxed cards on a
+	 * white-ish page are exactly what makes a marketing site look like an
+	 * admin screen.
+	 */
 	.card {
 		position: relative;
 		border: 1px solid var(--line);
-		border-radius: var(--radius-2xl);
-		padding: 1.75rem;
-		background: var(--surface-raised);
+		border-radius: 1rem;
+		padding: 1.5rem;
+		background: transparent;
 		transition:
 			border-color 160ms var(--ease-out-quint),
-			transform 160ms var(--ease-out-quint);
+			background-color 160ms var(--ease-out-quint);
+	}
+
+	/* An editorial row: a numbered rule-separated entry, which is how a
+	   publication lists things and how a dashboard never does. */
+	.row {
+		display: grid;
+		gap: 0.5rem 2rem;
+		padding-block: 2rem;
+		border-block-start: 1px solid var(--line);
+	}
+	@media (min-width: 48rem) {
+		.row {
+			grid-template-columns: 4rem 18rem 1fr;
+			align-items: baseline;
+		}
+	}
+	.row-index {
+		font-family: var(--font-mono);
+		font-size: 0.8125rem;
+		color: var(--text-faint);
+		font-variant-numeric: tabular-nums;
+	}
+	.row-title {
+		font-family: var(--font-display);
+		font-size: 1.25rem;
+		font-weight: 550;
+		letter-spacing: -0.02em;
+		color: var(--text-strong);
+	}
+	.row-body {
+		color: var(--text-muted);
+		line-height: 1.65;
+		max-inline-size: 46ch;
 	}
 	/* Only cards that are actually links lift; a static panel that moves under
 	   the cursor suggests an action that is not there. */
 	a.card:hover {
 		border-color: var(--line-strong);
-		transform: translateY(-1px);
+		background: var(--surface-raised);
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.card,
@@ -210,20 +267,23 @@ body {
 
 	/* Large type is where a grotesque earns its keep: tight tracking and a
 	   line-height under one, which only works because Geist is drawn for it. */
+	/* Bricolage has an optical-size axis; at display sizes it wants the larger
+	   cut or the joins look soft. */
 	.display {
 		font-family: var(--font-display);
-		font-weight: 560;
-		letter-spacing: -0.035em;
-		line-height: 1.03;
+		font-weight: 550;
+		font-variation-settings: 'opsz' 48;
+		letter-spacing: -0.03em;
+		line-height: 1.05;
 		text-wrap: balance;
 	}
 
 	/* Fluid, so the hero is genuinely large on a desktop without wrapping badly
 	   on a 360px Android — which is most of this market. */
 	.display-xl {
-		font-size: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
-		letter-spacing: -0.032em;
-		line-height: 1.06;
+		font-size: var(--text-hero);
+		letter-spacing: -0.035em;
+		line-height: 1.02;
 	}
 
 	/* The turning half sits back rather than lighting up. */
@@ -267,6 +327,48 @@ body {
 		background: color-mix(in oklab, var(--surface-base) 86%, transparent);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
+	}
+
+	/*
+	 * The trust strip. No logos yet, so the names carry it — which is the point
+	 * anyway: a Dhaka merchant reads "Steadfast" and knows we understand them.
+	 * Duplicated in the markup so the loop has no seam.
+	 */
+	.marquee {
+		display: flex;
+		overflow: hidden;
+		mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+		-webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+	}
+	.marquee > ul {
+		display: flex;
+		flex-shrink: 0;
+		align-items: center;
+		gap: 3.5rem;
+		padding-inline-end: 3.5rem;
+		margin: 0;
+		padding-block: 0;
+		padding-inline-start: 0;
+		list-style: none;
+		animation: marquee 38s linear infinite;
+	}
+	.marquee:hover > ul {
+		animation-play-state: paused;
+	}
+	@keyframes marquee {
+		to {
+			transform: translateX(-100%);
+		}
+	}
+	/* Endless horizontal motion is exactly the kind a vestibular disorder
+	   reacts to, so it simply stops and becomes a scrollable strip. */
+	@media (prefers-reduced-motion: reduce) {
+		.marquee > ul {
+			animation: none;
+		}
+		.marquee {
+			overflow-x: auto;
+		}
 	}
 
 	.sr-only {

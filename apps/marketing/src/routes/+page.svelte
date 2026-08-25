@@ -48,7 +48,9 @@
 		<span class="display-accent mt-1 block">{region.headline.trail}</span>
 	</h1>
 
-	<p class="mt-6 max-w-2xl text-lg text-muted">{region.pitch}</p>
+	<p class="mt-7 max-w-[52ch] leading-relaxed text-muted" style="font-size: var(--text-lead)">
+		{region.pitch}
+	</p>
 
 	<div class="mt-8 flex flex-wrap gap-3">
 		<a href="/demo" class="btn btn-primary">
@@ -159,15 +161,16 @@
 	{#each SECTIONS as section (section.id)}
 		<section class="reveal mx-auto max-w-6xl px-6 py-16">
 			<p class="eyebrow">{section.eyebrow}</p>
-			<h2 class="display mt-3 max-w-2xl text-3xl text-strong sm:text-[2.5rem]">
+			<h2 class="display mt-4 max-w-3xl text-strong" style="font-size: var(--text-section)">
 				{section.title}
 			</h2>
 
-			<div class="bento mt-10">
-				{#each section.items as item (item.title)}
-					<div class="card !p-6">
-						<h3 class="text-base font-medium text-strong">{item.title}</h3>
-						<p class="mt-2.5 text-sm leading-relaxed text-muted">{item.body}</p>
+			<div class="mt-12">
+				{#each section.items as item, i (item.title)}
+					<div class="row">
+						<span class="row-index">{String(i + 1).padStart(2, '0')}</span>
+						<h3 class="row-title">{item.title}</h3>
+						<p class="row-body">{item.body}</p>
 					</div>
 				{/each}
 			</div>
