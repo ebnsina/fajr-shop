@@ -43,10 +43,50 @@ export function alphaProvider(apiKey: string, senderId?: string): SmsProvider {
 	};
 }
 
-export function providerFromEnv(): SmsProvider {
-	const key = process.env.SMS_API_KEY;
-	if (process.env.SMS_PROVIDER === 'alpha' && key) {
-		return alphaProvider(key, process.env.SMS_SENDER_ID);
+// Twilio, for the Gulf and anywhere Alpha does not reach.
+export function twilioProvider(accountSid: string, authToken: string, from: string): SmsProvider {
+	return {
+		name: 'twilio',
+		async send(to, body) {
+			try {
+				const res = await fetch(
+					`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+					{
+						method: 'POST',
+						headers: {
+							authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
+							'content-type': 'application/x-www-form-urlencoded'
+						},
+						body: new URLSearchParams({ To: to, From: from, Body: body }),
+						signal: AbortSignal.timeout(10_000)
+					}
+				);
+				const json = (await res.json()) as { sid?: string; message?: string };
+				if (res.ok && json.sid) return { ok: true, ref: json.sid };
+				return { ok: false, error: json.message ?? `twilio returned ${res.status}` };
+			} catch (err) {
+				return { ok: false, error: String(err) };
+			}
+		}
+	};
+}
+
+export const SMS_BUILDERS: Record<string, (c: Record<string, string>) => SmsProvider> = {
+	'alpha-sms': (c) => alphaProvider(c.apiKey ?? '', c.senderId),
+	twilio: (c) => twilioProvider(c.accountSid ?? '', c.authToken ?? '', c.from ?? '')
+};
+
+// Falls back to the console provider, so a shop with no SMS connected still
+// records the message rather than throwing mid-order.
+export async function smsProvider(
+	lookup: (slug: string) => Promise<Record<string, string> | null>,
+	enabled: () => Promise<{ slug: string }[]>
+): Promise<SmsProvider> {
+	for (const { slug } of await enabled()) {
+		const build = SMS_BUILDERS[slug];
+		if (!build) continue;
+		const config = await lookup(slug);
+		if (config) return build(config);
 	}
 	return consoleProvider;
 }

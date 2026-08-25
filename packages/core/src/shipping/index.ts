@@ -41,7 +41,7 @@ export async function pushToCourier(
 		opts.courier ?? (await chooseCourier(detail.address.district, detail.address.thana))?.courier;
 	if (!chosen) return { ok: false, error: 'no courier configured', retryable: false };
 
-	const client = opts.client ?? courierFor(chosen);
+	const client = opts.client ?? (await courierFor(chosen));
 	const codMinor = detail.totalMinor - detail.paidMinor;
 
 	const line = [detail.address.detail, detail.address.area, detail.address.thana, detail.address.district]
@@ -128,7 +128,8 @@ export async function refreshTracking(
 	const row = await db.read.query.shipment.findFirst({ where: eq(shipment.id, shipmentId) });
 	if (!row?.consignmentId) return { ok: false };
 
-	const result = await (client ?? courierFor(row.courier)).track(row.consignmentId);
+	const courier = client ?? (await courierFor(row.courier));
+	const result = await courier.track(row.consignmentId);
 	if (!result.ok) return { ok: false };
 	if (result.status === row.status) return { ok: true, status: result.status };
 

@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 
 // The gateway's server-to-server callback.
 export const POST: RequestHandler = async ({ request }) => {
-	const provider = providerFromEnv();
+	const provider = await providerFromEnv();
 	if (!provider) return new Response('ok');
 
 	const form = await request.formData().catch(() => null);

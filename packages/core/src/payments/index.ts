@@ -1,16 +1,46 @@
 import { db, order, payment, orderEvent, outbox, newId, eq, and } from '@fajr/db';
 import type { PaymentProvider, VerifiedPayment } from './types.ts';
 import { sslcommerz } from './sslcommerz.ts';
+import { tap } from './tap.ts';
+import { tabby } from './tabby.ts';
+import { tamara } from './tamara.ts';
 import { audit } from '../audit/index.ts';
+import { configFor, enabledOf } from '../integrations/index.ts';
 
 export * from './types.ts';
-export { sslcommerz };
+export { sslcommerz, tap, tabby, tamara };
 
-export function providerFromEnv(): PaymentProvider | null {
-	const id = process.env.SSLCOMMERZ_STORE_ID;
-	const pw = process.env.SSLCOMMERZ_STORE_PASSWORD;
-	if (!id || !pw) return null;
-	return sslcommerz(id, pw, { sandbox: process.env.SSLCOMMERZ_SANDBOX === 'true' });
+const truthy = (v: string | undefined) => v === 'true' || v === '1';
+
+// Built from what the merchant connected on the integrations page.
+const BUILDERS: Record<string, (c: Record<string, string>) => PaymentProvider> = {
+	sslcommerz: (c) =>
+		sslcommerz(c.storeId ?? '', c.storePassword ?? '', { sandbox: truthy(c.sandbox) }),
+	tap: (c) => tap(c.secretKey ?? ''),
+	tabby: (c) => tabby(c.secretKey ?? '', c.merchantCode ?? ''),
+	tamara: (c) => tamara(c.apiToken ?? '')
+};
+
+export const PAYMENT_SLUGS = Object.keys(BUILDERS);
+
+export async function providerFor(slug: string): Promise<PaymentProvider | null> {
+	const build = BUILDERS[slug];
+	if (!build) return null;
+	const config = await configFor(slug);
+	return config ? build(config) : null;
+}
+
+// Every gateway the merchant has switched on, in install order. The checkout
+// offers these alongside cash on delivery.
+export async function enabledProviders(): Promise<string[]> {
+	const installed = await enabledOf('payment');
+	return installed.map((i) => i.slug).filter((slug) => slug in BUILDERS);
+}
+
+// Kept for the one caller that still assumes a single gateway.
+export async function providerFromEnv(): Promise<PaymentProvider | null> {
+	const [first] = await enabledProviders();
+	return first ? providerFor(first) : null;
 }
 
 export type SettleResult =

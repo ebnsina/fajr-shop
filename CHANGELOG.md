@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Five couriers and four payment gateways.** Steadfast, Pathao, RedX and
+  eCourier for South Asia; Aramex for the Gulf. SSLCommerz for Bangladesh; Tap,
+  Tabby and Tamara for the Gulf. Alpha SMS and Twilio for messaging. All are
+  connected from the integrations page — none read the environment any more, so
+  a merchant sets up their own accounts without a redeploy.
+
 - **Delivery zones come from the country.** A new shop starts with zones that
   make sense where it sells — inside Dhaka, the suburbs, and everywhere else in
   Bangladesh; Dubai and Sharjah, the Northern Emirates, and the rest of the UAE.

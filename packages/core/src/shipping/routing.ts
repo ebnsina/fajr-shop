@@ -39,8 +39,12 @@ async function outcomes(where: ReturnType<typeof sql>): Promise<Map<string, { de
 export async function rankCouriers(
 	district: string | null | undefined,
 	thana: string | null | undefined,
-	available = enabledCouriers()
+	// Defaults to whatever the merchant has connected. Resolved here rather than
+	// in the signature, because that lookup is a query now.
+	available?: string[]
 ): Promise<CourierScore[]> {
+	const couriers = available ?? (await enabledCouriers());
+
 	const [byThana, byDistrict, global] = await Promise.all([
 		thana && district
 			? outcomes(sql`district = ${district} and thana = ${thana}`)
@@ -49,7 +53,7 @@ export async function rankCouriers(
 		outcomes(sql`true`)
 	]);
 
-	return available
+	return couriers
 		.map((courier): CourierScore => {
 			const t = byThana.get(courier);
 			const d = byDistrict.get(courier);

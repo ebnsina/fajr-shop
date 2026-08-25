@@ -1,5 +1,6 @@
 import { db, message, newId, eq } from '@fajr/db';
-import { providerFromEnv, type SmsProvider } from './sms.ts';
+import { smsProvider, type SmsProvider } from './sms.ts';
+import { configFor, enabledOf } from '../integrations/index.ts';
 import { render, parts, type TemplateName } from './templates.ts';
 
 export * from './sms.ts';
@@ -18,9 +19,12 @@ export type SendInput = {
 // The row is written before the send.
 export async function sendSms(
 	input: SendInput,
-	provider: SmsProvider = providerFromEnv()
+	provider?: SmsProvider
 ): Promise<{ ok: boolean; duplicate?: boolean; parts?: number }> {
 	const body = render(input.template, input.vars, input.locale);
+	// Whatever the merchant connected, or the console provider so a shop with no
+	// SMS still records the message instead of throwing mid-order.
+	const sender = provider ?? (await smsProvider(configFor, () => enabledOf('sms')));
 
 	const inserted = await db.write
 		.insert(message)
@@ -30,7 +34,7 @@ export async function sendSms(
 			toAddress: input.to,
 			template: input.template,
 			body,
-			provider: provider.name,
+			provider: sender.name,
 			idempotencyKey: input.idempotencyKey,
 			orderId: input.orderId ?? null
 		})
@@ -40,7 +44,7 @@ export async function sendSms(
 	if (!inserted.length) return { ok: true, duplicate: true };
 	const id = inserted[0]!.id;
 
-	const result = await provider.send(input.to, body);
+	const result = await sender.send(input.to, body);
 
 	await db.write
 		.update(message)

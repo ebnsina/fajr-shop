@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		redirect(303, `/order/${order.publicCode}?p=${encodeURIComponent(phone.data)}`);
 	}
 
-	const provider = providerFromEnv();
+	const provider = await providerFromEnv();
 	if (!provider) error(503, 'Online payment is not configured');
 
 	const owed = order.advanceMinor > 0 ? order.advanceMinor - order.paidMinor : order.totalMinor - order.paidMinor;

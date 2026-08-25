@@ -122,6 +122,12 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
   guess at: a searchable first level and a second that lists only what belongs
   to it. `subAreasOf` and `hasSubAreas` in `@fajr/schemas` own that mapping.
 
+- **Couriers, gateways and SMS come from the integrations table, not the
+  environment.** `courierFor`, `providerFor` and `smsProvider` all read the
+  merchant's saved config, so adding a provider is a new adapter plus a
+  catalogue entry — never a redeploy. A test fails if the catalogue lists
+  something no adapter can build.
+
 ## The rest
 
 - **Money is integer minor units.** Never a float, never a bare `price`.
