@@ -6,7 +6,8 @@ export type Credentials = {
 	admin: string;
 	email: string;
 	password: string;
-	resetsAt: string;
+	// What we can honestly say about the shared shop's state.
+	sharedNote: string;
 };
 
 // Config is required, never defaulted: a demo link that quietly points at the
@@ -33,6 +34,6 @@ export function credentialsFor(key: string): Credentials | null {
 		admin: `${storefront}/admin`,
 		email: required('DEMO_EMAIL'),
 		password: required('DEMO_PASSWORD'),
-		resetsAt: 'Every night at 3am Dhaka time'
+		sharedNote: 'Everyone trying this demo shares the same login, so you may see other people\u2019s test orders alongside yours.'
 	};
 }

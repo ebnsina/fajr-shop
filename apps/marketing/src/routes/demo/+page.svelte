@@ -93,7 +93,7 @@
 	{/each}
 
 	<p class="mt-12 max-w-2xl text-sm text-muted">
-		Every demo resets to the same catalogue each night, so you can place test
-		orders, cancel them and change prices without breaking it for anyone else.
+		These are shared demo shops, so place test orders, cancel them and change
+		prices freely — nothing here is anyone's live storefront.
 	</p>
 </section>

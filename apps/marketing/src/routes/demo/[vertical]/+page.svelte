@@ -95,8 +95,8 @@
 			</dl>
 
 			<p class="mt-6 text-sm text-muted">
-				{c.resetsAt} the shop resets to the same catalogue, so change anything you
-				like. Everyone trying this demo shares the same login.
+				{c.sharedNote} Change anything you like — place orders, edit prices, break
+				it. It is a demo, not your shop.
 			</p>
 
 			<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-secondary mt-8 inline-flex items-center gap-2">
@@ -128,7 +128,7 @@
 				</ul>
 
 				<p class="mt-8 text-sm text-faint">
-					{data.demo.products} products · {data.demo.theme} · resets nightly
+					{data.demo.products} products · {data.demo.theme}
 				</p>
 			</div>
 
