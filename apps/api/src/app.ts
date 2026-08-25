@@ -3,6 +3,10 @@ import { requestId, logger } from './middleware.ts';
 import { withSession, type SessionUser } from './auth.ts';
 import { authRoutes } from './routes/auth.ts';
 import { mediaRoutes } from './routes/media.ts';
+import { storeRoutes } from './routes/store.ts';
+import { catalogRoutes } from './routes/catalog.ts';
+import { cartRoutes } from './routes/cart.ts';
+import { checkoutRoutes } from './routes/checkout.ts';
 
 export type Env = { Variables: { requestId: string; user: SessionUser | null } };
 
@@ -14,6 +18,10 @@ app.use('*', withSession);
 
 app.route('/', authRoutes);
 app.route('/', mediaRoutes);
+app.route('/', storeRoutes);
+app.route('/', catalogRoutes);
+app.route('/', cartRoutes);
+app.route('/', checkoutRoutes);
 
 app.openapi(
 	createRoute({

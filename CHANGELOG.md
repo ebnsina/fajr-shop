@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **The storefront API.** Shop settings and address shape, catalogue browse and
+  search with facets, a full product with reviews and related items, a cart a
+  client holds by token, checkout, and order tracking. Seventeen documented
+  paths, with the OpenAPI spec generated from the same schemas the handlers
+  validate against. This is what the mobile app will consume.
+
 - **Unified inbox.** WhatsApp and Messenger arrive in one place, threaded per
   person per channel, with the customer's latest order shown before you open the
   thread. Webhooks are idempotent, so Meta's redeliveries never make a customer

@@ -133,6 +133,11 @@ share no database and no deploy; do not add marketing routes to `apps/web`.
   catalogue entry — never a redeploy. A test fails if the catalogue lists
   something no adapter can build.
 
+- **The API is the product, not a wrapper.** Every storefront capability is a
+  documented endpoint with a stable error code and a plain-language message; the
+  spec comes from the same Zod the handler validates with, so it cannot drift.
+  A client holds its cart by token — a mobile app has no cookie jar.
+
 ## The rest
 
 - **Money is integer minor units.** Never a float, never a bare `price`.
