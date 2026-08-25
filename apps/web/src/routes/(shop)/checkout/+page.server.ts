@@ -1,12 +1,13 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
-import { checkoutForm, divisionOf, bdPhone, BD_DISTRICTS } from '@fajr/schemas';
+import { checkoutFormFor, divisionOf, phoneFor, countryOf } from '@fajr/schemas';
 import { evaluate as evaluateCoupon } from '@fajr/core/marketing';
 import { view, reserve } from '@fajr/core/cart';
 import { place, quote, setVerification } from '@fajr/core/orders';
 import { assess, stampOrder } from '@fajr/core/risk';
 import { isBlacklisted } from '@fajr/core/crm';
+import { getSettings } from '@fajr/core/settings';
 import { currentCart, clearCart } from '$lib/server/cart';
 import { clientIp } from '$lib/server/session';
 import type { Actions, PageServerLoad } from './$types';
@@ -24,14 +25,18 @@ export const load: PageServerLoad = async ({ cookies, parent }) => {
 	// if they wander off, so an abandoned checkout can't strand inventory.
 	await reserve(cartId);
 
-	const form = await superValidate(zod(checkoutForm), { errors: false });
+	const form = await superValidate(zod(checkoutFormFor(store.country)), { errors: false });
 	const shipping = await quote(null, cart.subtotalMinor);
 
 	return {
 		form,
 		cart,
 		shipping,
-		districts: BD_DISTRICTS,
+		// The shop's own country decides the address fields, or a Dubai customer
+		// is asked to pick a Bangladeshi district.
+		areas: countryOf(store.country).areas,
+		areaLabel: countryOf(store.country).areaLabel,
+		subAreaLabel: countryOf(store.country).subAreaLabel,
 		meta: { title: titled(store.name, 'Checkout'), noindex: true }
 	};
 };
@@ -56,8 +61,9 @@ export const actions: Actions = {
 		const code = String(form.get('code') ?? '').trim();
 		const cart = await view(cartId);
 
-		// Normalise before checking.
-		const phone = bdPhone.safeParse(form.get('phone') ?? '');
+		// Normalise before checking, using this shop's own country rules.
+		const settings = await getSettings();
+		const phone = phoneFor(settings.country).safeParse(form.get('phone') ?? '');
 
 		const result = await evaluateCoupon(code, {
 			subtotalMinor: cart.subtotalMinor,
@@ -66,9 +72,15 @@ export const actions: Actions = {
 		});
 
 		if (!result.ok) {
+			// Intl, so the threshold reads in the shop's own currency rather than taka.
+			const amount = new Intl.NumberFormat(`${settings.defaultLocale}-${settings.country}`, {
+				style: 'currency',
+				currency: settings.currency,
+				maximumFractionDigits: 0
+			});
 			const message =
 				result.reason === 'below_minimum' && result.minSubtotalMinor
-					? `Spend ৳${(result.minSubtotalMinor / 100).toFixed(0)} to use that code.`
+					? `Spend ${amount.format(result.minSubtotalMinor / 100)} to use that code.`
 					: (COUPON_MESSAGES[result.reason] ?? 'That code cannot be used.');
 			return fail(400, { couponError: message, couponCode: code });
 		}
@@ -82,7 +94,8 @@ export const actions: Actions = {
 		const cartId = await currentCart(cookies);
 		if (!cartId) redirect(303, '/cart');
 
-		const form = await superValidate(request, zod(checkoutForm));
+		const settings = await getSettings();
+		const form = await superValidate(request, zod(checkoutFormFor(settings.country)));
 		if (!form.valid) return fail(400, { form });
 
 		const d = form.data;
@@ -103,7 +116,7 @@ export const actions: Actions = {
 				form,
 				// Never say "you look like a fraud". State the requirement.
 				stockError:
-					'Cash on delivery is not available for this number. Please pay with bKash to place the order.'
+					`Cash on delivery is not available for this number. Please pay with ${countryOf(settings.country).manualPayLabel} to place the order.`
 			});
 		}
 

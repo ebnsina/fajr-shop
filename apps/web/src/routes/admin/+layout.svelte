@@ -3,6 +3,7 @@
 	import {
 		Analytics01FreeIcons,
 		BubbleChatFreeIcons,
+		Plug01FreeIcons,
 		LinkSquare01FreeIcons,
 		DashboardSquare01FreeIcons,
 		File01FreeIcons,
@@ -60,7 +61,10 @@
 		},
 		{
 			label: m.nav_group_setup(),
-			items: [{ href: '/admin/settings', label: m.nav_settings(), icon: Settings01FreeIcons, permission: 'setting.write' }]
+			items: [
+				{ href: '/admin/integrations', label: m.nav_integrations(), icon: Plug01FreeIcons, permission: 'setting.write' },
+				{ href: '/admin/settings', label: m.nav_settings(), icon: Settings01FreeIcons, permission: 'setting.write' }
+			]
 		}
 	];
 

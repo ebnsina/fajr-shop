@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Integrations page.** Pick, connect, pause and remove couriers, payment
+  providers, messaging, chat channels and analytics from one screen, filtered to
+  the shop's own region. Secrets are masked once saved and never reach the
+  browser; editing one field leaves the others intact, and pausing keeps the
+  credentials.
+- **Country profiles** for Bangladesh, Pakistan, the UAE, Saudi Arabia, Kuwait,
+  Qatar, Bahrain and Oman — address levels, phone rules, tax treatment and what
+  the advance-payment option is called in each market.
+
 - **A real product page.** Image carousel with an optional video, details and
   specifications, customer reviews with a ratings breakdown and verified-purchase
   badges, questions and answers, and a "you may also like" row. Reviews and
@@ -30,6 +39,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Bangla and English** across storefront and admin.
 
 ### Fixed
+
+- **A Gulf customer could not check out at all.** Every phone was validated as
+  Bangladeshi, so a UAE number was rejected outright. Phone rules, the address
+  picker and its labels now follow the shop's own country.
+- **A UAE shop showed Bangladeshi districts and offered bKash.** The address
+  list, the payment labels and the delivery copy all come from the country now.
+- **Orders were stamped BDT regardless of the shop's currency**, which would
+  have made every report and invoice wrong on a Gulf deployment.
+- **The storefront search box read "Search01FreeIcons"** — a bulk icon migration
+  had replaced the word inside the placeholder, the label and the button.
 
 - **Admin permissions were never enforced on the server.** The sidebar hid what
   a role could not do, but a direct POST reached the action regardless — a

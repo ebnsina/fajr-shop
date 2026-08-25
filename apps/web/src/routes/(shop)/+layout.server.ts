@@ -4,6 +4,7 @@ import { db, setting, media, eq } from '@fajr/db';
 import { view } from '@fajr/core/cart';
 import { currentCart } from '$lib/server/cart';
 import { publicUrl } from '@fajr/core/media';
+import { countryOf } from '@fajr/schemas';
 import type { LayoutServerLoad } from './$types';
 
 // The logo doubles as the share-card image, so a link to the shop is never blank.
@@ -44,7 +45,10 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 			supportHours: store?.supportHours ?? null,
 			tagline: store?.tagline ?? null,
 			announcement: store?.announcement ?? null,
-			logoUrl: store?.logoMediaId ? await logoUrl(store.logoMediaId) : null
+			logoUrl: store?.logoMediaId ? await logoUrl(store.logoMediaId) : null,
+			// Address labels, phone format and what "pay in advance" is called all
+			// differ by market. One profile, read everywhere.
+			profile: countryOf(store?.country)
 		},
 		categories,
 		nav,

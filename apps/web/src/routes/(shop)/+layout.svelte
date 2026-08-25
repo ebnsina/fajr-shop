@@ -99,7 +99,7 @@
 			<button
 				class="icon"
 				onclick={() => (searchOpen = !searchOpen)}
-				aria-label="Search01FreeIcons"
+				aria-label="Search"
 				aria-expanded={searchOpen}
 			>
 				<HugeiconsIcon icon={Search01FreeIcons} size={20} strokeWidth={1.75} aria-hidden="true" />
@@ -115,8 +115,8 @@
 	{#if searchOpen}
 		<form action="/search" class="searchbar">
 			<!-- svelte-ignore a11y_autofocus -->
-			<input name="q" type="search" placeholder="Search01FreeIcons for sarees, kurti…" aria-label="Search01FreeIcons products" autofocus />
-			<button type="submit">Search01FreeIcons</button>
+			<input name="q" type="search" placeholder="Search products" aria-label="Search products" autofocus />
+			<button type="submit">Search</button>
 		</form>
 	{/if}
 </header>

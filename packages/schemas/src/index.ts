@@ -130,3 +130,34 @@ export const trackForm = z.object({
 	code: z.string().trim().min(4, 'Enter your order code').max(12),
 	phone: bdPhone
 });
+export * from './countries.ts';
+
+import { phoneFor, countryOf } from './countries.ts';
+
+// The checkout form is per country: the phone rules and what the top-level
+// address field is even called both change. `checkoutForm` stays as the
+// Bangladesh shape so existing callers and types are untouched.
+export const checkoutFormFor = (country: string | null | undefined) => {
+	const profile = countryOf(country);
+	return z.object({
+		name: z.string().trim().min(2, 'Enter your name').max(80),
+		phone: phoneFor(country),
+		district: z.string().trim().min(1, `Choose your ${profile.areaLabel.toLowerCase()}`),
+		thana: z.string().trim().max(80).optional().default(''),
+		area: z.string().trim().max(80).optional().default(''),
+		detail: z
+			.string()
+			.trim()
+			.min(5, 'House and road, so the courier can find you')
+			.max(300),
+		note: z.string().trim().max(500).optional().default(''),
+		paymentMethod: z.enum(['cod', 'bkash_manual']).default('cod'),
+		couponCode: z.string().trim().max(40).optional().default('')
+	});
+};
+
+export const trackFormFor = (country: string | null | undefined) =>
+	z.object({
+		code: z.string().trim().min(4, 'Enter your order code').max(12),
+		phone: phoneFor(country)
+	});

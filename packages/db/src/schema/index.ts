@@ -6,3 +6,4 @@ export * from './commerce.ts';
 export * from './cms.ts';
 export * from './attributes.ts';
 export * from './social.ts';
+export * from './integrations.ts';

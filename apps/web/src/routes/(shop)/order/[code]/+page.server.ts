@@ -37,7 +37,7 @@ export const actions: Actions = {
 	pay: async ({ request, params }) => {
 		const form = await request.formData();
 		const reference = String(form.get('reference') ?? '').trim();
-		if (reference.length < 6) return fail(400, { error: 'Enter the full bKash transaction ID.' });
+		if (reference.length < 6) return fail(400, { error: 'Enter the full transaction reference.' });
 
 		const phone = bdPhone.safeParse(form.get('phone'));
 		if (!phone.success) return fail(400, { error: 'Something went wrong. Reload and try again.' });

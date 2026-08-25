@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms';
 	import { moneyFor } from '$lib/money';
-	import { BD_DIVISIONS } from '@fajr/schemas';
 	import { page } from '$app/state';
 
 	let { data } = $props();
@@ -69,13 +68,14 @@
 
 		<div class="pair">
 			<label>
-				<span>District</span>
+				<!-- District in Dhaka, Emirate in Dubai. The shop's country decides. -->
+				<span>{data.areaLabel}</span>
 				<select bind:value={$form.district} required>
 					<option value="">Choose…</option>
-					{#each BD_DIVISIONS as division (division)}
-						<optgroup label={division}>
-							{#each data.districts[division] ?? [] as d (d)}
-								<option value={d}>{d}</option>
+					{#each Object.entries(data.areas) as [group, list] (group)}
+						<optgroup label={group}>
+							{#each list as area (area)}
+								<option value={area}>{area}</option>
 							{/each}
 						</optgroup>
 					{/each}
@@ -83,10 +83,12 @@
 				{#if $errors.district}<em>{$errors.district}</em>{/if}
 			</label>
 
-			<label>
-				<span>Thana / upazila</span>
-				<input bind:value={$form.thana} autocomplete="address-level3" />
-			</label>
+			{#if data.subAreaLabel}
+				<label>
+					<span>{data.subAreaLabel}</span>
+					<input bind:value={$form.thana} autocomplete="address-level3" />
+				</label>
+			{/if}
 		</div>
 
 		<label>
@@ -118,8 +120,9 @@
 			<label class="choice">
 				<input type="radio" bind:group={$form.paymentMethod} value="bkash_manual" />
 				<span>
-					<strong>bKash — pay in full</strong>
-					<small>Send the total, then give us the transaction ID.</small>
+					<!-- bKash in Dhaka, bank transfer in Dubai. -->
+					<strong>{data.store.profile.manualPayLabel} — pay in full</strong>
+					<small>{data.store.profile.manualPayHint}</small>
 				</span>
 			</label>
 		</fieldset>

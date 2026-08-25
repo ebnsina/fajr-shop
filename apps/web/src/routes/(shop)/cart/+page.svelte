@@ -61,7 +61,7 @@
 		<div class="row"><span>Subtotal</span><span>{money(data.cart.subtotalMinor)}</span></div>
 		<div class="row muted"><span>Delivery</span><span>Calculated at checkout</span></div>
 		<a class="cta" href="/checkout">Checkout</a>
-		<p class="cod">Cash on delivery available across Bangladesh.</p>
+		<p class="cod">Cash on delivery available {data.store.profile.deliversTo}.</p>
 	</div>
 {/if}
 

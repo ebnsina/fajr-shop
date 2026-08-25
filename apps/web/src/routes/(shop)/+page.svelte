@@ -12,7 +12,7 @@
 	<!-- No home page built yet. Still a shop, not an empty screen. -->
 	<section class="intro">
 		<h1>{data.store.name}</h1>
-		<p>Cash on delivery across Bangladesh.</p>
+		<p>Cash on delivery {data.store.profile.deliversTo}.</p>
 	</section>
 
 	{#if data.fallback.categories.length}

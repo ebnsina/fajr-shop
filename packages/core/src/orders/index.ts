@@ -6,6 +6,7 @@ import { view as cartView, variantTitles, releaseCart } from '../cart/index.ts';
 import { quote, type Quote } from './shipping.ts';
 import { evaluate as evaluateCoupon, redeem as redeemCoupon, release as releaseCoupon } from '../marketing/coupons.ts';
 import { audit } from '../audit/index.ts';
+import { getSettings } from '../settings/index.ts';
 
 export { quote, type Quote };
 
@@ -42,7 +43,9 @@ export async function place(input: PlaceInput): Promise<PlaceResult> {
 
 	const titles = await variantTitles(current.lines.map((l) => l.variantId));
 	const shipping = await quote(input.address.district, current.subtotalMinor);
-	const currency = input.currency ?? 'BDT';
+	// The shop's own currency, not a Bangladeshi default: an AED order stamped
+	// BDT prices every report and invoice wrong, forever.
+	const currency = input.currency ?? (await getSettings()).currency;
 
 	// The coupon is re-evaluated here rather than trusted from the form. A price posted by the
 	// browser is a price the browser chose.

@@ -31,9 +31,11 @@
 
 	{#if needsPayment}
 		<div class="card pay">
-			<h2>{data.order.paymentMethod === 'bkash_manual' ? 'Pay with bKash' : 'Confirm with an advance'}</h2>
+			<h2>{data.order.paymentMethod === 'bkash_manual'
+					? `Pay with ${data.store.profile.manualPayLabel}`
+					: 'Confirm with an advance'}</h2>
 			<p>
-				Send <strong>{money(owed)}</strong> to our bKash number, then enter the transaction ID below.
+				Send <strong>{money(owed)}</strong> — {data.store.profile.manualPayHint}
 				{#if data.order.paymentMethod === 'cod'}
 					The rest is paid to the courier on delivery.
 				{/if}
