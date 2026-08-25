@@ -70,6 +70,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **The product page had no gallery**, because the seed only ever uploaded one
+  image. Every product now carries three or four, and the thumbnail strip works.
+- **The product photo filled the whole screen.** The gallery column is capped, so
+  a 4:5 image can no longer be driven a metre tall by a wide viewport, and the
+  buy column sticks alongside it instead of floating in whitespace.
+- **Sold-out sizes were unreadable and unannounced** — at 35% opacity with a
+  line through it, "L" rendered as "t", and a screen reader was told nothing.
+
 - **The whole admin printed taka regardless of the shop's currency**, so a Dubai
   merchant read their revenue, order totals and delivery zones in ৳.
 

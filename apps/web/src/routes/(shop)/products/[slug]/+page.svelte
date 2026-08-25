@@ -231,6 +231,8 @@
 			<fieldset>
 				<legend>{option.name}</legend>
 				<div class="values">
+					<!-- Sold out is state, so it is spoken as well as drawn. A swatch
+					     has no visible text at all, hence the explicit label. -->
 					{#each option.values as value (value.id)}
 						{@const isSwatch = Boolean(value.swatchHex)}
 						{@const ok = reachable(option.id, value.id)}
@@ -242,6 +244,10 @@
 							style={isSwatch ? `--swatch:${value.swatchHex}` : undefined}
 							title={value.value}
 							aria-pressed={picked[option.id] === value.id}
+							aria-disabled={!ok && picked[option.id] !== value.id ? 'true' : undefined}
+							aria-label={isSwatch || !ok
+								? `${value.value}${!ok && picked[option.id] !== value.id ? ' — sold out' : ''}`
+								: undefined}
 							onclick={() => (picked = { ...picked, [option.id]: value.id })}
 						>
 							{isSwatch ? '' : value.value}
@@ -703,20 +709,50 @@
 	.pdp {
 		display: grid;
 		gap: var(--grid-gap);
+		align-items: start;
+		/* Centred as a pair, so neither column floats on its own. */
+		max-inline-size: 64rem;
+		margin-inline: auto;
 	}
 
 	@media (min-width: 56rem) {
 		.pdp {
-			grid-template-columns: 3fr 2fr;
-			gap: 3rem;
+			/* Not 3fr 2fr: on a wide screen that made the photo a metre tall and
+			   left the buy box floating in whitespace. */
+			grid-template-columns: minmax(0, 30rem) minmax(20rem, 1fr);
+			gap: 4rem;
+		}
+	}
+
+	/* Capping the column, not just the image: with a 4/5 ratio the width is what
+	   drives the height, so a wide column produces a metre-tall photo. */
+	.gallery {
+		inline-size: 100%;
+		max-inline-size: 30rem;
+		margin-inline: auto;
+	}
+	@media (min-width: 56rem) {
+		/* Its column is already capped, so centring again only adds dead space. */
+		.gallery {
+			margin-inline: 0;
 		}
 	}
 
 	.main {
 		aspect-ratio: var(--card-aspect);
+		max-block-size: 62vh;
+		margin-inline: auto;
 		background: var(--c-surface);
 		border-radius: var(--radius);
 		overflow: hidden;
+	}
+
+	/* The buy box follows you down a long gallery rather than scrolling away. */
+	@media (min-width: 56rem) {
+		.buy {
+			position: sticky;
+			inset-block-start: 1.5rem;
+		}
 	}
 
 	.main img,
@@ -735,9 +771,35 @@
 		display: flex;
 		gap: 0.5rem;
 		list-style: none;
-		margin: 0.5rem 0 0;
+		margin: 0.75rem 0 0;
 		padding: 0;
 		overflow-x: auto;
+		/* Centred under a centred photo, or the strip drifts left of it. */
+		justify-content: center;
+		scrollbar-width: thin;
+	}
+	.thumbs button {
+		inline-size: 4.5rem;
+		aspect-ratio: 1;
+		padding: 0;
+		border: 1px solid transparent;
+		border-radius: calc(var(--radius) * 0.75);
+		background: var(--c-surface);
+		overflow: hidden;
+		cursor: pointer;
+		opacity: 0.65;
+		transition: opacity 120ms ease, border-color 120ms ease;
+	}
+	.thumbs button:hover,
+	.thumbs button[aria-current='true'] {
+		opacity: 1;
+		border-color: var(--c-accent);
+	}
+	.thumbs img {
+		inline-size: 100%;
+		block-size: 100%;
+		object-fit: cover;
+		display: block;
 	}
 
 	.thumbs button {
@@ -775,8 +837,41 @@
 	}
 
 	.price {
-		font-size: 1.375rem;
-		margin: 0 0 1.5rem;
+		font-size: 1.75rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		margin: 0 0 0.25rem;
+	}
+	.price s {
+		font-size: 1.125rem;
+		font-weight: 400;
+		color: var(--c-muted);
+		margin-inline-start: 0.5rem;
+	}
+
+	/* The buy column is a stack with one rhythm, not a pile of ad-hoc margins. */
+	.buy {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		align-items: stretch;
+	}
+	.buy > * {
+		margin: 0;
+	}
+	.buy h1 {
+		font-size: 1.75rem;
+		line-height: 1.25;
+		margin: 0;
+	}
+	.buy .summary {
+		color: var(--c-muted);
+		line-height: var(--leading-body, 1.6);
+	}
+	/* The price belongs with the title, not floating a gap away from it. */
+	.buy .rating-link + .price,
+	.buy h1 + .price {
+		margin-block-start: -0.5rem;
 	}
 
 	.price s {
@@ -788,7 +883,13 @@
 	fieldset {
 		border: 0;
 		padding: 0;
-		margin: 0 0 1.25rem;
+		margin: 0;
+	}
+	legend {
+		font-size: 0.875rem;
+		color: var(--c-muted);
+		margin-block-end: 0.5rem;
+		padding: 0;
 	}
 
 	legend {
@@ -818,9 +919,13 @@
 		border-color: var(--c-text);
 	}
 
+	/* Sold out must stay readable. At 35% opacity with a line through it, "L"
+	   reads as "t" — and opacity alone is not a state a screen reader hears. */
 	.values button.out {
-		opacity: 0.35;
-		text-decoration: line-through;
+		color: var(--c-muted);
+		border-style: dashed;
+		background: var(--c-bg);
+		cursor: not-allowed;
 	}
 
 	.values button.swatch {

@@ -163,7 +163,17 @@ async function seedProduct(spec: P) {
 		);
 	}
 
-	await setProductImages(id, [await image(spec.t, spec.t)]);
+	// Three angles per product. One image is not a gallery, and a carousel with
+	// nothing to carousel is what makes a demo look unfinished.
+	const shots = spec.opt?.[1].length && spec.sw ? 4 : 3;
+	await setProductImages(
+		id,
+		await Promise.all(
+			Array.from({ length: shots }, (_, n) =>
+				image(n === 0 ? spec.t : `${spec.t} view ${n}`, `${spec.t} — view ${n + 1}`)
+			)
+		)
+	);
 	seeded.push({ id, title: spec.t });
 }
 
