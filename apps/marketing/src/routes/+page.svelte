@@ -41,11 +41,11 @@
 	</div>
 
 	<p class="eyebrow mt-6">{region.eyebrow}</p>
-	<h1 class="display mt-4 max-w-3xl text-4xl font-semibold leading-[1.1] tracking-tight text-strong sm:text-5xl">
+	<h1 class="display display-xl mt-5 max-w-[18ch] text-strong">
 		{region.headline.lead}
 		<!-- Its own line: the two halves are a pair, and reflowing them mid-phrase
 		     loses the turn the sentence is built on. -->
-		<span class="mt-1 block text-muted">{region.headline.trail}</span>
+		<span class="display-accent mt-1 block">{region.headline.trail}</span>
 	</h1>
 
 	<p class="mt-6 max-w-2xl text-lg text-muted">{region.pitch}</p>
@@ -126,6 +126,26 @@
 	</div>
 </section>
 
+<!-- who this already speaks to, before any feature is claimed -->
+<section class="reveal border-y border-line/60 py-8">
+	<p class="mx-auto max-w-6xl px-6 text-xs font-medium uppercase tracking-wider text-faint">
+		Works with what {region.label === 'South Asia' ? 'Bangladesh' : 'the Gulf'} already uses
+	</p>
+	<div class="marquee mt-4" aria-hidden="true">
+		{#each [0, 1] as copy (copy)}
+			<ul>
+				{#each [...region.couriers, ...region.payments] as name (name)}
+					<li class="whitespace-nowrap text-lg font-medium tracking-tight text-muted">{name}</li>
+				{/each}
+			</ul>
+		{/each}
+	</div>
+	<!-- The marquee is decorative; this is what a screen reader gets. -->
+	<p class="sr-only">
+		Works with {[...region.couriers, ...region.payments].join(', ')}.
+	</p>
+</section>
+
 <!-- the problem, in numbers -->
 <section class="reveal border-y border-line bg-sunken">
 	<div class="mx-auto grid max-w-6xl gap-8 px-6 py-14 sm:grid-cols-3">
@@ -143,15 +163,15 @@
 	{#each SECTIONS as section (section.id)}
 		<section class="reveal mx-auto max-w-6xl px-6 py-16">
 			<p class="eyebrow">{section.eyebrow}</p>
-			<h2 class="display mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-strong sm:text-3xl">
+			<h2 class="display mt-3 max-w-2xl text-3xl text-strong sm:text-[2.5rem]">
 				{section.title}
 			</h2>
 
-			<div class="mt-8 grid gap-4 sm:grid-cols-2">
+			<div class="bento mt-10">
 				{#each section.items as item (item.title)}
-					<div class="card">
-						<h3 class="font-medium text-strong">{item.title}</h3>
-						<p class="mt-2 text-sm leading-relaxed text-muted">{item.body}</p>
+					<div class="card !p-6">
+						<h3 class="text-base font-medium text-strong">{item.title}</h3>
+						<p class="mt-2.5 text-sm leading-relaxed text-muted">{item.body}</p>
 					</div>
 				{/each}
 			</div>

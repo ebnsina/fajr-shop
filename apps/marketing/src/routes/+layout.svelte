@@ -43,7 +43,7 @@
 	Skip to content
 </a>
 
-<header class="sticky top-0 z-30 border-b border-line bg-base/85 backdrop-blur">
+<header class="site-header">
 	<div class="mx-auto flex max-w-6xl items-center gap-3 px-6 py-3.5">
 		<a href="/" class="flex items-center gap-2.5">
 			<span class="grid size-8 place-items-center rounded-xl bg-primary-600 text-sm font-semibold text-white">F</span>
