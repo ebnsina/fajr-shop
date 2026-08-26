@@ -25,8 +25,8 @@
 	const problems = $derived(Object.values(form?.errors ?? {}) as string[]);
 </script>
 
-<section class="reveal sec">
-	<div class="wrap grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+<section class="sec">
+	<div class="wrap enter grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
 		<div>
 			<p class="eyebrow mb-6">Talk to us</p>
 			<h1 class="display" style="font-size: var(--text-section)">Twenty minutes, on your numbers</h1>

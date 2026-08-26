@@ -45,8 +45,8 @@
 </section>
 
 {#each grouped as group (group.region.id)}
-	<section class="reveal sec !pt-0">
-		<div class="wrap">
+	<section class="sec !pt-0">
+		<div class="wrap stagger">
 			<div class="flex flex-wrap items-baseline gap-3">
 				<h2 class="display text-[clamp(1.375rem,2.4vw,1.75rem)]">{group.region.label}</h2>
 				<p class="chrome">{group.region.markets.join(' · ')}</p>

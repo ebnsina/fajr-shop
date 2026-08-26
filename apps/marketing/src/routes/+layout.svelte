@@ -77,7 +77,7 @@
 		<div class="col-start-3 flex items-center justify-end gap-2">
 			<a href="/contact" class="btn btn-primary btn-compact">Book a demo</a>
 			<button
-				class="btn btn-secondary btn-compact !px-3 md:hidden"
+				class="btn btn-secondary btn-icon md:hidden"
 				onclick={() => (open = !open)}
 				aria-label={open ? 'Close menu' : 'Open menu'}
 				aria-expanded={open}

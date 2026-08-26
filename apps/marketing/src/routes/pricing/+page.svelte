@@ -78,8 +78,8 @@
 </section>
 
 <!-- what is metered, and why -->
-<section class="reveal sec">
-	<div class="wrap grid gap-x-16 gap-y-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
+<section class="sec">
+	<div class="wrap stagger grid gap-x-16 gap-y-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
 		<div>
 			<h2 class="display text-[clamp(1.375rem,2.4vw,1.875rem)]">
 				Costs that scale with use are billed with use
@@ -102,8 +102,8 @@
 </section>
 
 <!-- not included yet -->
-<section class="reveal sec !pt-0">
-	<div class="wrap">
+<section class="sec !pt-0">
+	<div class="wrap stagger">
 		<div class="flex flex-wrap items-baseline gap-3">
 			<h2 class="display text-[clamp(1.375rem,2.4vw,1.875rem)]">Not included yet</h2>
 			<span class="badge-soon">Coming soon</span>
@@ -124,8 +124,8 @@
 </section>
 
 <!-- questions -->
-<section class="reveal sec border-y border-line bg-sunken">
-	<div class="wrap max-w-[52rem]">
+<section class="sec border-y border-line bg-sunken">
+	<div class="wrap stagger max-w-[52rem]">
 		<p class="eyebrow mb-6">Asked often</p>
 		<h2 class="display" style="font-size: var(--text-section)">Questions we get asked</h2>
 
@@ -145,8 +145,8 @@
 </section>
 
 <!-- close -->
-<section class="reveal sec">
-	<div class="wrap flex flex-col items-center gap-3 text-center">
+<section class="sec">
+	<div class="wrap stagger flex flex-col items-center gap-3 text-center">
 		<h2 class="display text-[clamp(1.375rem,2.4vw,1.875rem)]">
 			Still not sure which plan fits?
 		</h2>

@@ -186,6 +186,10 @@ body {
 		white-space: nowrap;
 		cursor: pointer;
 		text-decoration: none;
+		/* One height for every button, whatever is inside it: a 12px label and an
+		   18px icon otherwise produce two different buttons sitting side by side
+		   in the header. 44px is also the touch target this market needs. */
+		min-block-size: 44px;
 		transition:
 			background-color 140ms var(--ease-out-quint),
 			border-color 140ms var(--ease-out-quint),
@@ -196,7 +200,12 @@ body {
 		transform: scale(0.97);
 	}
 	.btn-compact {
-		padding: 0.75rem 1rem;
+		padding: 0.625rem 1rem;
+	}
+	/* Square, so an icon-only button is not wider or taller than its neighbour. */
+	.btn-icon {
+		inline-size: 44px;
+		padding: 0;
 	}
 
 	.btn-primary {
@@ -537,12 +546,19 @@ body {
 	 * scroll-driven animations simply shows the content — and a JS failure
 	 * cannot leave the page permanently blank.
 	 */
+	/*
+	 * The range is the whole trick. `entry 0% cover 20%` finishes while the
+	 * element is still at the bottom edge of the screen, so the motion is over
+	 * before anyone looks at it — which reads as no animation at all. Starting
+	 * at `entry 25%` and running to `cover 40%` puts it in the lower third,
+	 * where it is actually seen.
+	 */
 	@supports (animation-timeline: view()) {
 		@media (prefers-reduced-motion: no-preference) {
 			.reveal {
 				animation: reveal-in linear both;
 				animation-timeline: view();
-				animation-range: entry 0% cover 20%;
+				animation-range: entry 25% cover 40%;
 			}
 		}
 	}
@@ -555,19 +571,19 @@ body {
 			.stagger > * {
 				animation: reveal-in linear both;
 				animation-timeline: view();
-				animation-range: entry 0% cover 14%;
+				animation-range: entry 25% cover 34%;
 			}
 			.stagger > :nth-child(2) {
-				animation-range: entry 0% cover 19%;
+				animation-range: entry 25% cover 40%;
 			}
 			.stagger > :nth-child(3) {
-				animation-range: entry 0% cover 24%;
+				animation-range: entry 25% cover 46%;
 			}
 			.stagger > :nth-child(4) {
-				animation-range: entry 0% cover 29%;
+				animation-range: entry 25% cover 52%;
 			}
 			.stagger > :nth-child(n + 5) {
-				animation-range: entry 0% cover 34%;
+				animation-range: entry 25% cover 58%;
 			}
 		}
 	}
@@ -593,6 +609,9 @@ body {
 		.enter > :nth-child(5) {
 			animation-delay: 200ms;
 		}
+		.enter > :nth-child(n + 6) {
+			animation-delay: 250ms;
+		}
 	}
 
 	/* A figure that settles as it comes into view — slower and further than the
@@ -602,14 +621,14 @@ body {
 			.rise {
 				animation: rise-in linear both;
 				animation-timeline: view();
-				animation-range: entry 0% cover 30%;
+				animation-range: entry 20% cover 45%;
 			}
 		}
 	}
 	@keyframes rise-in {
 		from {
 			opacity: 0;
-			transform: translateY(26px) scale(0.985);
+			transform: translateY(40px) scale(0.97);
 		}
 		to {
 			opacity: 1;
@@ -620,7 +639,7 @@ body {
 	@keyframes reveal-in {
 		from {
 			opacity: 0;
-			transform: translateY(8px);
+			transform: translateY(22px);
 		}
 		to {
 			opacity: 1;

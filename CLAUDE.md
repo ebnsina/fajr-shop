@@ -232,7 +232,13 @@ for a Google font and call it done.
   page reads as two different sites. `.reveal`, `.stagger` and
   `.rise` are scroll-driven (`animation-timeline: view()`) behind `@supports`;
   a block with shared borders (the index table) reveals as one piece — staggering
-  its cells slides the rules apart;
+  its cells slides the rules apart; **the range is the whole trick**: finishing at
+  `cover 20%` completes the motion while the element is still at the bottom edge,
+  which reads as no animation at all, so reveals run `entry 25%` → `cover 34–58%`
+  where they are actually watched. Put the timeline on the content, never on a
+  tall `<section>` whose own height swallows the range. A page whose content is
+  above the fold at load gets `.enter` instead — a scroll timeline has nothing
+  to run there;
   `.enter` is the one load animation, for the hero, which has no scroll to
   drive it yet. All of it sits behind `prefers-reduced-motion`.
 - **The footer is revealed, not scrolled to.** `.page-body` is opaque and one

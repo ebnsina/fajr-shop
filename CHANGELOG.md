@@ -15,7 +15,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Scroll reveals across the whole site**, not just the landing page. Pricing,
+- **Scroll reveals you can actually see**, across the whole site. They run where
+  the eye is — the lower third — and travel far enough to register; before this
+  they finished at the bottom edge of the screen and read as nothing. Pages whose
+  content starts above the fold animate on load instead, because a scroll
+  timeline has nothing to run there. Pricing,
   the demo pages, contact and the legal pages fade and stagger their sections in
   as they arrive. It stays CSS `animation-timeline` behind `@supports`, so a
   browser without scroll-driven animation simply shows the page, and reduced

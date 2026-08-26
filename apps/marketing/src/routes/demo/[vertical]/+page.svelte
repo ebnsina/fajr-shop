@@ -93,7 +93,7 @@
 			</a>
 		</div>
 	{:else}
-		<div class="wrap grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
+		<div class="wrap enter grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
 			<div>
 				<p class="eyebrow mb-6">{data.demo.label}</p>
 				<h1 class="display" style="font-size: var(--text-section)">{data.demo.shop}</h1>

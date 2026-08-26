@@ -32,7 +32,7 @@
 </script>
 
 <section class="sec">
-	<div class="wrap max-w-[52rem]">
+	<div class="wrap enter max-w-[52rem]">
 		<p class="eyebrow mb-6">Terms</p>
 		<h1 class="display" style="font-size: var(--text-section)">What you are agreeing to</h1>
 		<p class="mt-6 leading-relaxed text-body" style="font-size: var(--text-lead)">
