@@ -25,7 +25,7 @@
 	<div class="grid gap-4 lg:grid-cols-3">
 		{#each PLANS as plan (plan.id)}
 			<div
-				class="tile col-auto !gap-0 {plan.featured ? '!border-[var(--color-primary-600)]' : ''}"
+				class="tile !gap-0 {plan.featured ? '!border-[var(--color-primary-600)]' : ''}"
 				aria-labelledby="plan-{plan.id}"
 			>
 				<div class="flex items-baseline justify-between gap-3">

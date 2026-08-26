@@ -847,21 +847,26 @@ body {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		grid-column: span 2;
 		border: 1px solid var(--line);
 		border-radius: var(--radius-surface);
 		background: var(--surface-raised);
 		padding: clamp(1.125rem, 2.2vw, 1.5rem);
 	}
-	.tile-wide,
-	.tile-tall {
+	/*
+	 * Spans belong to the wall, not to the tile. A `.tile` used anywhere else —
+	 * a three-column pricing grid, a panel beside the globe — was silently
+	 * taking two columns of whatever grid it landed in, and every call site had
+	 * to remember `col-auto` to undo it.
+	 */
+	.bento > .tile,
+	.bento > .cell {
 		grid-column: span 2;
 	}
 	@media (min-width: 52rem) {
-		.tile-wide {
+		.bento > .tile-wide {
 			grid-column: span 4;
 		}
-		.tile-tall {
+		.bento > .tile-tall {
 			grid-column: span 3;
 		}
 	}
@@ -881,7 +886,6 @@ body {
 	/* A bare grid cell, for when a list item has to hold the tile rather than
 	   be one. `display: contents` would drop the <li> from the a11y tree. */
 	.cell {
-		grid-column: span 2;
 		display: flex;
 	}
 	.tile-title {

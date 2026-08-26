@@ -184,8 +184,9 @@ for a Google font and call it done.
   section stop following from the one above it, the change is wrong.
 - **Features are a bento wall, and every wall has a picture.** `.bento` with
   `.tile` / `.tile-wide` / `.tile-tall`; the first tile is wide and carries the
-  screen. `.tile` spans two of six columns, so a tile placed in a grid that is
-  not the bento needs `col-auto`.
+  screen. **The spans live on `.bento > .tile`, not on `.tile`** — a tile is
+  just a surface, and one that silently claims two columns of whatever grid it
+  lands in made every other call site remember `col-auto` to undo it.
 - **The index is a table, not three lists.** `.index` is one grid with
   `grid-auto-flow: column` and fixed rows, so row four of the first column lines
   up with row four of the third and the cells share their rules. Three separate
