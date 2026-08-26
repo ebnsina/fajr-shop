@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
-	import { Shirt, Baby, ShoppingBasket, Laptop, Sparkles, Sofa, ArrowRight } from '@lucide/svelte';
+	import { Shirt, Baby, ShoppingBasket, Laptop, Sparkles, Sofa } from '@lucide/svelte';
+	import Arrow from '$lib/Arrow.svelte';
 	import { DEMOS } from '$lib/content';
 	import { REGIONS } from '$lib/regions';
 
+	// One icon per trade, so a wall of similar text can be told apart at a glance.
 	const ICON: Record<string, Component> = {
 		fashion: Shirt,
 		kids: Baby,
@@ -16,8 +18,8 @@
 		'gulf-grocery': ShoppingBasket
 	};
 
-	// Grouped by region: a Dubai merchant should not have to read past six
-	// Bangladeshi shops to find one priced in dirhams.
+	// Grouped by region: a Gulf merchant should not have to read past six South
+	// Asian shops to find one priced in dirhams.
 	const grouped = REGIONS.map((region) => ({
 		region,
 		demos: DEMOS.filter((d) => d.region === region.id)
@@ -27,65 +29,72 @@
 	const count = new Intl.NumberFormat('en-GB');
 </script>
 
-<section class="mx-auto max-w-6xl px-6 py-16">
-	<p class="eyebrow">Live demos</p>
-	<h1 class="display mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
-		Nine real shops, across two regions
-	</h1>
-	<p class="mt-5 max-w-2xl text-lg text-muted">
-		Not screenshots, and not a sandbox that resets when you click something.
-		Each is a working storefront with a full catalogue — {count.format(total)} products
-		between them — and an admin you can log into. South Asia and the Gulf are
-		different shops, not the same shop with the prices swapped.
-	</p>
+<section class="sec !pb-[clamp(40px,7vh,80px)]">
+	<div class="wrap">
+		<p class="eyebrow mb-6">Live demos</p>
+		<h1 class="display max-w-[20ch]" style="font-size: var(--text-section)">
+			Nine real shops you can place an order in
+		</h1>
+		<p class="mt-7 max-w-[58ch] leading-relaxed text-body" style="font-size: var(--text-lead)">
+			Not screenshots, and not a sandbox that resets when you click something.
+			Each is a working storefront with a full catalogue —
+			<span class="num">{count.format(total)}</span> products between them — and an
+			admin you can log into.
+		</p>
+	</div>
+</section>
 
-	{#each grouped as group (group.region.id)}
-		<section class="mt-12">
+{#each grouped as group (group.region.id)}
+	<section class="sec !pt-0">
+		<div class="wrap">
 			<div class="flex flex-wrap items-baseline gap-3">
-				<h2 class="display text-xl font-semibold tracking-tight text-strong">{group.region.label}</h2>
-				<p class="text-sm text-muted">{group.region.markets.join(' · ')}</p>
+				<h2 class="display text-[clamp(1.375rem,2.4vw,1.75rem)]">{group.region.label}</h2>
+				<p class="chrome">{group.region.markets.join(' · ')}</p>
 				{#if group.region.status === 'building'}
 					<span class="badge-soon">In build</span>
 				{/if}
 			</div>
-			<p class="mt-2 max-w-2xl text-sm text-muted">{group.region.proof}</p>
+			<p class="mt-3 max-w-[62ch] leading-relaxed text-muted">{group.region.proof}</p>
 
-			<ul class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+			<ul class="bento stagger mt-8">
 				{#each group.demos as demo (demo.key)}
 					{@const Icon = ICON[demo.key]}
-			<li>
-				<a href="/demo/{demo.key}" class="card group flex h-full flex-col">
-					<span class="grid size-11 place-items-center rounded-[var(--radius-surface)] bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
-						<Icon size={20} aria-hidden="true" />
-					</span>
+					<li class="cell">
+						<a href="/demo/{demo.key}" class="tile w-full">
+							<span class="grid size-9 place-items-center rounded-[var(--radius-control)] bg-[var(--color-primary-50)] text-[var(--color-primary-700)]">
+								<Icon size={17} aria-hidden="true" />
+							</span>
 
-					<h2 class="display mt-4 font-semibold text-strong">{demo.label}</h2>
-					<p class="mt-1 text-sm text-muted">{demo.tagline}</p>
+							<span class="tile-title mt-1">{demo.label}</span>
+							<span class="tile-body">{demo.tagline}</span>
 
-					<ul class="mt-4 space-y-1.5 text-sm text-muted">
-						{#each demo.shows as item (item)}
-							<li class="flex gap-2">
-								<span aria-hidden="true" class="text-primary-600">·</span>{item}
-							</li>
-						{/each}
-					</ul>
+							<ul class="mt-2 space-y-1.5">
+								{#each demo.shows as item (item)}
+									<li class="chrome flex gap-2">
+										<span aria-hidden="true" class="!text-[var(--color-primary-500)]">·</span>
+										{item}
+									</li>
+								{/each}
+							</ul>
 
-					<p class="mt-auto pt-5 text-xs text-faint">
-						{demo.shop} · {count.format(demo.products)} products · {demo.theme}
-					</p>
-					<span class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary-700 dark:text-primary-300">
-						Open this demo
-						<ArrowRight size={16} aria-hidden="true" class="transition group-hover:translate-x-0.5" />
-					</span>
-				</a>
-			</li>
+							<span class="chrome mt-auto pt-5">
+								{demo.shop} · <span class="num">{count.format(demo.products)}</span> products
+							</span>
+							<span class="link mt-2">Open this demo <Arrow /></span>
+						</a>
+					</li>
 				{/each}
 			</ul>
-		</section>
-	{/each}
+		</div>
+	</section>
+{/each}
 
-	<p class="mt-12 max-w-2xl text-sm text-muted">
-		These are shared demo shops, so place test orders, cancel them and change
-		prices freely — nothing here is anyone's live storefront.
-	</p>
+<section class="sec !pt-0">
+	<div class="wrap">
+		<p class="chrome max-w-[62ch] border-t border-line pt-6">
+			These are shared demo shops, so place test orders, cancel them and change
+			prices freely — nothing here is anyone's live storefront, and they reset
+			every night.
+		</p>
+	</div>
 </section>

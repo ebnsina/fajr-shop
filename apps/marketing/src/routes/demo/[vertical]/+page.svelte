@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import * as v from 'valibot';
 	import { CircleCheck, Store, UserCog, MessageCircle } from '@lucide/svelte';
+	import Arrow from '$lib/Arrow.svelte';
 	import { kycSchema, fieldErrors, ORDER_BANDS } from '$lib/kyc';
 	import { CONTACT } from '$lib/content';
 
@@ -40,83 +41,77 @@
 	{#if form?.credentials}
 		{@const c = form.credentials}
 		<div class="wrap max-w-3xl">
-			<span class="grid size-12 place-items-center rounded-[var(--radius-surface)] bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300">
-				<CircleCheck size={24} aria-hidden="true" />
+			<span class="grid size-11 place-items-center rounded-[var(--radius-control)] bg-[var(--color-primary-50)] text-[var(--color-primary-700)]">
+				<CircleCheck size={22} aria-hidden="true" />
 			</span>
-			<h1 class="display mt-4 text-2xl font-semibold tracking-tight text-strong">
+			<h1 class="display mt-5" style="font-size: var(--text-section)">
 				You are in — {data.demo.shop}
 			</h1>
-			<p class="mt-2 text-muted">
+			<p class="mt-4 leading-relaxed text-body" style="font-size: var(--text-lead)">
 				Open the storefront first and place an order, then log into the admin and
 				watch it arrive.
 			</p>
 
-			<dl class="mt-8 space-y-4">
-				<div class="card">
-					<dt class="flex items-center gap-2 text-sm font-medium text-strong">
+			<!-- Credentials are the one place mono earns its keep beyond figures:
+			     these get copied by hand, and a slab l/1 costs a support call. -->
+			<dl class="mt-10 grid gap-4 sm:grid-cols-2">
+				<div class="tile">
+					<dt class="tile-title flex items-center gap-2 !text-base">
 						<Store size={16} aria-hidden="true" />
 						Storefront
 					</dt>
 					<dd class="mt-2">
-						<a href={c.storefront} class="break-all font-mono text-sm text-primary-700 underline dark:text-primary-300">
-							{c.storefront}
-						</a>
+						<a href={c.storefront} class="link num break-all">{c.storefront} <Arrow /></a>
 					</dd>
 				</div>
 
-				<div class="card">
-					<dt class="flex items-center gap-2 text-sm font-medium text-strong">
+				<div class="tile">
+					<dt class="tile-title flex items-center gap-2 !text-base">
 						<UserCog size={16} aria-hidden="true" />
 						Admin
 					</dt>
-					<dd class="mt-2 space-y-2">
-						<a href={c.admin} class="block break-all font-mono text-sm text-primary-700 underline dark:text-primary-300">
-							{c.admin}
-						</a>
-						<p class="font-mono text-sm text-body">
+					<dd class="mt-2 space-y-1.5">
+						<a href={c.admin} class="link num break-all">{c.admin} <Arrow /></a>
+						<p class="num text-[0.875rem] text-body">
 							<span class="text-faint">email</span>&nbsp; {c.email}
 						</p>
-						<p class="font-mono text-sm text-body">
+						<p class="num text-[0.875rem] text-body">
 							<span class="text-faint">password</span>&nbsp; {c.password}
 						</p>
 					</dd>
 				</div>
 			</dl>
 
-			<p class="mt-6 text-sm text-muted">
+			<p class="chrome mt-6 max-w-[62ch]">
 				{c.sharedNote} Change anything you like — place orders, edit prices, break
 				it. It is a demo, not your shop.
 			</p>
 
-			<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-secondary mt-8 inline-flex items-center gap-2">
-				<MessageCircle size={16} aria-hidden="true" />
+			<a href="https://wa.me/{CONTACT.whatsapp}" class="btn btn-whatsapp mt-8">
+				<MessageCircle size={15} aria-hidden="true" />
 				Ask a question while you look
 			</a>
 		</div>
 	{:else}
 		<div class="wrap grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
 			<div>
-				<p class="eyebrow">{data.demo.label}</p>
-				<h1 class="display mt-3 text-3xl font-semibold tracking-tight text-strong sm:text-4xl">
-					{data.demo.shop}
-				</h1>
-				<p class="mt-5 text-lg text-muted">{data.demo.tagline}</p>
+				<p class="eyebrow mb-6">{data.demo.label}</p>
+				<h1 class="display" style="font-size: var(--text-section)">{data.demo.shop}</h1>
+				<p class="mt-6 leading-relaxed text-body" style="font-size: var(--text-lead)">
+					{data.demo.tagline}
+				</p>
 
-				<ul class="mt-6 space-y-2 text-muted">
+				<ul class="mt-8 space-y-2.5">
 					{#each data.demo.shows as item (item)}
-						<li class="flex gap-2.5">
-							<CircleCheck
-								size={18}
-								aria-hidden="true"
-								class="mt-0.5 shrink-0 text-primary-600 dark:text-primary-400"
-							/>
+						<li class="check">
+							<CircleCheck size={17} aria-hidden="true" />
 							{item}
 						</li>
 					{/each}
 				</ul>
 
-				<p class="mt-8 text-sm text-faint">
-					{data.demo.products} products · {data.demo.theme}
+				<p class="chrome mt-8">
+					<span class="num">{data.demo.products}</span> products · {data.demo.theme}
 				</p>
 			</div>
 

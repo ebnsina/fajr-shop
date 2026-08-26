@@ -15,6 +15,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Pricing and the demo index caught up with the rest of the site.** Plans,
+  demo cards and the FAQ use the same tiles, chips, checklists and links as
+  everything else, the last `dark:` variants are gone, and the demo credentials
+  screen is no longer the one page still on the old classes.
+
+
 - **A real logo, and a real share card.** The mark is a sun breaking a horizon —
   Fajr is dawn — used for the favicon and beside the wordmark, which is now set
   in the display face rather than in mono. Links pasted into WhatsApp finally
