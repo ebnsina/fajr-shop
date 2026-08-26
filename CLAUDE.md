@@ -227,8 +227,12 @@ for a Google font and call it done.
   container is on screen**, so `.stack` carries an `::after` spacer; without it
   the last card has no range left and scrolls past like an ordinary section
   while the four above it stack.
-- **Motion is everywhere and never gates content.** `.reveal`, `.stagger` and
+- **Motion is everywhere and never gates content.** Every page carries it, not
+  just the landing page — an animated home page followed by a static pricing
+  page reads as two different sites. `.reveal`, `.stagger` and
   `.rise` are scroll-driven (`animation-timeline: view()`) behind `@supports`;
+  a block with shared borders (the index table) reveals as one piece — staggering
+  its cells slides the rules apart;
   `.enter` is the one load animation, for the hero, which has no scroll to
   drive it yet. All of it sits behind `prefers-reduced-motion`.
 - **The footer is revealed, not scrolled to.** `.page-body` is opaque and one

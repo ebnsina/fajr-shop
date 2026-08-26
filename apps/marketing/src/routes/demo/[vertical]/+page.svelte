@@ -54,7 +54,7 @@
 
 			<!-- Credentials are the one place mono earns its keep beyond figures:
 			     these get copied by hand, and a slab l/1 costs a support call. -->
-			<dl class="mt-10 grid gap-4 sm:grid-cols-2">
+			<dl class="stagger mt-10 grid gap-4 sm:grid-cols-2">
 				<div class="tile">
 					<dt class="tile-title flex items-center gap-2 !text-base">
 						<Store size={16} aria-hidden="true" />
@@ -101,7 +101,7 @@
 					{data.demo.tagline}
 				</p>
 
-				<ul class="mt-8 space-y-2.5">
+				<ul class="stagger mt-8 space-y-2.5">
 					{#each data.demo.shows as item (item)}
 						<li class="check">
 							<CircleCheck size={17} aria-hidden="true" />

@@ -41,7 +41,7 @@
 			the number below is a person.
 		</p>
 
-		<dl class="mt-14">
+		<dl class="stagger mt-14">
 			{#each SECTIONS as s (s.q)}
 				<div class="border-t border-line py-6">
 					<dt class="tile-title">{s.q}</dt>

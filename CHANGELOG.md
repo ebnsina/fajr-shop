@@ -15,6 +15,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Scroll reveals across the whole site**, not just the landing page. Pricing,
+  the demo pages, contact and the legal pages fade and stagger their sections in
+  as they arrive. It stays CSS `animation-timeline` behind `@supports`, so a
+  browser without scroll-driven animation simply shows the page, and reduced
+  motion keeps the fade while dropping the travel.
+
+
 - **Pricing and the demo index caught up with the rest of the site.** Plans,
   demo cards and the FAQ use the same tiles, chips, checklists and links as
   everything else, the last `dark:` variants are gone, and the demo credentials

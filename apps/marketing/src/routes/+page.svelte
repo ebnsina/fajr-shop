@@ -468,7 +468,7 @@
   Cards here would be the fourth set of cards on one page — and a summary of a
   story you have just read wants to be quiet and dense, not loud again.
 -->
-<section class="sec border-t border-line bg-sunken">
+<section class="reveal sec border-t border-line bg-sunken">
 	<div class="wrap">
 		<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-end">
 			<div>

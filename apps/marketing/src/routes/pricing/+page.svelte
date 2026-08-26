@@ -22,7 +22,7 @@
 
 <!-- plans -->
 <section class="wrap">
-	<div class="grid gap-4 lg:grid-cols-3">
+	<div class="stagger grid gap-4 lg:grid-cols-3">
 		{#each PLANS as plan (plan.id)}
 			<div
 				class="tile !gap-0 {plan.featured ? '!border-[var(--color-primary-600)]' : ''}"
@@ -78,7 +78,7 @@
 </section>
 
 <!-- what is metered, and why -->
-<section class="sec">
+<section class="reveal sec">
 	<div class="wrap grid gap-x-16 gap-y-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
 		<div>
 			<h2 class="display text-[clamp(1.375rem,2.4vw,1.875rem)]">
@@ -90,7 +90,7 @@
 			</p>
 		</div>
 
-		<dl class="grid sm:grid-cols-3">
+		<dl class="stagger grid sm:grid-cols-3">
 			{#each OVERAGES as item (item.label)}
 				<div class="border-t border-line py-4 sm:border-t-0 sm:border-s sm:px-5 sm:first:border-s-0 sm:first:ps-0">
 					<dt class="chrome">{item.label}</dt>
@@ -102,7 +102,7 @@
 </section>
 
 <!-- not included yet -->
-<section class="sec !pt-0">
+<section class="reveal sec !pt-0">
 	<div class="wrap">
 		<div class="flex flex-wrap items-baseline gap-3">
 			<h2 class="display text-[clamp(1.375rem,2.4vw,1.875rem)]">Not included yet</h2>
@@ -124,12 +124,12 @@
 </section>
 
 <!-- questions -->
-<section class="sec border-y border-line bg-sunken">
+<section class="reveal sec border-y border-line bg-sunken">
 	<div class="wrap max-w-[52rem]">
 		<p class="eyebrow mb-6">Asked often</p>
 		<h2 class="display" style="font-size: var(--text-section)">Questions we get asked</h2>
 
-		<div class="mt-12 border-t border-line">
+		<div class="stagger mt-12 border-t border-line">
 			{#each PRICING_FAQ as item (item.q)}
 				<details class="group border-b border-line py-5">
 					<summary class="flex cursor-pointer list-none items-baseline justify-between gap-4">
@@ -145,7 +145,7 @@
 </section>
 
 <!-- close -->
-<section class="sec">
+<section class="reveal sec">
 	<div class="wrap flex flex-col items-center gap-3 text-center">
 		<h2 class="display text-[clamp(1.375rem,2.4vw,1.875rem)]">
 			Still not sure which plan fits?

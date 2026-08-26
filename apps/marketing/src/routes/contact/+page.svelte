@@ -25,7 +25,7 @@
 	const problems = $derived(Object.values(form?.errors ?? {}) as string[]);
 </script>
 
-<section class="sec">
+<section class="reveal sec">
 	<div class="wrap grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
 		<div>
 			<p class="eyebrow mb-6">Talk to us</p>
@@ -37,7 +37,7 @@
 			</p>
 
 			<!-- Three ways to reach a person, as links rather than three boxes. -->
-			<ul class="mt-10 space-y-4 border-t border-line pt-8">
+			<ul class="stagger mt-10 space-y-4 border-t border-line pt-8">
 				{#each CHANNELS as c (c.label)}
 					<li class="flex items-start gap-3">
 						<c.icon
