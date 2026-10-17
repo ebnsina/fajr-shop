@@ -16,6 +16,7 @@ export const errors: Record<ErrorCode, string> = {
 	rate_limited: 'Too many tries. Wait a minute, then try again.',
 	internal: 'Something went wrong on our side. Try again in a moment.',
 	in_use: 'This is still in use. Move what’s in it first.',
+	not_deliverable: 'We don’t deliver to that district yet.',
 	insufficient_stock: 'There isn’t that much in stock to take away.',
 	too_large: 'That image is over 10 MB. Try a smaller one.',
 	unsupported_type: 'Upload a JPEG, PNG or WebP image.',
@@ -67,7 +68,10 @@ export const activity: Record<string, string> = {
 	'product.delete': 'Removed a product',
 	'banner.create': 'Added a banner',
 	'banner.update': 'Changed a banner',
-	'banner.delete': 'Removed a banner'
+	'banner.delete': 'Removed a banner',
+	'shipping_zone.create': 'Added a delivery zone',
+	'shipping_zone.update': 'Changed a delivery zone',
+	'shipping_zone.delete': 'Removed a delivery zone'
 };
 
 export const nav = {
@@ -78,6 +82,7 @@ export const nav = {
 	products: 'Products',
 	categories: 'Categories',
 	banners: 'Banners',
+	shipping: 'Delivery',
 	storeSettings: 'Store settings',
 	activity: 'Activity',
 	developers: 'Developers',
@@ -481,4 +486,55 @@ export const overview = {
 	recentNone: 'Nothing has happened yet.',
 	allActivity: 'All activity',
 	system: 'The system'
+};
+
+export const shippingAdmin = {
+	title: 'Delivery',
+	description:
+		'Where you deliver and what it costs. Each district belongs to one zone; shoppers see the charge for their district before they pay.',
+	add: 'Add a zone',
+	edit: 'Edit',
+	editTitle: 'Edit zone',
+	save: 'Save',
+	saved: 'Zone saved',
+	delete: 'Delete',
+	deleteConfirm: 'Delete it?',
+	deleted: 'Zone deleted',
+	name: 'Zone name',
+	namePlaceholder: 'Inside Dhaka',
+	days: 'Delivery time',
+	daysPlaceholder: '1–2 days',
+	baseCharge: 'Charge',
+	baseChargeHint: 'For a parcel up to the weight below.',
+	baseWeight: 'Up to (kg)',
+	extraPerKg: 'Each extra kg',
+	freeOver: 'Free delivery over (optional)',
+	freeOverHint: 'Leave empty if delivery is never free here.',
+	districts: 'Districts',
+	districtsHint: 'Ticked districts get this zone’s charge. Greyed ones are in another zone.',
+	inZone: (zone: string) => `in ${zone}`,
+	selectFree: 'Tick every district not in a zone',
+	clear: 'Clear',
+	active: 'Delivering to this zone',
+	hidden: 'Not delivering',
+	districtCount: (n: number) => `${n} ${n === 1 ? 'district' : 'districts'}`,
+	summary: (charge: string, kg: string) => `${charge} up to ${kg} kg`,
+	extra: (amount: string) => `+${amount} per extra kg`,
+	freeFrom: (amount: string) => `Free over ${amount}`,
+	emptyTitle: 'No delivery zones yet',
+	emptyBody: 'Add one so shoppers can see what delivery costs. Start with Inside Dhaka.'
+};
+
+export const delivery = {
+	title: 'Delivery',
+	to: 'Deliver to',
+	choose: 'Choose your district',
+	check: 'Check',
+	charge: 'Delivery',
+	free: 'Free',
+	days: (d: string) => `Arrives in ${d}`,
+	total: 'Total',
+	notDeliverable: 'We don’t deliver to that district yet.',
+	zones: 'Delivery charges',
+	weight: 'Weight (g)'
 };

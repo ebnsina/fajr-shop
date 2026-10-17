@@ -4,7 +4,7 @@
 	import { untrack } from 'svelte';
 	import { Cancel01Icon } from '@hugeicons/core-free-icons';
 	import type { components } from '#lib/api.js';
-	import { errorText, productStatus, productEditor as t } from '#lib/copy.js';
+	import { delivery as d, errorText, productStatus, productEditor as t } from '#lib/copy.js';
 	import { toPoisha, toTaka } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -27,7 +27,14 @@
 	type Product = components['schemas']['Product'];
 	type Status = components['schemas']['ProductStatus'];
 	type Image = { id: string; url: string };
-	type Row = { id?: string; price?: number; compare?: number; sku: string; stock: number };
+	type Row = {
+		id?: string;
+		price?: number;
+		compare?: number;
+		sku: string;
+		stock: number;
+		weight: number;
+	};
 
 	let { data, form }: PageProps = $props();
 
@@ -43,7 +50,8 @@
 				price: toTaka(v.price),
 				compare: v.compare_at_price == null ? undefined : toTaka(v.compare_at_price),
 				sku: v.sku ?? '',
-				stock: v.stock
+				stock: v.stock,
+				weight: v.weight_g
 			};
 		}
 		return {
@@ -78,7 +86,7 @@
 	$effect.pre(() => {
 		for (const c of combos) {
 			const k = comboKey(c);
-			untrack(() => (f.rows[k] ??= { sku: '', stock: 0 }));
+			untrack(() => (f.rows[k] ??= { sku: '', stock: 0, weight: 500 }));
 		}
 	});
 
@@ -95,13 +103,14 @@
 			category_id: f.categoryId || null,
 			options: active.map((o) => ({ name: o.name.trim(), values: o.values })),
 			variants: combos.map((c) => {
-				const r = f.rows[comboKey(c)] ?? { sku: '', stock: 0 };
+				const r = f.rows[comboKey(c)] ?? { sku: '', stock: 0, weight: 500 };
 				return {
 					...(r.id && { id: r.id }),
 					sku: r.sku.trim() || null,
 					price: r.price == null ? null : toPoisha(r.price),
 					compare_at_price: r.compare == null ? null : toPoisha(r.compare),
 					stock: r.stock,
+					weight_g: r.weight ?? 500,
 					options: Object.fromEntries(active.map((o, i) => [o.name.trim(), c[i]]))
 				};
 			}),
@@ -274,6 +283,13 @@
 										bind:value={row.sku}
 										maxlength={64}
 										error={fields[`variants.${i}.sku`]}
+									/>
+									<NumberField
+										label={d.weight}
+										bind:value={row.weight}
+										min={0}
+										step={50}
+										error={fields[`variants.${i}.weight_g`]}
 									/>
 									{#if row.id}
 										<div class="stock">
