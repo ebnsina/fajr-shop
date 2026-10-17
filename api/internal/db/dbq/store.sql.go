@@ -32,3 +32,56 @@ func (q *Queries) GetStoreSettings(ctx context.Context) (StoreSetting, error) {
 	)
 	return i, err
 }
+
+const updateStoreSettings = `-- name: UpdateStoreSettings :one
+UPDATE store_settings SET
+    name = $1, logo_url = $2, accent_color = $3, currency = $4, contact_phone = $5,
+    contact_email = $6, vat_enabled = $7, vat_rate_bp = $8, prices_include_vat = $9,
+    vat_bin = $10, updated_at = now()
+WHERE id = 1
+RETURNING id, name, logo_url, accent_color, currency, contact_phone, contact_email, vat_enabled, vat_rate_bp, prices_include_vat, vat_bin, updated_at
+`
+
+type UpdateStoreSettingsParams struct {
+	Name             string
+	LogoUrl          *string
+	AccentColor      *string
+	Currency         string
+	ContactPhone     *string
+	ContactEmail     *string
+	VatEnabled       bool
+	VatRateBp        int32
+	PricesIncludeVat bool
+	VatBin           *string
+}
+
+func (q *Queries) UpdateStoreSettings(ctx context.Context, arg UpdateStoreSettingsParams) (StoreSetting, error) {
+	row := q.db.QueryRow(ctx, updateStoreSettings,
+		arg.Name,
+		arg.LogoUrl,
+		arg.AccentColor,
+		arg.Currency,
+		arg.ContactPhone,
+		arg.ContactEmail,
+		arg.VatEnabled,
+		arg.VatRateBp,
+		arg.PricesIncludeVat,
+		arg.VatBin,
+	)
+	var i StoreSetting
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.LogoUrl,
+		&i.AccentColor,
+		&i.Currency,
+		&i.ContactPhone,
+		&i.ContactEmail,
+		&i.VatEnabled,
+		&i.VatRateBp,
+		&i.PricesIncludeVat,
+		&i.VatBin,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

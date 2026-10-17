@@ -1,4 +1,4 @@
-// Command fajr runs the shop API: `fajr serve` or `fajr migrate`.
+// Command fajr runs the shop API: `fajr serve`, `fajr migrate`, or `fajr create-admin`.
 package main
 
 import (
@@ -9,11 +9,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/ebnsina/fajr-shop/api/internal/auth"
 	"github.com/ebnsina/fajr-shop/api/internal/config"
 	"github.com/ebnsina/fajr-shop/api/internal/db"
+	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
 	"github.com/ebnsina/fajr-shop/api/internal/httpapi"
 )
 
@@ -26,8 +29,8 @@ func main() {
 }
 
 func run() error {
-	if len(os.Args) != 2 || (os.Args[1] != "serve" && os.Args[1] != "migrate") {
-		return errors.New("usage: fajr serve|migrate")
+	if len(os.Args) != 2 || (os.Args[1] != "serve" && os.Args[1] != "migrate" && os.Args[1] != "create-admin") {
+		return errors.New("usage: fajr serve|migrate|create-admin")
 	}
 	cfg, err := config.Load()
 	if err != nil {
@@ -42,11 +45,14 @@ func run() error {
 	}
 	defer pool.Close()
 
-	if os.Args[1] == "migrate" {
+	switch os.Args[1] {
+	case "migrate":
 		return db.Migrate(ctx, pool)
+	case "create-admin":
+		return createAdmin(ctx, dbq.New(pool))
 	}
 
-	handler, err := httpapi.New(pool, cfg.CORSOrigins)
+	handler, err := httpapi.New(pool, cfg)
 	if err != nil {
 		return err
 	}
@@ -70,4 +76,39 @@ func run() error {
 	shutdown, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	return srv.Shutdown(shutdown)
+}
+
+// createAdmin makes the shop owner's account from FAJR_ADMIN_* variables, so the password never sits in shell history.
+func createAdmin(ctx context.Context, q *dbq.Queries) error {
+	name, password := os.Getenv("FAJR_ADMIN_NAME"), os.Getenv("FAJR_ADMIN_PASSWORD")
+	email, phone := os.Getenv("FAJR_ADMIN_EMAIL"), os.Getenv("FAJR_ADMIN_PHONE")
+	if name == "" || (email == "" && phone == "") {
+		return errors.New("create-admin: set FAJR_ADMIN_NAME and FAJR_ADMIN_EMAIL or FAJR_ADMIN_PHONE")
+	}
+	if len(password) < 12 {
+		return errors.New("create-admin: FAJR_ADMIN_PASSWORD must be at least 12 characters")
+	}
+	params := dbq.CreateUserParams{Role: dbq.UserRoleAdmin, Name: name}
+	if email != "" {
+		e := strings.ToLower(email)
+		params.Email = &e
+	}
+	if phone != "" {
+		p, ok := auth.NormalizePhone(phone)
+		if !ok {
+			return fmt.Errorf("create-admin: %q is not a Bangladeshi mobile number", phone)
+		}
+		params.Phone = &p
+	}
+	hash, err := auth.HashPassword(password)
+	if err != nil {
+		return err
+	}
+	params.PasswordHash = hash
+	u, err := q.CreateUser(ctx, params)
+	if err != nil {
+		return fmt.Errorf("create-admin: %w", err)
+	}
+	slog.Info("admin created", "id", u.ID)
+	return nil
 }

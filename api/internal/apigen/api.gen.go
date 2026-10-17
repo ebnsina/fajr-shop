@@ -9,36 +9,54 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for ErrorCode.
 const (
-	Internal         ErrorCode = "internal"
-	MethodNotAllowed ErrorCode = "method_not_allowed"
-	NotFound         ErrorCode = "not_found"
-	RateLimited      ErrorCode = "rate_limited"
-	Validation       ErrorCode = "validation"
+	AccountExists      ErrorCode = "account_exists"
+	Forbidden          ErrorCode = "forbidden"
+	Internal           ErrorCode = "internal"
+	InvalidCredentials ErrorCode = "invalid_credentials"
+	MethodNotAllowed   ErrorCode = "method_not_allowed"
+	NotFound           ErrorCode = "not_found"
+	RateLimited        ErrorCode = "rate_limited"
+	SessionExpired     ErrorCode = "session_expired"
+	Unauthenticated    ErrorCode = "unauthenticated"
+	Validation         ErrorCode = "validation"
 )
 
 // Valid indicates whether the value is a known member of the ErrorCode enum.
 func (e ErrorCode) Valid() bool {
 	switch e {
+	case AccountExists:
+		return true
+	case Forbidden:
+		return true
 	case Internal:
+		return true
+	case InvalidCredentials:
 		return true
 	case MethodNotAllowed:
 		return true
 	case NotFound:
 		return true
 	case RateLimited:
+		return true
+	case SessionExpired:
+		return true
+	case Unauthenticated:
 		return true
 	case Validation:
 		return true
@@ -60,6 +78,97 @@ func (e HealthStatus) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// Defines values for Permission.
+const (
+	ApiKeysManage Permission = "api_keys:manage"
+	AuditRead     Permission = "audit:read"
+	StoreWrite    Permission = "store:write"
+)
+
+// Valid indicates whether the value is a known member of the Permission enum.
+func (e Permission) Valid() bool {
+	switch e {
+	case ApiKeysManage:
+		return true
+	case AuditRead:
+		return true
+	case StoreWrite:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Role.
+const (
+	Admin    Role = "admin"
+	Customer Role = "customer"
+	Staff    Role = "staff"
+)
+
+// Valid indicates whether the value is a known member of the Role enum.
+func (e Role) Valid() bool {
+	switch e {
+	case Admin:
+		return true
+	case Customer:
+		return true
+	case Staff:
+		return true
+	default:
+		return false
+	}
+}
+
+// ApiKey defines model for ApiKey.
+type ApiKey struct {
+	CreatedAt time.Time `json:"created_at"`
+
+	// Hint The key's last four characters.
+	Hint   string             `json:"hint"`
+	Id     openapi_types.UUID `json:"id"`
+	Name   string             `json:"name"`
+	Scopes []Permission       `json:"scopes"`
+}
+
+// ApiKeyCreated defines model for ApiKeyCreated.
+type ApiKeyCreated struct {
+	CreatedAt time.Time `json:"created_at"`
+
+	// Hint The key's last four characters.
+	Hint   string             `json:"hint"`
+	Id     openapi_types.UUID `json:"id"`
+	Key    string             `json:"key"`
+	Name   string             `json:"name"`
+	Scopes []Permission       `json:"scopes"`
+}
+
+// ApiKeyInput defines model for ApiKeyInput.
+type ApiKeyInput struct {
+	Name   string       `json:"name"`
+	Scopes []Permission `json:"scopes"`
+}
+
+// AuditEntry defines model for AuditEntry.
+type AuditEntry struct {
+	Action string `json:"action"`
+
+	// Actor Who did it, or null for the system.
+	Actor     *string     `json:"actor,omitempty"`
+	After     interface{} `json:"after,omitempty"`
+	Before    interface{} `json:"before,omitempty"`
+	CreatedAt time.Time   `json:"created_at"`
+	Entity    string      `json:"entity"`
+	EntityId  *string     `json:"entity_id,omitempty"`
+	Id        int64       `json:"id"`
+}
+
+// AuditPage defines model for AuditPage.
+type AuditPage struct {
+	Items      []AuditEntry `json:"items"`
+	NextCursor *string      `json:"next_cursor,omitempty"`
 }
 
 // Error defines model for Error.
@@ -84,18 +193,68 @@ type Health struct {
 // HealthStatus defines model for Health.Status.
 type HealthStatus string
 
+// LoginRequest defines model for LoginRequest.
+type LoginRequest struct {
+	// Login Email or phone number.
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+// Permission What a user's role or an API key allows.
+type Permission string
+
+// RefreshRequest defines model for RefreshRequest.
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// RegisterRequest defines model for RegisterRequest.
+type RegisterRequest struct {
+	Email    *openapi_types.Email `json:"email,omitempty"`
+	Name     string               `json:"name"`
+	Password string               `json:"password"`
+
+	// Phone A Bangladeshi mobile number, e.g. "01712345678".
+	Phone *string `json:"phone,omitempty"`
+}
+
+// Role defines model for Role.
+type Role string
+
+// Session defines model for Session.
+type Session struct {
+	AccessExpiresAt  time.Time `json:"access_expires_at"`
+	AccessToken      string    `json:"access_token"`
+	RefreshExpiresAt time.Time `json:"refresh_expires_at"`
+	RefreshToken     string    `json:"refresh_token"`
+	User             User      `json:"user"`
+}
+
 // Store defines model for Store.
 type Store struct {
 	// AccentColor Hex color, e.g. "#0f766e".
-	AccentColor  *string `json:"accent_color,omitempty"`
-	ContactEmail *string `json:"contact_email,omitempty"`
-	ContactPhone *string `json:"contact_phone,omitempty"`
+	AccentColor  *string              `json:"accent_color,omitempty"`
+	ContactEmail *openapi_types.Email `json:"contact_email,omitempty"`
+	ContactPhone *string              `json:"contact_phone,omitempty"`
 
 	// Currency ISO 4217 code.
 	Currency string  `json:"currency"`
 	LogoUrl  *string `json:"logo_url,omitempty"`
 	Name     string  `json:"name"`
 	Vat      Vat     `json:"vat"`
+}
+
+// User defines model for User.
+type User struct {
+	CreatedAt   time.Time          `json:"created_at"`
+	Email       *string            `json:"email,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+	Permissions []Permission       `json:"permissions"`
+
+	// Phone E.164, e.g. "+8801712345678".
+	Phone *string `json:"phone,omitempty"`
+	Role  Role    `json:"role"`
 }
 
 // Vat defines model for Vat.
@@ -109,16 +268,74 @@ type Vat struct {
 	RateBp int `json:"rate_bp"`
 }
 
+// Cursor defines model for Cursor.
+type Cursor = string
+
+// Limit defines model for Limit.
+type Limit = int
+
+// ListAuditLogParams defines parameters for ListAuditLog.
+type ListAuditLogParams struct {
+	// Cursor `next_cursor` from the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // GetStoreParams defines parameters for GetStore.
 type GetStoreParams struct {
 	IfNoneMatch *string `json:"If-None-Match,omitempty"`
 }
 
+// CreateApiKeyJSONRequestBody defines body for CreateApiKey for application/json ContentType.
+type CreateApiKeyJSONRequestBody = ApiKeyInput
+
+// UpdateStoreJSONRequestBody defines body for UpdateStore for application/json ContentType.
+type UpdateStoreJSONRequestBody = Store
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody = LoginRequest
+
+// RefreshJSONRequestBody defines body for Refresh for application/json ContentType.
+type RefreshJSONRequestBody = RefreshRequest
+
+// RegisterJSONRequestBody defines body for Register for application/json ContentType.
+type RegisterJSONRequestBody = RegisterRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// ListApiKeys Active API keys
+	// (GET /v1/admin/api-keys)
+	ListApiKeys(w http.ResponseWriter, r *http.Request)
+	// CreateApiKey Create an API key for an integration
+	// (POST /v1/admin/api-keys)
+	CreateApiKey(w http.ResponseWriter, r *http.Request)
+	// RevokeApiKey Revoke an API key; it stops working at once
+	// (DELETE /v1/admin/api-keys/{id})
+	RevokeApiKey(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// ListAuditLog Who changed what, newest first
+	// (GET /v1/admin/audit-log)
+	ListAuditLog(w http.ResponseWriter, r *http.Request, params ListAuditLogParams)
+	// UpdateStore Change the shop's settings
+	// (PUT /v1/admin/store)
+	UpdateStore(w http.ResponseWriter, r *http.Request)
+	// Login Sign in with email or phone and password
+	// (POST /v1/auth/login)
+	Login(w http.ResponseWriter, r *http.Request)
+	// Logout End this session
+	// (POST /v1/auth/logout)
+	Logout(w http.ResponseWriter, r *http.Request)
+	// Refresh Swap a refresh token for a new pair
+	// (POST /v1/auth/refresh)
+	Refresh(w http.ResponseWriter, r *http.Request)
+	// Register Create a customer account and sign in
+	// (POST /v1/auth/register)
+	Register(w http.ResponseWriter, r *http.Request)
 	// GetHealth Is the API up and can it reach its database
 	// (GET /v1/health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// GetMe The signed-in user
+	// (GET /v1/me)
+	GetMe(w http.ResponseWriter, r *http.Request)
 	// GetStore The shop's public settings
 	// (GET /v1/store)
 	GetStore(w http.ResponseWriter, r *http.Request, params GetStoreParams)
@@ -128,9 +345,69 @@ type ServerInterface interface {
 
 type Unimplemented struct{}
 
+// ListApiKeys Active API keys
+// (GET /v1/admin/api-keys)
+func (_ Unimplemented) ListApiKeys(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateApiKey Create an API key for an integration
+// (POST /v1/admin/api-keys)
+func (_ Unimplemented) CreateApiKey(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RevokeApiKey Revoke an API key; it stops working at once
+// (DELETE /v1/admin/api-keys/{id})
+func (_ Unimplemented) RevokeApiKey(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListAuditLog Who changed what, newest first
+// (GET /v1/admin/audit-log)
+func (_ Unimplemented) ListAuditLog(w http.ResponseWriter, r *http.Request, params ListAuditLogParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateStore Change the shop's settings
+// (PUT /v1/admin/store)
+func (_ Unimplemented) UpdateStore(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Login Sign in with email or phone and password
+// (POST /v1/auth/login)
+func (_ Unimplemented) Login(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Logout End this session
+// (POST /v1/auth/logout)
+func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Refresh Swap a refresh token for a new pair
+// (POST /v1/auth/refresh)
+func (_ Unimplemented) Refresh(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Register Create a customer account and sign in
+// (POST /v1/auth/register)
+func (_ Unimplemented) Register(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // GetHealth Is the API up and can it reach its database
 // (GET /v1/health)
 func (_ Unimplemented) GetHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetMe The signed-in user
+// (GET /v1/me)
+func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -149,11 +426,195 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// ListApiKeys operation middleware
+func (siw *ServerInterfaceWrapper) ListApiKeys(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListApiKeys(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateApiKey operation middleware
+func (siw *ServerInterfaceWrapper) CreateApiKey(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateApiKey(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeApiKey operation middleware
+func (siw *ServerInterfaceWrapper) RevokeApiKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeApiKey(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAuditLog operation middleware
+func (siw *ServerInterfaceWrapper) ListAuditLog(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAuditLogParams
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAuditLog(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateStore operation middleware
+func (siw *ServerInterfaceWrapper) UpdateStore(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateStore(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Login(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Logout operation middleware
+func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Logout(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Refresh operation middleware
+func (siw *ServerInterfaceWrapper) Refresh(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Refresh(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Register operation middleware
+func (siw *ServerInterfaceWrapper) Register(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Register(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetHealth operation middleware
 func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMe operation middleware
+func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMe(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -323,11 +784,380 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/store", wrapper.GetStore)
 	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/auth/register", wrapper.Register)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/auth/login", wrapper.Login)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/auth/refresh", wrapper.Refresh)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/auth/logout", wrapper.Logout)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me", wrapper.GetMe)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/store", wrapper.UpdateStore)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/api-keys", wrapper.ListApiKeys)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/api-keys", wrapper.CreateApiKey)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/admin/api-keys/{id}", wrapper.RevokeApiKey)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/audit-log", wrapper.ListAuditLog)
+	})
 
 	return r
 }
 
 type ErrorJSONResponse Error
+
+type ListApiKeysRequestObject struct {
+}
+
+type ListApiKeysResponseObject interface {
+	VisitListApiKeysResponse(w http.ResponseWriter) error
+}
+
+type ListApiKeys200JSONResponse struct {
+	Items []ApiKey `json:"items"`
+}
+
+func (response ListApiKeys200JSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListApiKeysdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListApiKeysdefaultJSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKeyRequestObject struct {
+	Body *CreateApiKeyJSONRequestBody
+}
+
+type CreateApiKeyResponseObject interface {
+	VisitCreateApiKeyResponse(w http.ResponseWriter) error
+}
+
+type CreateApiKey201JSONResponse ApiKeyCreated
+
+func (response CreateApiKey201JSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKeydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreateApiKeydefaultJSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeApiKeyRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type RevokeApiKeyResponseObject interface {
+	VisitRevokeApiKeyResponse(w http.ResponseWriter) error
+}
+
+type RevokeApiKey204Response struct {
+}
+
+func (response RevokeApiKey204Response) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RevokeApiKeydefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RevokeApiKeydefaultJSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAuditLogRequestObject struct {
+	Params ListAuditLogParams
+}
+
+type ListAuditLogResponseObject interface {
+	VisitListAuditLogResponse(w http.ResponseWriter) error
+}
+
+type ListAuditLog200JSONResponse AuditPage
+
+func (response ListAuditLog200JSONResponse) VisitListAuditLogResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAuditLogdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListAuditLogdefaultJSONResponse) VisitListAuditLogResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateStoreRequestObject struct {
+	Body *UpdateStoreJSONRequestBody
+}
+
+type UpdateStoreResponseObject interface {
+	VisitUpdateStoreResponse(w http.ResponseWriter) error
+}
+
+type UpdateStore200JSONResponse Store
+
+func (response UpdateStore200JSONResponse) VisitUpdateStoreResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateStoredefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateStoredefaultJSONResponse) VisitUpdateStoreResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LoginRequestObject struct {
+	Body *LoginJSONRequestBody
+}
+
+type LoginResponseObject interface {
+	VisitLoginResponse(w http.ResponseWriter) error
+}
+
+type Login200JSONResponse Session
+
+func (response Login200JSONResponse) VisitLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LogindefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response LogindefaultJSONResponse) VisitLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LogoutRequestObject struct {
+}
+
+type LogoutResponseObject interface {
+	VisitLogoutResponse(w http.ResponseWriter) error
+}
+
+type Logout204Response struct {
+}
+
+func (response Logout204Response) VisitLogoutResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type LogoutdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response LogoutdefaultJSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RefreshRequestObject struct {
+	Body *RefreshJSONRequestBody
+}
+
+type RefreshResponseObject interface {
+	VisitRefreshResponse(w http.ResponseWriter) error
+}
+
+type Refresh200JSONResponse Session
+
+func (response Refresh200JSONResponse) VisitRefreshResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RefreshdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RefreshdefaultJSONResponse) VisitRefreshResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegisterRequestObject struct {
+	Body *RegisterJSONRequestBody
+}
+
+type RegisterResponseObject interface {
+	VisitRegisterResponse(w http.ResponseWriter) error
+}
+
+type Register201JSONResponse Session
+
+func (response Register201JSONResponse) VisitRegisterResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RegisterdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RegisterdefaultJSONResponse) VisitRegisterResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type GetHealthRequestObject struct {
 }
@@ -356,6 +1186,44 @@ type GetHealthdefaultJSONResponse struct {
 }
 
 func (response GetHealthdefaultJSONResponse) VisitGetHealthResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMeRequestObject struct {
+}
+
+type GetMeResponseObject interface {
+	VisitGetMeResponse(w http.ResponseWriter) error
+}
+
+type GetMe200JSONResponse User
+
+func (response GetMe200JSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetMedefaultJSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -426,9 +1294,39 @@ func (response GetStoredefaultJSONResponse) VisitGetStoreResponse(w http.Respons
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// ListApiKeys Active API keys
+	// (GET /v1/admin/api-keys)
+	ListApiKeys(ctx context.Context, request ListApiKeysRequestObject) (ListApiKeysResponseObject, error)
+	// CreateApiKey Create an API key for an integration
+	// (POST /v1/admin/api-keys)
+	CreateApiKey(ctx context.Context, request CreateApiKeyRequestObject) (CreateApiKeyResponseObject, error)
+	// RevokeApiKey Revoke an API key; it stops working at once
+	// (DELETE /v1/admin/api-keys/{id})
+	RevokeApiKey(ctx context.Context, request RevokeApiKeyRequestObject) (RevokeApiKeyResponseObject, error)
+	// ListAuditLog Who changed what, newest first
+	// (GET /v1/admin/audit-log)
+	ListAuditLog(ctx context.Context, request ListAuditLogRequestObject) (ListAuditLogResponseObject, error)
+	// UpdateStore Change the shop's settings
+	// (PUT /v1/admin/store)
+	UpdateStore(ctx context.Context, request UpdateStoreRequestObject) (UpdateStoreResponseObject, error)
+	// Login Sign in with email or phone and password
+	// (POST /v1/auth/login)
+	Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error)
+	// Logout End this session
+	// (POST /v1/auth/logout)
+	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
+	// Refresh Swap a refresh token for a new pair
+	// (POST /v1/auth/refresh)
+	Refresh(ctx context.Context, request RefreshRequestObject) (RefreshResponseObject, error)
+	// Register Create a customer account and sign in
+	// (POST /v1/auth/register)
+	Register(ctx context.Context, request RegisterRequestObject) (RegisterResponseObject, error)
 	// GetHealth Is the API up and can it reach its database
 	// (GET /v1/health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+	// GetMe The signed-in user
+	// (GET /v1/me)
+	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
 	// GetStore The shop's public settings
 	// (GET /v1/store)
 	GetStore(ctx context.Context, request GetStoreRequestObject) (GetStoreResponseObject, error)
@@ -473,6 +1371,261 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
+// ListApiKeys operation middleware
+func (sh *strictHandler) ListApiKeys(w http.ResponseWriter, r *http.Request) {
+	var request ListApiKeysRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListApiKeys(ctx, request.(ListApiKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListApiKeys")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListApiKeysResponseObject); ok {
+		if err := validResponse.VisitListApiKeysResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateApiKey operation middleware
+func (sh *strictHandler) CreateApiKey(w http.ResponseWriter, r *http.Request) {
+	var request CreateApiKeyRequestObject
+
+	var body CreateApiKeyJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateApiKey(ctx, request.(CreateApiKeyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateApiKey")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateApiKeyResponseObject); ok {
+		if err := validResponse.VisitCreateApiKeyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeApiKey operation middleware
+func (sh *strictHandler) RevokeApiKey(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request RevokeApiKeyRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeApiKey(ctx, request.(RevokeApiKeyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeApiKey")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeApiKeyResponseObject); ok {
+		if err := validResponse.VisitRevokeApiKeyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListAuditLog operation middleware
+func (sh *strictHandler) ListAuditLog(w http.ResponseWriter, r *http.Request, params ListAuditLogParams) {
+	var request ListAuditLogRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListAuditLog(ctx, request.(ListAuditLogRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListAuditLog")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListAuditLogResponseObject); ok {
+		if err := validResponse.VisitListAuditLogResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateStore operation middleware
+func (sh *strictHandler) UpdateStore(w http.ResponseWriter, r *http.Request) {
+	var request UpdateStoreRequestObject
+
+	var body UpdateStoreJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateStore(ctx, request.(UpdateStoreRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateStore")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateStoreResponseObject); ok {
+		if err := validResponse.VisitUpdateStoreResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Login operation middleware
+func (sh *strictHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var request LoginRequestObject
+
+	var body LoginJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Login(ctx, request.(LoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Login")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LoginResponseObject); ok {
+		if err := validResponse.VisitLoginResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Logout operation middleware
+func (sh *strictHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	var request LogoutRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Logout(ctx, request.(LogoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Logout")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LogoutResponseObject); ok {
+		if err := validResponse.VisitLogoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Refresh operation middleware
+func (sh *strictHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	var request RefreshRequestObject
+
+	var body RefreshJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Refresh(ctx, request.(RefreshRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Refresh")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RefreshResponseObject); ok {
+		if err := validResponse.VisitRefreshResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Register operation middleware
+func (sh *strictHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var request RegisterRequestObject
+
+	var body RegisterJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.Register(ctx, request.(RegisterRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Register")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RegisterResponseObject); ok {
+		if err := validResponse.VisitRegisterResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetHealth operation middleware
 func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 	var request GetHealthRequestObject
@@ -490,6 +1643,30 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
 		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMe operation middleware
+func (sh *strictHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	var request GetMeRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMe(ctx, request.(GetMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMeResponseObject); ok {
+		if err := validResponse.VisitGetMeResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -528,26 +1705,54 @@ func (sh *strictHandler) GetStore(w http.ResponseWriter, r *http.Request, params
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"UWBtzqto/cSrYf3Agbn935UXq8vVvwcA",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
