@@ -70,7 +70,7 @@ func (q *Queries) AddOrderItem(ctx context.Context, arg AddOrderItemParams) erro
 }
 
 const adminOrders = `-- name: AdminOrders :many
-SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.customer_name, o.phone, o.email, o.district, o.area, o.address, o.note, o.subtotal, o.discount_code, o.discount_total, o.zone_name, o.delivery_days, o.delivery_charge, o.vat_rate_bp, o.vat_included, o.vat_total, o.total, o.currency, o.created_at, o.updated_at, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.order_id = o.id)::int AS item_count
+SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.customer_name, o.phone, o.email, o.district, o.area, o.address, o.note, o.subtotal, o.discount_code, o.discount_total, o.zone_name, o.delivery_days, o.delivery_charge, o.vat_rate_bp, o.vat_included, o.vat_total, o.total, o.currency, o.created_at, o.updated_at, o.paid_at, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.order_id = o.id)::int AS item_count
 FROM orders o
 WHERE ($1::order_status IS NULL OR o.status = $1)
   AND ($2::bigint IS NULL OR o.number < $2)
@@ -119,6 +119,7 @@ type AdminOrdersRow struct {
 	Currency       string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+	PaidAt         pgtype.Timestamptz
 	ItemCount      int32
 }
 
@@ -165,6 +166,7 @@ func (q *Queries) AdminOrders(ctx context.Context, arg AdminOrdersParams) ([]Adm
 			&i.Currency,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PaidAt,
 			&i.ItemCount,
 		); err != nil {
 			return nil, err
@@ -216,7 +218,7 @@ INSERT INTO orders (user_id, token_hash, payment_method, customer_name, phone, e
     subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included,
     vat_total, total)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
-RETURNING id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at
+RETURNING id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at, paid_at
 `
 
 type CreateOrderParams struct {
@@ -291,6 +293,40 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order
 		&i.VatTotal,
 		&i.Total,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PaidAt,
+	)
+	return i, err
+}
+
+const createPayment = `-- name: CreatePayment :one
+INSERT INTO payments (order_id, provider, tran_id, amount) VALUES ($1, $2, $3, $4) RETURNING id, order_id, provider, tran_id, amount, status, gateway_ref, created_at, updated_at
+`
+
+type CreatePaymentParams struct {
+	OrderID  uuid.UUID
+	Provider string
+	TranID   string
+	Amount   int64
+}
+
+func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (Payment, error) {
+	row := q.db.QueryRow(ctx, createPayment,
+		arg.OrderID,
+		arg.Provider,
+		arg.TranID,
+		arg.Amount,
+	)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.Provider,
+		&i.TranID,
+		&i.Amount,
+		&i.Status,
+		&i.GatewayRef,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -410,8 +446,61 @@ func (q *Queries) LockOrderVariants(ctx context.Context, ids []uuid.UUID) ([]Loc
 	return items, nil
 }
 
+const markOrderPaid = `-- name: MarkOrderPaid :one
+UPDATE orders SET paid_at = now(), updated_at = now() WHERE id = $1 AND paid_at IS NULL RETURNING id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at, paid_at
+`
+
+func (q *Queries) MarkOrderPaid(ctx context.Context, id uuid.UUID) (Order, error) {
+	row := q.db.QueryRow(ctx, markOrderPaid, id)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.UserID,
+		&i.TokenHash,
+		&i.Status,
+		&i.PaymentMethod,
+		&i.CustomerName,
+		&i.Phone,
+		&i.Email,
+		&i.District,
+		&i.Area,
+		&i.Address,
+		&i.Note,
+		&i.Subtotal,
+		&i.DiscountCode,
+		&i.DiscountTotal,
+		&i.ZoneName,
+		&i.DeliveryDays,
+		&i.DeliveryCharge,
+		&i.VatRateBp,
+		&i.VatIncluded,
+		&i.VatTotal,
+		&i.Total,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PaidAt,
+	)
+	return i, err
+}
+
+const markPaymentPaid = `-- name: MarkPaymentPaid :exec
+UPDATE payments SET status = 'paid', gateway_ref = $2, updated_at = now() WHERE id = $1
+`
+
+type MarkPaymentPaidParams struct {
+	ID         uuid.UUID
+	GatewayRef *string
+}
+
+func (q *Queries) MarkPaymentPaid(ctx context.Context, arg MarkPaymentPaidParams) error {
+	_, err := q.db.Exec(ctx, markPaymentPaid, arg.ID, arg.GatewayRef)
+	return err
+}
+
 const myOrders = `-- name: MyOrders :many
-SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.customer_name, o.phone, o.email, o.district, o.area, o.address, o.note, o.subtotal, o.discount_code, o.discount_total, o.zone_name, o.delivery_days, o.delivery_charge, o.vat_rate_bp, o.vat_included, o.vat_total, o.total, o.currency, o.created_at, o.updated_at, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.order_id = o.id)::int AS item_count
+SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.customer_name, o.phone, o.email, o.district, o.area, o.address, o.note, o.subtotal, o.discount_code, o.discount_total, o.zone_name, o.delivery_days, o.delivery_charge, o.vat_rate_bp, o.vat_included, o.vat_total, o.total, o.currency, o.created_at, o.updated_at, o.paid_at, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.order_id = o.id)::int AS item_count
 FROM orders o WHERE o.user_id = app_user()
 ORDER BY o.created_at DESC LIMIT 100
 `
@@ -443,6 +532,7 @@ type MyOrdersRow struct {
 	Currency       string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+	PaidAt         pgtype.Timestamptz
 	ItemCount      int32
 }
 
@@ -482,6 +572,7 @@ func (q *Queries) MyOrders(ctx context.Context) ([]MyOrdersRow, error) {
 			&i.Currency,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PaidAt,
 			&i.ItemCount,
 		); err != nil {
 			return nil, err
@@ -494,8 +585,47 @@ func (q *Queries) MyOrders(ctx context.Context) ([]MyOrdersRow, error) {
 	return items, nil
 }
 
+const orderByID = `-- name: OrderByID :one
+SELECT id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at, paid_at FROM orders WHERE id = $1
+`
+
+func (q *Queries) OrderByID(ctx context.Context, id uuid.UUID) (Order, error) {
+	row := q.db.QueryRow(ctx, orderByID, id)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.UserID,
+		&i.TokenHash,
+		&i.Status,
+		&i.PaymentMethod,
+		&i.CustomerName,
+		&i.Phone,
+		&i.Email,
+		&i.District,
+		&i.Area,
+		&i.Address,
+		&i.Note,
+		&i.Subtotal,
+		&i.DiscountCode,
+		&i.DiscountTotal,
+		&i.ZoneName,
+		&i.DeliveryDays,
+		&i.DeliveryCharge,
+		&i.VatRateBp,
+		&i.VatIncluded,
+		&i.VatTotal,
+		&i.Total,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PaidAt,
+	)
+	return i, err
+}
+
 const orderByNumber = `-- name: OrderByNumber :one
-SELECT id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at FROM orders WHERE number = $1
+SELECT id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at, paid_at FROM orders WHERE number = $1
 `
 
 func (q *Queries) OrderByNumber(ctx context.Context, number int64) (Order, error) {
@@ -528,6 +658,7 @@ func (q *Queries) OrderByNumber(ctx context.Context, number int64) (Order, error
 		&i.Currency,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidAt,
 	)
 	return i, err
 }
@@ -665,6 +796,48 @@ func (q *Queries) OrderStockMovement(ctx context.Context, arg OrderStockMovement
 	return err
 }
 
+const paidPayment = `-- name: PaidPayment :one
+SELECT id, order_id, provider, tran_id, amount, status, gateway_ref, created_at, updated_at FROM payments WHERE order_id = $1 AND status = 'paid' ORDER BY updated_at DESC LIMIT 1
+`
+
+func (q *Queries) PaidPayment(ctx context.Context, orderID uuid.UUID) (Payment, error) {
+	row := q.db.QueryRow(ctx, paidPayment, orderID)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.Provider,
+		&i.TranID,
+		&i.Amount,
+		&i.Status,
+		&i.GatewayRef,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const paymentByTranID = `-- name: PaymentByTranID :one
+SELECT id, order_id, provider, tran_id, amount, status, gateway_ref, created_at, updated_at FROM payments WHERE tran_id = $1 FOR UPDATE
+`
+
+func (q *Queries) PaymentByTranID(ctx context.Context, tranID string) (Payment, error) {
+	row := q.db.QueryRow(ctx, paymentByTranID, tranID)
+	var i Payment
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.Provider,
+		&i.TranID,
+		&i.Amount,
+		&i.Status,
+		&i.GatewayRef,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const phoneHistory = `-- name: PhoneHistory :one
 SELECT count(*) FILTER (WHERE status = 'delivered')::int AS delivered,
        count(*) FILTER (WHERE status = 'cancelled')::int AS cancelled,
@@ -788,7 +961,7 @@ func (q *Queries) SavePhoneCheck(ctx context.Context, arg SavePhoneCheckParams) 
 const setOrderStatus = `-- name: SetOrderStatus :one
 UPDATE orders SET status = $1, updated_at = now()
 WHERE id = $2 AND status = $3
-RETURNING id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at
+RETURNING id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at, paid_at
 `
 
 type SetOrderStatusParams struct {
@@ -828,6 +1001,7 @@ func (q *Queries) SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) 
 		&i.Currency,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.PaidAt,
 	)
 	return i, err
 }
@@ -873,6 +1047,47 @@ func (q *Queries) ShipmentForOrder(ctx context.Context, orderID uuid.UUID) (Ship
 		&i.CodAmount,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const switchToCOD = `-- name: SwitchToCOD :one
+UPDATE orders SET payment_method = 'cod', updated_at = now()
+WHERE id = $1 AND payment_method = 'online' AND paid_at IS NULL AND status = 'pending'
+RETURNING id, number, user_id, token_hash, status, payment_method, customer_name, phone, email, district, area, address, note, subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, total, currency, created_at, updated_at, paid_at
+`
+
+func (q *Queries) SwitchToCOD(ctx context.Context, id uuid.UUID) (Order, error) {
+	row := q.db.QueryRow(ctx, switchToCOD, id)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.Number,
+		&i.UserID,
+		&i.TokenHash,
+		&i.Status,
+		&i.PaymentMethod,
+		&i.CustomerName,
+		&i.Phone,
+		&i.Email,
+		&i.District,
+		&i.Area,
+		&i.Address,
+		&i.Note,
+		&i.Subtotal,
+		&i.DiscountCode,
+		&i.DiscountTotal,
+		&i.ZoneName,
+		&i.DeliveryDays,
+		&i.DeliveryCharge,
+		&i.VatRateBp,
+		&i.VatIncluded,
+		&i.VatTotal,
+		&i.Total,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PaidAt,
 	)
 	return i, err
 }

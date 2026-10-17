@@ -292,6 +292,7 @@ type Order struct {
 	Currency       string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+	PaidAt         pgtype.Timestamptz
 }
 
 type OrderEvent struct {
@@ -315,6 +316,18 @@ type OrderItem struct {
 	UnitPrice int64
 	Quantity  int32
 	LineTotal int64
+}
+
+type Payment struct {
+	ID         uuid.UUID
+	OrderID    uuid.UUID
+	Provider   string
+	TranID     string
+	Amount     int64
+	Status     string
+	GatewayRef *string
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
 }
 
 type PhoneCheck struct {

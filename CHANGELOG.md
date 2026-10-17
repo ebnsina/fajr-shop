@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Pay online: with SSLCommerz switched on in Integrations (test or live), checkout offers
+  "Pay online" (bKash, Nagad, cards, banks) beside cash on delivery. The order is placed, then the
+  customer goes to SSLCommerz to pay; when they come back, the API asks SSLCommerz itself whether
+  they paid the full amount before marking the order paid. An unpaid order offers "Pay now" again
+  or "Pay on delivery instead". Paid orders show "Paid online with SSLCommerz", their texts don't
+  ask for cash, and their parcels collect nothing. **New required setting `FAJR_SHOP_URL`** (the
+  storefront's address); run `fajr migrate` for `00016_payments`.
 - Customers get a text when they order, and when the order is confirmed, sent with a courier
   (with its tracking code), delivered or cancelled, through the SMS gateway switched on in
   Integrations (BulkSMSBD or SSL Wireless). Texts go out in the background, so a slow gateway

@@ -830,6 +830,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/payment-methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gateways customers can pay online through
+         * @description Empty when only cash on delivery is on.
+         */
+        get: operations["listPaymentMethods"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{number}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start paying an online order; send the customer to `url`
+         * @description For the order's customer or whoever holds its link (`token`). Only an unpaid online order
+         *     that isn't cancelled (`status_changed` otherwise). A gateway's refusal is `payment_error`.
+         */
+        post: operations["startPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{number}/cash-on-delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pay an unpaid online order on delivery instead
+         * @description For the order's customer or whoever holds its link, while the order is still placed and unpaid.
+         */
+        post: operations["switchToCashOnDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/payments/{provider}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check a payment the gateway reported, and mark the order paid
+         * @description Called by the storefront when the gateway sends the customer (or its own server-to-server
+         *     notice) back. Nothing in the request is trusted: the API asks the gateway about `val_id`
+         *     itself and marks the order paid only if the gateway says it was, for the order's full
+         *     amount. Safe to call more than once.
+         */
+        post: operations["confirmPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/orders": {
         parameters: {
             query?: never;
@@ -1351,7 +1441,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "already_booked" | "courier_error" | "not_deliverable" | "cart_empty" | "cart_changed" | "status_changed" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
+        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "already_booked" | "courier_error" | "payment_error" | "not_deliverable" | "cart_empty" | "cart_changed" | "status_changed" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
         Provider: {
             code: string;
             /** @enum {string} */
@@ -1740,10 +1830,15 @@ export interface components {
         /** @enum {string} */
         OrderStatus: "pending" | "confirmed" | "packed" | "shipped" | "delivered" | "cancelled";
         /**
-         * @description `cod`: cash on delivery. Online payments come later.
+         * @description `cod`: cash on delivery. `online`: paid through the shop's payment gateway after placing.
          * @enum {string}
          */
-        PaymentMethod: "cod";
+        PaymentMethod: "cod" | "online";
+        /**
+         * @description `cod`: paid to the rider. `unpaid`: an online order not paid yet. `paid`: paid online.
+         * @enum {string}
+         */
+        PaymentStatus: "cod" | "unpaid" | "paid";
         CheckoutInput: {
             name: string;
             /** @description A Bangladeshi mobile number, in any common form (01712345678, +880 1712-345678). */
@@ -1812,6 +1907,9 @@ export interface components {
             created_at: string;
         };
         Order: components["schemas"]["OrderSummary"] & {
+            payment_status: components["schemas"]["PaymentStatus"];
+            /** @description The gateway an online order was paid through. */
+            paid_with?: string | null;
             shipment?: components["schemas"]["Shipment"] | null;
             email?: string | null;
             area: string;
@@ -3497,6 +3595,125 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listPaymentMethods: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Gateways that are on */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            code: string;
+                            name: string;
+                        }[];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    startPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    provider: string;
+                    token?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Where to pay */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        url: string;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    switchToCashOnDelivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    token?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The order, now cash on delivery */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    confirmPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    val_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The order that was paid */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: int64 */
+                        number: number;
+                    };
                 };
             };
             default: components["responses"]["Error"];

@@ -17,6 +17,7 @@ import (
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
 	"github.com/ebnsina/fajr-shop/api/internal/auth"
 	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
+	"github.com/ebnsina/fajr-shop/api/internal/provider"
 	"github.com/ebnsina/fajr-shop/api/internal/shipping"
 )
 
@@ -52,6 +53,13 @@ func (s *Server) PlaceOrder(ctx context.Context, req apigen.PlaceOrderRequestObj
 	}
 	if address == "" {
 		errs["address"] = "Write your house, road and a landmark."
+	}
+	if in.PaymentMethod == apigen.PaymentMethodOnline {
+		if methods, err := s.paymentMethods(ctx); err != nil {
+			return nil, err
+		} else if len(methods) == 0 {
+			errs["payment_method"] = "Paying online isn't available right now. Choose cash on delivery."
+		}
 	}
 	if len(errs) > 0 {
 		return nil, invalid(errs)
@@ -435,6 +443,24 @@ func loadOrder(ctx context.Context, q *dbq.Queries, o dbq.Order) (apigen.Order, 
 	}
 	for _, n := range nextStatuses[o.Status] {
 		out.NextStatuses = append(out.NextStatuses, apigen.OrderStatus(n))
+	}
+	out.PaymentStatus = apigen.PaymentStatusCod
+	if o.PaymentMethod == "online" {
+		out.PaymentStatus = apigen.PaymentStatusUnpaid
+		if o.PaidAt.Valid {
+			out.PaymentStatus = apigen.PaymentStatusPaid
+			pay, err := q.PaidPayment(ctx, o.ID)
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				return apigen.Order{}, fmt.Errorf("order payment: %w", err)
+			}
+			if err == nil {
+				name := pay.Provider
+				if p, ok := provider.ByCode(pay.Provider); ok {
+					name = p.Name
+				}
+				out.PaidWith = &name
+			}
+		}
 	}
 	sh, err := q.ShipmentForOrder(ctx, o.ID)
 	if err == nil {

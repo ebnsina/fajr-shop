@@ -11,7 +11,11 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			adapter: adapter()
+			adapter: adapter(),
+			// Payment gateways post the customer back to /pay/…; everyone else's form posts stay refused.
+			csrf: {
+				trustedOrigins: ['https://sandbox.sslcommerz.com', 'https://securepay.sslcommerz.com']
+			}
 		})
 	]
 });

@@ -34,6 +34,7 @@ type Server struct {
 	mediaURL       string
 	box            *secret.Box
 	jobs           *river.Client[pgx.Tx]
+	shopURL        string
 }
 
 // App is the API with its background jobs, which run once Start is called.
@@ -58,7 +59,7 @@ func New(pool *pgxpool.Pool, cfg config.Config) (*App, error) {
 	}
 	s := &Server{
 		pool: pool, q: dbq.New(pool), trustedProxies: cfg.TrustedProxies, limits: &limiter{},
-		mediaDir: cfg.MediaDir, mediaURL: cfg.MediaURL, box: box,
+		mediaDir: cfg.MediaDir, mediaURL: cfg.MediaURL, box: box, shopURL: cfg.ShopURL,
 	}
 	workers := river.NewWorkers()
 	river.AddWorker(workers, &smsWorker{s: s})

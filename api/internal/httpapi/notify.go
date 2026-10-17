@@ -89,6 +89,9 @@ func orderText(store dbq.StoreSetting, o dbq.Order, courier string, tracking *st
 	n := "#" + strconv.FormatInt(o.Number, 10)
 	switch o.Status {
 	case dbq.OrderStatusPending:
+		if o.PaymentMethod == "online" {
+			return fmt.Sprintf("%s: We got your order %s for %s. We'll confirm it once it's paid.", store.Name, n, taka(o.Total))
+		}
 		return fmt.Sprintf("%s: We got your order %s for %s, cash on delivery. We'll call you to confirm.", store.Name, n, taka(o.Total))
 	case dbq.OrderStatusConfirmed:
 		return fmt.Sprintf("%s: Order %s is confirmed. We'll send it soon.", store.Name, n)
@@ -99,6 +102,9 @@ func orderText(store dbq.StoreSetting, o dbq.Order, courier string, tracking *st
 		}
 		if tracking != nil && *tracking != "" {
 			t += ", tracking " + *tracking
+		}
+		if o.PaidAt.Valid {
+			return t + "."
 		}
 		return t + ". Please keep " + taka(o.Total) + " ready."
 	case dbq.OrderStatusDelivered:

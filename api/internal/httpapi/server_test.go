@@ -46,7 +46,7 @@ func newHarness(t *testing.T) *harness {
 	if err := db.Migrate(t.Context(), pool); err != nil {
 		t.Fatal(err)
 	}
-	h, err := httpapi.New(pool, config.Config{MediaDir: t.TempDir(), MediaURL: "http://media.test", SecretKey: make([]byte, 32)})
+	h, err := httpapi.New(pool, config.Config{MediaDir: t.TempDir(), MediaURL: "http://media.test", SecretKey: make([]byte, 32), ShopURL: "http://shop.test"})
 	if err != nil {
 		t.Fatal(err)
 	}
