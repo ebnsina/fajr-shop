@@ -24,7 +24,9 @@ func (s *Server) ListBanners(ctx context.Context, _ apigen.ListBannersRequestObj
 		items[i] = s.toBanner(dbq.BannerByIDRow(r))
 	}
 	return apigen.ListBanners200JSONResponse{
-		Body:    struct{ Items []apigen.Banner `json:"items"` }{items},
+		Body: struct {
+			Items []apigen.Banner `json:"items"`
+		}{items},
 		Headers: apigen.ListBanners200ResponseHeaders{CacheControl: "public, max-age=60"},
 	}, nil
 }
