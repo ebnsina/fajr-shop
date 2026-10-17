@@ -9,6 +9,7 @@
 	import { errorText } from '#lib/copy.js';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
+	import Select from '#lib/sinaui/ui/Select.svelte';
 	import Switch from '#lib/sinaui/ui/Switch.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
@@ -53,7 +54,7 @@
 		};
 	}}
 >
-	{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
+	{#if form?.message}<Alert class="full" tone="danger" title={form.message} live />{/if}
 
 	<Card title={t.identity} level={2}>
 		<div class="fields">
@@ -153,6 +154,28 @@
 		</div>
 	</Card>
 
+	<Card class="full" title={t.highlights} description={t.highlightsHint} level={2}>
+		<div class="fields">
+			{#each [0, 1, 2, 3] as i (i)}
+				{@const h = store.highlights?.[i]}
+				<div class="highlight">
+					<Select label={t.highlightIcon} name="h_icon_{i}" value={h?.icon ?? 'truck'}>
+						{#each Object.entries(t.icons) as [value, label] (value)}<option {value}>{label}</option
+							>{/each}
+					</Select>
+					<Input
+						label={t.highlightTitle}
+						name="h_title_{i}"
+						value={h?.title ?? ''}
+						maxlength={60}
+						error={fields[`highlights.${i}.title`]}
+					/>
+					<Input label={t.highlightText} name="h_text_{i}" value={h?.text ?? ''} maxlength={120} />
+				</div>
+			{/each}
+		</div>
+	</Card>
+
 	<div class="actions"><Button type="submit" loading={saving}>{t.save}</Button></div>
 </form>
 
@@ -175,7 +198,24 @@
 	}
 	form {
 		display: grid;
-		gap: 1rem;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start;
+		gap: 1.5rem;
+	}
+	form > :global(.full),
+	.actions {
+		grid-column: 1 / -1;
+	}
+	.highlight {
+		display: grid;
+		grid-template-columns: 9rem minmax(0, 1fr) minmax(0, 1.4fr);
+		gap: 0.75rem;
+	}
+	@media (width < 64rem) {
+		form,
+		.highlight {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 	.fields {
 		display: grid;

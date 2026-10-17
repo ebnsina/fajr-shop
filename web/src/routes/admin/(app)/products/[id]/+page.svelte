@@ -51,6 +51,7 @@
 			description: p?.description ?? '',
 			status: (p?.status ?? 'draft') as Status,
 			featured: p?.featured ?? false,
+			brand: p?.brand ?? '',
 			categoryId: p?.category?.id ?? '',
 			options,
 			rows,
@@ -90,6 +91,7 @@
 			description: f.description,
 			status: f.status,
 			featured: f.featured,
+			brand: f.brand.trim() || null,
 			category_id: f.categoryId || null,
 			options: active.map((o) => ({ name: o.name.trim(), values: o.values })),
 			variants: combos.map((c) => {
@@ -193,167 +195,182 @@
 			live
 		/>{/if}
 
-	<Card title={t.details} level={2}>
-		<div class="fields">
-			<Input label={t.name} bind:value={f.name} required maxlength={150} error={fields.name} />
-			<Textarea
-				label={t.description}
-				bind:value={f.description}
-				rows={5}
-				hint={t.descriptionHint}
-				error={fields.description}
-			/>
-			<Segmented label={t.status} options={statuses} bind:value={f.status} />
-			<Switch bind:checked={f.featured}>{t.featured}</Switch>
-			<Select label={t.category} bind:value={f.categoryId} error={fields.category_id}>
-				<option value="">{t.noCategory}</option>
-				{#each categoryOptions as c (c.id)}<option value={c.id}>{c.label}</option>{/each}
-			</Select>
-		</div>
-	</Card>
-
-	<Card title={t.images} level={2}>
-		<div class="fields">
-			{#if f.images.length}
-				<Sortable
-					bind:items={f.images}
-					key={(i) => i.id}
-					itemLabel={(i) => i.url.split('/').pop() ?? ''}
-					label={t.imageOrder}
-					layout="grid"
-					class="images"
-				>
-					{#snippet children(img, handle, { index })}
-						<div class="image" data-sortable-item>
-							<button type="button" class="drag" {...handle}>
-								<img src={img.url} alt="" draggable="false" />
-								{#if index === 0}<span class="main">{t.images}</span>{/if}
-							</button>
-							<button
-								type="button"
-								class="remove"
-								aria-label={t.removeImage}
-								onclick={() => f.images.splice(index, 1)}
-							>
-								<Icon icon={Cancel01Icon} size={14} />
-							</button>
-						</div>
-					{/snippet}
-				</Sortable>
-			{/if}
-			<FileDrop
-				label={t.addImages}
-				accept="image/jpeg,image/png,image/webp"
-				multiple
-				maxSize={10 * 1024 * 1024}
-				hint={t.imagesHint}
-				onfiles={upload}
-			/>
-			{#if uploading}<p class="hint" aria-live="polite">{t.uploading}</p>{/if}
-			{#if uploadError || fields.image_ids}<Alert
-					tone="danger"
-					title={uploadError || fields.image_ids}
-					live
-				/>{/if}
-		</div>
-	</Card>
-
-	<Card title={t.options} description={t.optionsHint} level={2}>
-		<div class="fields">
-			{#each f.options as option, i (i)}
-				<div class="option">
-					<Input
-						label={t.optionName}
-						placeholder={t.optionNamePlaceholder}
-						bind:value={option.name}
-						maxlength={40}
-						error={fields[`options.${i}.name`]}
+	<div class="editor">
+		<div class="col-main">
+			<Card title={t.details} level={2}>
+				<div class="fields">
+					<Input label={t.name} bind:value={f.name} required maxlength={150} error={fields.name} />
+					<Textarea
+						label={t.description}
+						bind:value={f.description}
+						rows={5}
+						hint={t.descriptionHint}
+						error={fields.description}
 					/>
-					<TagInput
-						label={t.optionValues}
-						placeholder={t.optionValuesPlaceholder}
-						bind:value={option.values}
-						max={50}
-						error={fields[`options.${i}.values`]}
-					/>
-					<Button variant="ghost" size="sm" onclick={() => f.options.splice(i, 1)}
-						>{t.removeOption}</Button
-					>
 				</div>
-			{/each}
-			{#if f.options.length < 3}
-				<div>
-					<Button variant="secondary" onclick={() => f.options.push({ name: '', values: [] })}
-						>{t.addOption}</Button
-					>
-				</div>
-			{/if}
-		</div>
-	</Card>
+			</Card>
 
-	<Card title={t.variants} description={t.variantsHint} level={2}>
-		{#if fields.variants}<Alert tone="danger" title={fields.variants} />{/if}
-		<div class="variants">
-			{#each combos as combo, i (comboKey(combo))}
-				{@const row = f.rows[comboKey(combo)]}
-				{#if row}
-					<div class="variant" role="group" aria-labelledby="variant-{i}">
-						<h3 id="variant-{i}">{combo.join(' / ') || t.only}</h3>
-						<div class="variant-fields">
-							<NumberField
-								label={t.price}
-								bind:value={row.price}
-								min={0}
-								step={10}
-								format={money}
-								error={fields[`variants.${i}.price`]}
-							/>
-							<NumberField
-								label={t.compareAt}
-								bind:value={row.compare}
-								min={0}
-								step={10}
-								format={money}
-								hint={i === 0 ? t.compareAtHint : undefined}
-								error={fields[`variants.${i}.compare_at_price`]}
-							/>
+			<Card title={t.options} description={t.optionsHint} level={2}>
+				<div class="fields">
+					{#each f.options as option, i (i)}
+						<div class="option">
 							<Input
-								label={t.sku}
-								bind:value={row.sku}
-								maxlength={64}
-								error={fields[`variants.${i}.sku`]}
+								label={t.optionName}
+								placeholder={t.optionNamePlaceholder}
+								bind:value={option.name}
+								maxlength={40}
+								error={fields[`options.${i}.name`]}
 							/>
-							{#if row.id}
-								<div class="stock">
-									<span class="label">{t.stock}</span>
-									<span class="count">{stockOf(row.id)}</span>
-									<Button
-										variant="secondary"
-										size="sm"
-										onclick={() => {
-											adjusting = { id: row.id!, label: combo.join(' / ') || f.name };
-											adjustOpen = true;
-										}}>{t.adjust}</Button
-									>
-								</div>
-							{:else}
-								<NumberField label={t.startingStock} bind:value={row.stock} min={0} />
-							{/if}
-							{#if fields[`variants.${i}.options`]}<p class="error">
-									{fields[`variants.${i}.options`]}
-								</p>{/if}
+							<TagInput
+								label={t.optionValues}
+								placeholder={t.optionValuesPlaceholder}
+								bind:value={option.values}
+								max={50}
+								error={fields[`options.${i}.values`]}
+							/>
+							<Button variant="ghost" size="sm" onclick={() => f.options.splice(i, 1)}
+								>{t.removeOption}</Button
+							>
 						</div>
-					</div>
-				{/if}
-			{/each}
-		</div>
-	</Card>
+					{/each}
+					{#if f.options.length < 3}
+						<div>
+							<Button variant="secondary" onclick={() => f.options.push({ name: '', values: [] })}
+								>{t.addOption}</Button
+							>
+						</div>
+					{/if}
+				</div>
+			</Card>
 
-	<div class="actions">
-		{#if data.product}
-			<ConfirmButton confirm={t.deleteConfirm} onconfirm={remove}>{t.delete}</ConfirmButton>
-		{/if}
-		<Button type="submit" loading={saving}>{t.save}</Button>
+			<Card title={t.variants} description={t.variantsHint} level={2}>
+				{#if fields.variants}<Alert tone="danger" title={fields.variants} />{/if}
+				<div class="variants">
+					{#each combos as combo, i (comboKey(combo))}
+						{@const row = f.rows[comboKey(combo)]}
+						{#if row}
+							<div class="variant" role="group" aria-labelledby="variant-{i}">
+								<h3 id="variant-{i}">{combo.join(' / ') || t.only}</h3>
+								<div class="variant-fields">
+									<NumberField
+										label={t.price}
+										bind:value={row.price}
+										min={0}
+										step={10}
+										format={money}
+										error={fields[`variants.${i}.price`]}
+									/>
+									<NumberField
+										label={t.compareAt}
+										bind:value={row.compare}
+										min={0}
+										step={10}
+										format={money}
+										hint={i === 0 ? t.compareAtHint : undefined}
+										error={fields[`variants.${i}.compare_at_price`]}
+									/>
+									<Input
+										label={t.sku}
+										bind:value={row.sku}
+										maxlength={64}
+										error={fields[`variants.${i}.sku`]}
+									/>
+									{#if row.id}
+										<div class="stock">
+											<span class="label">{t.stock}</span>
+											<span class="count">{stockOf(row.id)}</span>
+											<Button
+												variant="secondary"
+												size="sm"
+												onclick={() => {
+													adjusting = { id: row.id!, label: combo.join(' / ') || f.name };
+													adjustOpen = true;
+												}}>{t.adjust}</Button
+											>
+										</div>
+									{:else}
+										<NumberField label={t.startingStock} bind:value={row.stock} min={0} />
+									{/if}
+									{#if fields[`variants.${i}.options`]}<p class="error">
+											{fields[`variants.${i}.options`]}
+										</p>{/if}
+								</div>
+							</div>
+						{/if}
+					{/each}
+				</div>
+			</Card>
+		</div>
+		<div class="col-side">
+			<Card title={t.organize} level={2}>
+				<div class="fields">
+					<Segmented label={t.status} options={statuses} bind:value={f.status} />
+					<Switch bind:checked={f.featured}>{t.featured}</Switch>
+					<Select label={t.category} bind:value={f.categoryId} error={fields.category_id}>
+						<option value="">{t.noCategory}</option>
+						{#each categoryOptions as c (c.id)}<option value={c.id}>{c.label}</option>{/each}
+					</Select>
+					<Input
+						label={t.brand}
+						bind:value={f.brand}
+						maxlength={80}
+						hint={t.brandHint}
+						error={fields.brand}
+					/>
+				</div>
+			</Card>
+			<Card title={t.images} level={2}>
+				<div class="fields">
+					{#if f.images.length}
+						<Sortable
+							bind:items={f.images}
+							key={(i) => i.id}
+							itemLabel={(i) => i.url.split('/').pop() ?? ''}
+							label={t.imageOrder}
+							layout="grid"
+							class="images"
+						>
+							{#snippet children(img, handle, { index })}
+								<div class="image" data-sortable-item>
+									<button type="button" class="drag" {...handle}>
+										<img src={img.url} alt="" draggable="false" />
+										{#if index === 0}<span class="main">{t.mainPhoto}</span>{/if}
+									</button>
+									<button
+										type="button"
+										class="remove"
+										aria-label={t.removeImage}
+										onclick={() => f.images.splice(index, 1)}
+									>
+										<Icon icon={Cancel01Icon} size={14} />
+									</button>
+								</div>
+							{/snippet}
+						</Sortable>
+					{/if}
+					<FileDrop
+						label={t.addImages}
+						accept="image/jpeg,image/png,image/webp"
+						multiple
+						maxSize={10 * 1024 * 1024}
+						hint={t.imagesHint}
+						onfiles={upload}
+					/>
+					{#if uploading}<p class="hint" aria-live="polite">{t.uploading}</p>{/if}
+					{#if uploadError || fields.image_ids}<Alert
+							tone="danger"
+							title={uploadError || fields.image_ids}
+							live
+						/>{/if}
+				</div>
+			</Card>
+			<div class="actions">
+				{#if data.product}
+					<ConfirmButton confirm={t.deleteConfirm} onconfirm={remove}>{t.delete}</ConfirmButton>
+				{/if}
+				<Button type="submit" loading={saving}>{t.save}</Button>
+			</div>
+		</div>
 	</div>
 </form>
 
@@ -445,7 +462,7 @@
 		gap: 0.75rem;
 	}
 	:global(.images) {
-		--sortable-columns: 5;
+		--sortable-columns: 3;
 	}
 	.image {
 		position: relative;
@@ -531,10 +548,34 @@
 		font-family: var(--ui-font-mono);
 		font-size: 1.125rem;
 	}
+	.editor {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+		align-items: start;
+		gap: 1.5rem;
+	}
+	.col-main,
+	.col-side {
+		display: grid;
+		gap: 1rem;
+		min-inline-size: 0;
+	}
+	.col-side {
+		position: sticky;
+		inset-block-start: 1rem;
+	}
 	.actions {
 		display: flex;
 		justify-content: end;
 		gap: 0.5rem;
+	}
+	@media (width < 64rem) {
+		.editor {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.col-side {
+			position: static;
+		}
 	}
 	@media (max-width: 40rem) {
 		.option {

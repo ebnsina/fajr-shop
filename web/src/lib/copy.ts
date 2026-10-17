@@ -72,6 +72,7 @@ export const activity: Record<string, string> = {
 
 export const nav = {
 	label: 'Shop dashboard',
+	overview: 'Overview',
 	shop: 'Shop',
 	catalog: 'Catalog',
 	products: 'Products',
@@ -114,7 +115,21 @@ export const storeSettings = {
 	bin: 'BIN',
 	binHint: 'Your Business Identification Number. It is printed on Mushak-6.3 invoices.',
 	save: 'Save changes',
-	saved: 'Store settings saved'
+	saved: 'Store settings saved',
+	highlights: 'Promises on the home page',
+	highlightsHint:
+		'Up to four, shown in a strip under the banners. Leave a title empty to remove it.',
+	highlightIcon: 'Icon',
+	highlightTitle: 'Title',
+	highlightText: 'Short line',
+	icons: {
+		cash: 'Cash',
+		truck: 'Delivery truck',
+		return: 'Return arrow',
+		shield: 'Shield',
+		phone: 'Headset',
+		gift: 'Gift'
+	}
 };
 
 export const apiKeys = {
@@ -199,9 +214,13 @@ export const productEditor = {
 	descriptionHint: 'What it is, what it’s made of, how it fits. Customers read this before buying.',
 	status: 'Status',
 	featured: 'Featured on the home page',
+	organize: 'Organize',
+	brand: 'Brand',
+	brandHint: 'Shoppers can browse by brand.',
 	category: 'Category',
 	noCategory: 'No category',
 	images: 'Photos',
+	mainPhoto: 'Main',
 	imagesHint:
 		'JPEG, PNG or WebP, up to 10 MB each. The first photo is the main one; drag to reorder.',
 	addImages: 'Add photos',
@@ -442,4 +461,24 @@ export const home = {
 	newsletterButton: 'Subscribe',
 	newsletterThanks: 'Thank you. You’re on the list.',
 	backHome: 'Back to the shop'
+};
+
+export const overview = {
+	title: 'Overview',
+	description: 'How your shop is doing at a glance.',
+	addProduct: 'Add a product',
+	addBanner: 'Add a banner',
+	forSale: 'Products for sale',
+	drafts: 'Drafts',
+	soldOut: 'Sold-out variants',
+	categories: 'Categories',
+	subscribers: 'Newsletter sign-ups',
+	lowStock: 'Running low',
+	lowStockNone: 'Nothing is running low.',
+	product: 'Product',
+	left: 'Left',
+	recent: 'Recent activity',
+	recentNone: 'Nothing has happened yet.',
+	allActivity: 'All activity',
+	system: 'The system'
 };

@@ -75,62 +75,66 @@
 	</Select>
 {/snippet}
 
-<Card title={t.add} level={2}>
-	<form
-		method="POST"
-		action="?/create"
-		class="add"
-		use:enhance={() =>
-			async ({ result, update }) => {
-				await update();
-				if (result.type === 'success') {
-					picture = null;
-					toast.success(t.saved);
-				}
-			}}
-	>
-		{#if form?.action === 'create' && form.message}<Alert
-				tone="danger"
-				title={form.message}
-				live
-			/>{/if}
-		<Input label={t.name} name="name" required maxlength={80} error={fields('create')?.name} />
-		{@render parentSelect(null)}
-		<ImageField
-			label={t.picture}
-			hint={t.pictureHint}
-			name="image_id"
-			removeLabel={t.removePicture}
-			bind:value={picture}
-		/>
-		<div><Button type="submit">{t.add}</Button></div>
-	</form>
-</Card>
+<div class="split">
+	<Card title={t.add} level={2}>
+		<form
+			method="POST"
+			action="?/create"
+			class="add"
+			use:enhance={() =>
+				async ({ result, update }) => {
+					await update();
+					if (result.type === 'success') {
+						picture = null;
+						toast.success(t.saved);
+					}
+				}}
+		>
+			{#if form?.action === 'create' && form.message}<Alert
+					tone="danger"
+					title={form.message}
+					live
+				/>{/if}
+			<Input label={t.name} name="name" required maxlength={80} error={fields('create')?.name} />
+			{@render parentSelect(null)}
+			<ImageField
+				label={t.picture}
+				hint={t.pictureHint}
+				name="image_id"
+				removeLabel={t.removePicture}
+				bind:value={picture}
+			/>
+			<div><Button type="submit">{t.add}</Button></div>
+		</form>
+	</Card>
 
-{#if tree.length}
-	<ul class="list" aria-label={t.caption}>
-		{#each tree as { c, depth } (c.id)}
-			<li style:--depth={depth}>
-				<span class="name">{c.name}</span>
-				<span class="slug">/{c.slug}</span>
-				<Button
-					variant="ghost"
-					size="sm"
-					onclick={() => {
-						editing = c;
-						editPicture = c.image ? { id: c.image.id, url: c.image.url } : null;
-						editOpen = true;
-					}}>{t.edit}</Button
-				>
-				<ConfirmButton size="sm" confirm={t.deleteConfirm} onconfirm={() => remove(c.id)}
-					>{t.delete}</ConfirmButton
-				>
-			</li>
-		{/each}
-	</ul>
-{:else}
-	<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
-{/if}
+	<div class="list">
+		{#if tree.length}
+			<ul class="list" aria-label={t.caption}>
+				{#each tree as { c, depth } (c.id)}
+					<li style:--depth={depth}>
+						<span class="name">{c.name}</span>
+						<span class="slug">/{c.slug}</span>
+						<Button
+							variant="ghost"
+							size="sm"
+							onclick={() => {
+								editing = c;
+								editPicture = c.image ? { id: c.image.id, url: c.image.url } : null;
+								editOpen = true;
+							}}>{t.edit}</Button
+						>
+						<ConfirmButton size="sm" confirm={t.deleteConfirm} onconfirm={() => remove(c.id)}
+							>{t.delete}</ConfirmButton
+						>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
+		{/if}
+	</div>
+</div>
 
 <Dialog bind:open={editOpen} title={t.editTitle}>
 	{#if editing}
@@ -199,10 +203,10 @@
 		display: grid;
 		gap: 1rem;
 	}
-	.list {
+	ul.list {
 		display: grid;
 		gap: 0.25rem;
-		margin: 1.25rem 0 0;
+		margin: 0;
 		padding: 0;
 		list-style: none;
 	}

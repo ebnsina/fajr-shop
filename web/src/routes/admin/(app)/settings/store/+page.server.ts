@@ -4,6 +4,7 @@ import type { components } from '#lib/api.js';
 import type { Actions, PageServerLoad } from './$types';
 
 type Store = components['schemas']['Store'];
+type Highlight = components['schemas']['Highlight'];
 
 export const load: PageServerLoad = async ({ parent }) => ({
 	store: (await parent()).store
@@ -27,7 +28,15 @@ export const actions: Actions = {
 				rate_bp: Number.isFinite(rate) ? Math.round(rate * 100) : 0,
 				prices_include_vat: form.has('prices_include_vat'),
 				bin: text(form, 'vat_bin') || null
-			}
+			},
+			// Rows left without a title are dropped, so clearing a title removes that promise.
+			highlights: [0, 1, 2, 3]
+				.map((i) => ({
+					icon: (text(form, `h_icon_${i}`) || 'truck') as Highlight['icon'],
+					title: text(form, `h_title_${i}`),
+					text: text(form, `h_text_${i}`) || null
+				}))
+				.filter((h) => h.title)
 		};
 		const { data, error } = await locals.api.PUT('/v1/admin/store', { body });
 		if (!data) {

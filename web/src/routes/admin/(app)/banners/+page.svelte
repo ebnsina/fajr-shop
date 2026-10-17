@@ -98,63 +98,67 @@
 	<Switch name="active" checked={b?.active ?? true}>{t.active}</Switch>
 {/snippet}
 
-<Card title={t.add} level={2}>
-	<form
-		method="POST"
-		action="?/create"
-		class="form"
-		use:enhance={() =>
-			async ({ result, update }) => {
-				await update();
-				if (result.type === 'success') {
-					picture = null;
-					toast.success(t.saved);
-				}
-			}}
-	>
-		{#if form?.action === 'create' && form.message}<Alert
-				tone="danger"
-				title={form.message}
-				live
-			/>{/if}
-		<ImageField
-			label={t.picture}
-			hint={t.pictureHint}
-			name="image_id"
-			removeLabel={t.delete}
-			bind:value={picture}
-			error={fields('create').image_id}
-		/>
-		{@render bannerFields(null, 'create')}
-		<div><Button type="submit">{t.add}</Button></div>
-	</form>
-</Card>
+<div class="split">
+	<Card title={t.add} level={2}>
+		<form
+			method="POST"
+			action="?/create"
+			class="form"
+			use:enhance={() =>
+				async ({ result, update }) => {
+					await update();
+					if (result.type === 'success') {
+						picture = null;
+						toast.success(t.saved);
+					}
+				}}
+		>
+			{#if form?.action === 'create' && form.message}<Alert
+					tone="danger"
+					title={form.message}
+					live
+				/>{/if}
+			<ImageField
+				label={t.picture}
+				hint={t.pictureHint}
+				name="image_id"
+				removeLabel={t.delete}
+				bind:value={picture}
+				error={fields('create').image_id}
+			/>
+			{@render bannerFields(null, 'create')}
+			<div><Button type="submit">{t.add}</Button></div>
+		</form>
+	</Card>
 
-{#if groups.length}
-	{#each groups as g (g.p)}
-		<section class="group" aria-labelledby="g-{g.p}">
-			<h2 id="g-{g.p}">{t.placements[g.p].label}</h2>
-			<ul>
-				{#each g.items as b (b.id)}
-					<li>
-						<img src={b.image.url} alt="" />
-						<div class="info">
-							<span class="alt">{b.alt}</span>
-							{#if b.link}<span class="link">{b.link}</span>{/if}
-							{#if !b.active}<Badge icon={false}>{t.hidden}</Badge>{/if}
-						</div>
-						<Button variant="ghost" size="sm" onclick={() => edit(b)}>{t.edit}</Button>
-						<ConfirmButton size="sm" confirm={t.deleteConfirm} onconfirm={() => remove(b.id)}
-							>{t.delete}</ConfirmButton
-						>
-					</li>
-				{/each}
-			</ul>
-		</section>
-	{/each}
-{:else}
-	<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
-{/if}
+	<div class="list">
+		{#if groups.length}
+			{#each groups as g (g.p)}
+				<section class="group" aria-labelledby="g-{g.p}">
+					<h2 id="g-{g.p}">{t.placements[g.p].label}</h2>
+					<ul>
+						{#each g.items as b (b.id)}
+							<li>
+								<img src={b.image.url} alt="" />
+								<div class="info">
+									<span class="alt">{b.alt}</span>
+									{#if b.link}<span class="link">{b.link}</span>{/if}
+									{#if !b.active}<Badge icon={false}>{t.hidden}</Badge>{/if}
+								</div>
+								<Button variant="ghost" size="sm" onclick={() => edit(b)}>{t.edit}</Button>
+								<ConfirmButton size="sm" confirm={t.deleteConfirm} onconfirm={() => remove(b.id)}
+									>{t.delete}</ConfirmButton
+								>
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/each}
+		{:else}
+			<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
+		{/if}
+	</div>
+</div>
 
 <Dialog bind:open={editOpen} title={t.editTitle}>
 	{#if editing}
@@ -209,7 +213,7 @@
 		display: grid;
 		gap: 1rem;
 	}
-	.group {
+	.group + .group {
 		margin-block-start: 1.5rem;
 	}
 	.group h2 {
