@@ -11,7 +11,8 @@
 	} from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { formatMoney } from '#lib/money.js';
-	import { activity, overview as t } from '#lib/copy.js';
+	import { overview as t } from '#lib/copy.js';
+	import { describe } from '#lib/admin/activity.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import Table from '#lib/sinaui/ui/Table.svelte';
@@ -19,8 +20,12 @@
 
 	let { data }: PageProps = $props();
 	const o = $derived(data.overview);
-	const n = new Intl.NumberFormat('en-US');
-	const when = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+	const n = new Intl.NumberFormat('en-BD');
+	const when = new Intl.DateTimeFormat('en-BD', {
+		dateStyle: 'medium',
+		timeStyle: 'short',
+		timeZone: 'Asia/Dhaka'
+	});
 	type Stat = { label: string; value: string; icon: typeof CubeIcon; href: string; warn?: boolean };
 	// Orders first, for whoever handles them: what's waiting, then how sales are going.
 	const orderStats = $derived<Stat[]>(
@@ -141,9 +146,11 @@
 			</div>
 			{#if data.activity.length}
 				<ul class="feed">
-					{#each data.activity as e (e.id)}
+					{#each data.activity as e (e.id)}{@const d = describe(e)}
 						<li>
-							<span>{activity[e.action] ?? e.action}</span>
+							<span
+								>{#if d.href}<a href={d.href}>{d.text}</a>{:else}{d.text}{/if}</span
+							>
 							<span class="meta">{e.actor ?? t.system} · {when.format(new Date(e.created_at))}</span
 							>
 						</li>

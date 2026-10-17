@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { activity, activityPage as t } from '#lib/copy.js';
+	import { activityPage as t } from '#lib/copy.js';
+	import { describe } from '#lib/admin/activity.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import Table from '#lib/sinaui/ui/Table.svelte';
@@ -7,7 +8,11 @@
 
 	let { data }: PageProps = $props();
 
-	const when = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+	const when = new Intl.DateTimeFormat('en-BD', {
+		dateStyle: 'medium',
+		timeStyle: 'short',
+		timeZone: 'Asia/Dhaka'
+	});
 </script>
 
 <svelte:head><title>{t.title} · {data.store.name}</title></svelte:head>
@@ -23,12 +28,14 @@
 			<tr><th>{t.columns.when}</th><th>{t.columns.who}</th><th>{t.columns.what}</th></tr>
 		</thead>
 		<tbody>
-			{#each data.page.items as entry (entry.id)}
+			{#each data.page.items as entry (entry.id)}{@const d = describe(entry)}
 				<tr>
 					<td><time datetime={entry.created_at}>{when.format(new Date(entry.created_at))}</time></td
 					>
 					<td>{entry.actor ?? t.system}</td>
-					<td>{activity[entry.action] ?? entry.action}</td>
+					<td
+						>{#if d.href}<a href={d.href}>{d.text}</a>{:else}{d.text}{/if}</td
+					>
 				</tr>
 			{/each}
 		</tbody>
@@ -47,16 +54,8 @@
 </nav>
 
 <style>
-	.head h1 {
-		margin: 0 0 0.25rem;
-		font-size: 1.5rem;
-	}
-	.head p {
-		margin: 0;
-		color: var(--ui-muted);
-	}
-	.head {
-		margin-block-end: 1.5rem;
+	td a {
+		color: var(--brand-700);
 	}
 	.pages {
 		display: flex;

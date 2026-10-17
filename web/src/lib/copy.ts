@@ -63,24 +63,6 @@ export const keyScopes: components['schemas']['ApiKeyScope'][] = [
 	'audit:read'
 ];
 
-export const activity: Record<string, string> = {
-	'store.update': 'Changed the store settings',
-	'api_key.create': 'Created an API key',
-	'api_key.revoke': 'Revoked an API key',
-	'category.create': 'Added a category',
-	'category.update': 'Changed a category',
-	'category.delete': 'Removed a category',
-	'product.create': 'Added a product',
-	'product.update': 'Changed a product',
-	'product.delete': 'Removed a product',
-	'banner.create': 'Added a banner',
-	'banner.update': 'Changed a banner',
-	'banner.delete': 'Removed a banner',
-	'shipping_zone.create': 'Added a delivery zone',
-	'shipping_zone.update': 'Changed a delivery zone',
-	'shipping_zone.delete': 'Removed a delivery zone'
-};
-
 export const nav = {
 	label: 'Shop dashboard',
 	overview: 'Overview',

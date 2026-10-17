@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dashboard activity reads as sentences that name what changed ("Confirmed order #10001",
+  "Added Nusrat Jahan to the team") and link to it, on the Activity page and the Overview;
+  times in Dhaka time. Products list shows each product's brand.
 - Dashboard → Team: admins add staff or admins (with a password they hand over), change roles,
   and switch someone off, which stops their session at once. Nobody changes their own access,
   and the last admin can't be removed. (`/v1/admin/staff`, admins signed in only.)

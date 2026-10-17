@@ -81,7 +81,9 @@
 							{:else}
 								<span class="thumb" aria-hidden="true"></span>
 							{/if}
-							<span>{p.name}</span>
+							<span class="text"
+								>{p.name}{#if p.brand}<span class="brand">{p.brand}</span>{/if}</span
+							>
 						</a>
 					</td>
 					<td>
@@ -171,5 +173,13 @@
 		justify-content: end;
 		gap: 0.5rem;
 		margin-block-start: 1rem;
+	}
+	.text {
+		display: grid;
+	}
+	.brand {
+		color: var(--text-secondary);
+		font-size: 0.8125rem;
+		font-weight: 400;
 	}
 </style>
