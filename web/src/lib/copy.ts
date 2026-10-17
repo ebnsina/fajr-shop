@@ -63,6 +63,18 @@ export const keyScopes: components['schemas']['ApiKeyScope'][] = [
 	'audit:read'
 ];
 
+/** Words shared across the dashboard's forms and tables. */
+export const admin = {
+	back: 'Back',
+	next: 'Next',
+	actions: (what: string) => `Actions for ${what}`,
+	edit: 'Edit',
+	delete: 'Delete',
+	cancel: 'Cancel',
+	deleteTitle: (what: string) => `Delete ${what}?`,
+	deleteBody: 'This can’t be undone.'
+};
+
 export const nav = {
 	label: 'Shop dashboard',
 	overview: 'Overview',
@@ -291,7 +303,10 @@ export const categories = {
 	deleted: 'Category deleted',
 	caption: 'Categories',
 	emptyTitle: 'No categories yet',
-	emptyBody: 'Add one, such as “Men” or “Saree”.'
+	emptyBody: 'Add one, such as “Men” or “Saree”.',
+	stepCategory: 'Category',
+	view: 'View in the shop',
+	deleteBody: 'Products in it stay, without a category. This can’t be undone.'
 };
 
 export const shop = {
@@ -529,6 +544,9 @@ export const banners = {
 	deleteConfirm: 'Delete it?',
 	deleted: 'Banner deleted',
 	hidden: 'Hidden',
+	shown: 'Shown',
+	statusCol: 'Status',
+	stepWords: 'Words and link',
 	edit: 'Edit',
 	editTitle: 'Edit banner',
 	emptyTitle: 'No banners yet',
@@ -625,6 +643,12 @@ export const shippingAdmin = {
 	freeOver: 'Free delivery over (optional)',
 	freeOverHint: 'Leave empty if delivery is never free here.',
 	districts: 'Districts',
+	zoneCol: 'Zone',
+	freeCol: 'Free over',
+	statusCol: 'Status',
+	delivering: 'Delivering',
+	stepZone: 'Zone',
+	stepCharges: 'Charges',
 	districtsHint: 'Ticked districts get this zone’s charge. Greyed ones are in another zone.',
 	inZone: (zone: string) => `in ${zone}`,
 	selectFree: 'Tick every district not in a zone',
@@ -652,6 +676,14 @@ export const discountAdmin = {
 	deleteConfirm: 'Delete it?',
 	deleted: 'Code deleted',
 	code: 'Code',
+	amountCol: 'Takes off',
+	minCol: 'Min. order',
+	dates: 'When',
+	usedCol: 'Used',
+	status: 'Status',
+	stepWhat: 'The discount',
+	stepRules: 'Conditions',
+	stepWhen: 'When',
 	codeHint: 'Letters, numbers, - and _. Shoppers can type it in any case.',
 	codePlaceholder: 'EID10',
 	about: 'Shown to shoppers (optional)',

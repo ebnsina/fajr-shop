@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dashboard: Discounts, Delivery, Categories and Banners are tables with a "⋯" menu per row
+  (Edit, Delete and more); adding and editing happen in a dialog, one step at a time, with the
+  buttons on the right; deleting asks first.
 - Shop uses sinaui's own pieces where it had look-alikes: answers and the order "thank you" are
   callouts (Alert), panels are Cards, breadcrumbs are Breadcrumb, active filters are a removable
   TagGroup, and reviews show the author's avatar.
