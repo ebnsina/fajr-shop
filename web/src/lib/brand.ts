@@ -9,5 +9,6 @@ export function accentCss(hex: string | null | undefined) {
 	// White text when it contrasts better than near-black (WCAG relative luminance).
 	const on = (luminance + 0.05) / 0.05 < 1.05 / (luminance + 0.05) ? '#ffffff' : '#0b0f19';
 	const dark = `color-mix(in oklab, ${hex} 60%, white)`;
-	return `:root{--ui-accent:light-dark(${hex},${dark});--ui-on-accent:light-dark(${on},#0b0f19)}`;
+	// html:root outranks the default color in app.css, whichever stylesheet loads last.
+	return `html:root{--ui-accent:light-dark(${hex},${dark});--ui-on-accent:light-dark(${on},#0b0f19)}`;
 }

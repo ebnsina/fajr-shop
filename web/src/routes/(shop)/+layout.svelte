@@ -2,6 +2,7 @@
 	import { cart as c, shop as t } from '#lib/copy.js';
 	import { Toaster } from '#lib/sinaui/ui/toast/index.js';
 	import BagDrawer from '#lib/shop/BagDrawer.svelte';
+	import BackToTop from '#lib/shop/BackToTop.svelte';
 	import BottomNav from '#lib/shop/BottomNav.svelte';
 	import SiteFooter from '#lib/shop/SiteFooter.svelte';
 	import SiteHeader from '#lib/shop/SiteHeader.svelte';
@@ -33,6 +34,7 @@
 	<div id="main" class="site-main" role="main" tabindex="-1">{@render children()}</div>
 	<SiteFooter store={data.store} {nav} />
 </div>
+<BackToTop />
 <BottomNav count={data.cart.item_count} signedIn={!!data.me} />
 <BagDrawer cart={data.cart} {vatNote} />
 <Toaster />

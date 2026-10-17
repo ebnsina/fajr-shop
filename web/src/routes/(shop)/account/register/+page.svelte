@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { account as t } from '#lib/copy.js';
+	import { account as t, ph } from '#lib/copy.js';
 	import AuthCard from '#lib/sinaui/blocks/auth/AuthCard.svelte';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -34,6 +34,7 @@
 			{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
 			<Input
 				label={t.name}
+				placeholder={ph.customerName}
 				name="name"
 				autocomplete="name"
 				value={form?.values.name ?? ''}
@@ -43,6 +44,7 @@
 			/>
 			<Input
 				label={t.phone}
+				placeholder={ph.phone}
 				name="phone"
 				type="tel"
 				inputmode="tel"
@@ -53,6 +55,7 @@
 			/>
 			<Input
 				label={t.email}
+				placeholder={ph.customerEmail}
 				name="email"
 				type="email"
 				autocomplete="email"
@@ -61,6 +64,7 @@
 			/>
 			<PasswordInput
 				label={t.password}
+				placeholder={ph.newPassword}
 				name="password"
 				autocomplete="new-password"
 				hint={t.passwordHint}

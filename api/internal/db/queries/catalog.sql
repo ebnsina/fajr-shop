@@ -129,8 +129,7 @@ SELECT
     (SELECT count(*) FROM products WHERE status = 'archived')::int AS archived,
     (SELECT count(*) FROM categories)::int AS categories,
     (SELECT count(*) FROM variants v JOIN products p ON p.id = v.product_id
-        WHERE p.status = 'active' AND v.stock = 0)::int AS out_of_stock,
-    (SELECT count(*) FROM newsletter_subscribers)::int AS subscribers;
+        WHERE p.status = 'active' AND v.stock = 0)::int AS out_of_stock;
 
 -- name: LowStock :many
 SELECT v.id AS variant_id, p.id AS product_id, p.name, v.options, v.stock
@@ -138,6 +137,3 @@ FROM variants v JOIN products p ON p.id = v.product_id
 WHERE p.status = 'active' AND v.stock BETWEEN 1 AND 3
 ORDER BY v.stock, p.name
 LIMIT 10;
-
--- name: Subscribe :exec
-INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING;

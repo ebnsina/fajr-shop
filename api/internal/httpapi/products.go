@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
@@ -23,13 +25,100 @@ type productFilter struct {
 	minPrice    *int64
 	maxPrice    *int64
 	inStock     bool
-	brand       string
 	featured    bool
 	onSale      bool
-	options     map[string]string
+	brands      []string            // any of these
+	options     map[string][]string // per option name, any of these values, on one variant
 	sort        string
 	cursor      *string
 	limit       int
+}
+
+// shopFilter reads the filters the shop's product list and its facets share. noMatch is true for
+// a category slug that doesn't exist, which can only match nothing.
+func (s *Server) shopFilter(ctx context.Context, q, category *string, minPrice, maxPrice *int64,
+	inStock, featured, onSale *bool, brands, options *[]string) (f productFilter, noMatch bool, err error) {
+	f = productFilter{statuses: []string{"active"}, minPrice: minPrice, maxPrice: maxPrice}
+	if q != nil {
+		f.q = strings.TrimSpace(*q)
+	}
+	f.inStock = inStock != nil && *inStock
+	f.featured = featured != nil && *featured
+	f.onSale = onSale != nil && *onSale
+	if brands != nil {
+		for _, b := range *brands {
+			if b = strings.TrimSpace(b); b != "" {
+				f.brands = append(f.brands, b)
+			}
+		}
+	}
+	if options != nil {
+		f.options = map[string][]string{}
+		for i, o := range *options {
+			name, value, ok := strings.Cut(o, ":")
+			if !ok || name == "" || value == "" {
+				return f, false, invalid(map[string]string{fmt.Sprintf("option.%d", i): "Use Name:Value, like Size:M."})
+			}
+			f.options[name] = append(f.options[name], value)
+		}
+	}
+	if category != nil {
+		ids, err := s.q.CategorySubtree(ctx, *category)
+		if err != nil {
+			return f, false, fmt.Errorf("category: %w", err)
+		}
+		if len(ids) == 0 {
+			return f, true, nil
+		}
+		f.categoryIDs = ids
+	}
+	return f, false, nil
+}
+
+// conditions are f's SQL filters on products p, leaving out the group named skip (a facet's own,
+// so its counts show what choosing one more of it would add).
+func (f productFilter) conditions(skip string, arg func(any) string) []string {
+	var where []string
+	if f.statuses != nil {
+		where = append(where, "p.status::text = ANY("+arg(f.statuses)+")")
+	}
+	if f.q != "" {
+		like := "%" + strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(f.q) + "%"
+		where = append(where, fmt.Sprintf(
+			"((setweight(to_tsvector('simple', p.name), 'A') || setweight(to_tsvector('simple', p.description), 'B')) @@ websearch_to_tsquery('simple', %s) OR p.name ILIKE %s)",
+			arg(f.q), arg(like)))
+	}
+	if f.categoryIDs != nil {
+		where = append(where, "p.category_id = ANY("+arg(f.categoryIDs)+")")
+	}
+	if skip != "price" {
+		if f.minPrice != nil {
+			where = append(where, "p.price_max >= "+arg(*f.minPrice))
+		}
+		if f.maxPrice != nil {
+			where = append(where, "p.price_min <= "+arg(*f.maxPrice))
+		}
+	}
+	if f.inStock {
+		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.stock > 0)")
+	}
+	if f.featured {
+		where = append(where, "p.featured")
+	}
+	if f.onSale {
+		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.compare_at_price IS NOT NULL)")
+	}
+	if len(f.brands) > 0 && skip != "brand" {
+		where = append(where, "p.brand = ANY("+arg(f.brands)+")")
+	}
+	if len(f.options) > 0 && skip != "option" {
+		var each []string
+		for _, name := range slices.Sorted(maps.Keys(f.options)) {
+			each = append(each, fmt.Sprintf("v.options->>%s = ANY(%s)", arg(name), arg(f.options[name])))
+		}
+		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND "+strings.Join(each, " AND ")+")")
+	}
+	return where
 }
 
 // Each sort's ORDER BY, the matching keyset condition, and the column its cursor stores.
@@ -51,41 +140,16 @@ var errBadCursor = invalid(map[string]string{"cursor": "This page link has expir
 
 func (s *Server) ListProducts(ctx context.Context, req apigen.ListProductsRequestObject) (apigen.ListProductsResponseObject, error) {
 	pr := req.Params
-	f := productFilter{statuses: []string{"active"}, minPrice: pr.MinPrice, maxPrice: pr.MaxPrice, cursor: pr.Cursor, sort: "newest"}
-	if pr.Q != nil {
-		f.q = strings.TrimSpace(*pr.Q)
+	f, noMatch, err := s.shopFilter(ctx, pr.Q, pr.Category, pr.MinPrice, pr.MaxPrice, pr.InStock, pr.Featured, pr.OnSale, pr.Brand, pr.Option)
+	if err != nil {
+		return nil, err
 	}
-	if pr.InStock != nil {
-		f.inStock = *pr.InStock
+	if noMatch {
+		return apigen.ListProducts200JSONResponse{Items: []apigen.ProductSummary{}}, nil
 	}
-	f.featured = pr.Featured != nil && *pr.Featured
-	if pr.Brand != nil {
-		f.brand = strings.TrimSpace(*pr.Brand)
-	}
-	f.onSale = pr.OnSale != nil && *pr.OnSale
+	f.cursor, f.sort, f.limit = pr.Cursor, "newest", limitOr(pr.Limit)
 	if pr.Sort != nil {
 		f.sort = string(*pr.Sort)
-	}
-	f.limit = limitOr(pr.Limit)
-	if pr.Option != nil {
-		f.options = map[string]string{}
-		for i, o := range *pr.Option {
-			name, value, ok := strings.Cut(o, ":")
-			if !ok || name == "" || value == "" || f.options[name] != "" {
-				return nil, invalid(map[string]string{fmt.Sprintf("option.%d", i): "Use Name:Value, once per option name."})
-			}
-			f.options[name] = value
-		}
-	}
-	if pr.Category != nil {
-		ids, err := s.q.CategorySubtree(ctx, *pr.Category)
-		if err != nil {
-			return nil, fmt.Errorf("list products: category: %w", err)
-		}
-		if len(ids) == 0 {
-			return apigen.ListProducts200JSONResponse{Items: []apigen.ProductSummary{}}, nil
-		}
-		f.categoryIDs = ids
 	}
 	page, err := s.listProducts(ctx, f)
 	if err != nil {
@@ -127,43 +191,7 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 		args = append(args, v)
 		return fmt.Sprintf("$%d", len(args))
 	}
-	if f.statuses != nil {
-		where = append(where, "p.status::text = ANY("+arg(f.statuses)+")")
-	}
-	if f.q != "" {
-		like := "%" + strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(f.q) + "%"
-		where = append(where, fmt.Sprintf(
-			"((setweight(to_tsvector('simple', p.name), 'A') || setweight(to_tsvector('simple', p.description), 'B')) @@ websearch_to_tsquery('simple', %s) OR p.name ILIKE %s)",
-			arg(f.q), arg(like)))
-	}
-	if f.categoryIDs != nil {
-		where = append(where, "p.category_id = ANY("+arg(f.categoryIDs)+")")
-	}
-	if f.minPrice != nil {
-		where = append(where, "p.price_max >= "+arg(*f.minPrice))
-	}
-	if f.maxPrice != nil {
-		where = append(where, "p.price_min <= "+arg(*f.maxPrice))
-	}
-	if f.inStock {
-		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.stock > 0)")
-	}
-	if f.featured {
-		where = append(where, "p.featured")
-	}
-	if f.brand != "" {
-		where = append(where, "p.brand = "+arg(f.brand))
-	}
-	if f.onSale {
-		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.compare_at_price IS NOT NULL)")
-	}
-	if len(f.options) > 0 {
-		want, err := json.Marshal(f.options)
-		if err != nil {
-			return apigen.ProductPage{}, err
-		}
-		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.options @> "+arg(string(want))+"::jsonb)")
-	}
+	where = f.conditions("", arg)
 	if f.cursor != nil {
 		c, err := decodeProductCursor(*f.cursor)
 		if err != nil || c.Sort != f.sort {

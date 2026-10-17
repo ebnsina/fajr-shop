@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { storeSettings as t } from '#lib/copy.js';
+	import { storeSettings as t, ph } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
@@ -60,6 +60,7 @@
 		<div class="fields">
 			<Input
 				label={t.name}
+				placeholder={ph.shopName}
 				name="name"
 				value={store.name}
 				required
@@ -87,11 +88,12 @@
 			<ColorPicker
 				label={t.accent}
 				name="accent_color"
-				value={store.accent_color ?? '#047857'}
+				value={store.accent_color ?? '#1d4ed8'}
 				hint={t.accentHint}
 			/>
 			<Input
 				label={t.contactPhone}
+				placeholder={ph.phone}
 				name="contact_phone"
 				type="tel"
 				autocomplete="tel"
@@ -101,6 +103,7 @@
 			/>
 			<Input
 				label={t.contactEmail}
+				placeholder={ph.email}
 				name="contact_email"
 				type="email"
 				autocomplete="email"
@@ -136,6 +139,7 @@
 				</div>
 				<Input
 					label={t.bin}
+					placeholder={ph.bin}
 					name="vat_bin"
 					value={store.vat.bin}
 					hint={t.binHint}
@@ -165,12 +169,19 @@
 					</Select>
 					<Input
 						label={t.highlightTitle}
+						placeholder={ph.highlightTitle}
 						name="h_title_{i}"
 						value={h?.title ?? ''}
 						maxlength={60}
 						error={fields[`highlights.${i}.title`]}
 					/>
-					<Input label={t.highlightText} name="h_text_{i}" value={h?.text ?? ''} maxlength={120} />
+					<Input
+						label={t.highlightText}
+						placeholder={ph.highlightText}
+						name="h_text_{i}"
+						value={h?.text ?? ''}
+						maxlength={120}
+					/>
 				</div>
 			{/each}
 		</div>

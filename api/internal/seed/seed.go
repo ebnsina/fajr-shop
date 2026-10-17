@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/jpeg"
 	"log/slog"
 	"math"
@@ -94,13 +95,18 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 				}
 				grams := gramsFor(s.name)
 				for bi, brand := range s.brands {
-					photo, err := upload(640, 640, t.hue+float64(si)*12+float64(bi)*7, brand, s.name)
-					if err != nil {
-						return err
+					// Four photos per brand so product pages have a gallery: the main one, then views.
+					var photos []uuid.UUID
+					for vi, view := range []string{s.name, "Front view", "Back view", "Close-up"} {
+						photo, err := upload(640, 640, t.hue+float64(si)*12+float64(bi)*7+float64(vi)*9, brand, view)
+						if err != nil {
+							return err
+						}
+						photos = append(photos, photo)
 					}
 					for mi, model := range s.models {
 						for ei, ed := range editions {
-							_, v := addProduct(batch, rng, now, child.ID, photo, s, grams, brand, model, ed, fmt.Sprintf("%d-%d-%d-%d-%d", ti, si, bi, mi, ei))
+							_, v := addProduct(batch, rng, now, child.ID, photos, s, grams, brand, model, ed, fmt.Sprintf("%d-%d-%d-%d-%d", ti, si, bi, mi, ei))
 							products++
 							variants += v
 						}
@@ -181,9 +187,9 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 	return nil
 }
 
-// addProduct queues one product with its variants, photo and starting stock. It returns the
+// addProduct queues one product with its variants, photos and starting stock. It returns the
 // product's name and how many variants it has.
-func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category, photo uuid.UUID, s sub, grams int, brand, model, edition, key string) (string, int) {
+func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category uuid.UUID, photos []uuid.UUID, s sub, grams int, brand, model, edition, key string) (string, int) {
 	name := brand + " " + model
 	if edition != "" {
 		name += " " + edition
@@ -231,7 +237,9 @@ func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category, photo uui
 	b.Queue(`INSERT INTO products (id, slug, name, description, status, category_id, options, price_min, price_max, featured, brand, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5::product_status, $6, $7, $8, $9, $10, $11, $12, $12)`,
 		id, slug, name, desc, status, category, optsJSON, int64(lo)*100, int64(hi)*100, rng.IntN(100) < 3, brand, created)
-	b.Queue(`INSERT INTO product_images (product_id, upload_id, position) VALUES ($1, $2, 0)`, id, photo)
+	for i, photo := range photos {
+		b.Queue(`INSERT INTO product_images (product_id, upload_id, position) VALUES ($1, $2, $3)`, id, photo, i)
+	}
 
 	onSale := rng.IntN(100) < 25
 	for i, c := range combos {
@@ -287,24 +295,10 @@ func loadFonts() (fonts, error) {
 	return fonts{b, r}, nil
 }
 
-// picture draws a two-tone gradient with soft circles and the title (and line) in white.
+// picture is one flat color with the title (and line) in white.
 func (f fonts) picture(w, h int, hue float64, title, line string) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	a, b := hsl(hue, 0.55, 0.46), hsl(hue+28, 0.62, 0.28)
-	for y := range h {
-		for x := range w {
-			t := (float64(x)/float64(w) + float64(y)/float64(h)) / 2
-			c := mix(a, b, t)
-			// Two large soft circles, lighter, for depth.
-			for _, ci := range [][3]float64{{0.82, 0.18, 0.45}, {0.15, 0.95, 0.35}} {
-				dx, dy := float64(x)/float64(w)-ci[0], (float64(y)/float64(h)-ci[1])*float64(h)/float64(w)
-				if d := math.Hypot(dx, dy); d < ci[2] {
-					c = mix(c, color.RGBA{255, 255, 255, 255}, 0.07*(1-d/ci[2]))
-				}
-			}
-			img.SetRGBA(x, y, c)
-		}
-	}
+	draw.Draw(img, img.Bounds(), image.NewUniform(hsl(hue, 0.5, 0.4)), image.Point{}, draw.Src)
 	// Left-aligned only on banners at least twice as wide as tall; squarer pictures center it.
 	wide := w >= 2*h
 	x := w / 2
@@ -366,9 +360,4 @@ func hsl(h, s, l float64) color.RGBA {
 	}
 	p := 2*l - q
 	return color.RGBA{uint8(255 * hue(p, q, h+1.0/3)), uint8(255 * hue(p, q, h)), uint8(255 * hue(p, q, h-1.0/3)), 255}
-}
-
-func mix(a, b color.RGBA, t float64) color.RGBA {
-	m := func(x, y uint8) uint8 { return uint8(float64(x)*(1-t) + float64(y)*t) }
-	return color.RGBA{m(a.R, b.R), m(a.G, b.G), m(a.B, b.B), 255}
 }

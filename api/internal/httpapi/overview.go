@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
 	"github.com/ebnsina/fajr-shop/api/internal/auth"
@@ -31,14 +30,6 @@ func (s *Server) ListBrands(ctx context.Context, _ apigen.ListBrandsRequestObjec
 	}, nil
 }
 
-func (s *Server) SubscribeNewsletter(ctx context.Context, req apigen.SubscribeNewsletterRequestObject) (apigen.SubscribeNewsletterResponseObject, error) {
-	email := strings.ToLower(strings.TrimSpace(string(req.Body.Email)))
-	if err := s.q.Subscribe(ctx, email); err != nil {
-		return nil, fmt.Errorf("subscribe: %w", err)
-	}
-	return apigen.SubscribeNewsletter204Response{}, nil
-}
-
 func (s *Server) AdminOverview(ctx context.Context, _ apigen.AdminOverviewRequestObject) (apigen.AdminOverviewResponseObject, error) {
 	if _, err := need(ctx, auth.CatalogWrite); err != nil {
 		return nil, err
@@ -51,7 +42,7 @@ func (s *Server) AdminOverview(ctx context.Context, _ apigen.AdminOverviewReques
 	if err != nil {
 		return nil, fmt.Errorf("overview: low stock: %w", err)
 	}
-	out := apigen.Overview{Categories: int(c.Categories), OutOfStock: int(c.OutOfStock), Subscribers: int(c.Subscribers)}
+	out := apigen.Overview{Categories: int(c.Categories), OutOfStock: int(c.OutOfStock)}
 	out.Products.Active, out.Products.Draft, out.Products.Archived = int(c.Active), int(c.Draft), int(c.Archived)
 	out.LowStock = make([]apigen.LowStockItem, len(low))
 	for i, l := range low {

@@ -30,7 +30,12 @@
 <section class="site-container">
 	{#if data.page && data.filters}
 		{#if data.page.items.length || data.paged}
-			<Listing products={data.page} filters={data.filters} paged={data.paged} />
+			<Listing
+				products={data.page}
+				facets={data.facets}
+				filters={data.filters}
+				paged={data.paged}
+			/>
 		{:else}
 			<p class="note">{t.searchNone(data.q)}</p>
 		{/if}

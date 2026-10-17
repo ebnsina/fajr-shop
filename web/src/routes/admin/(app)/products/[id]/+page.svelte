@@ -4,7 +4,7 @@
 	import { untrack } from 'svelte';
 	import { Cancel01Icon } from '@hugeicons/core-free-icons';
 	import type { components } from '#lib/api.js';
-	import { delivery as d, errorText, productStatus, productEditor as t } from '#lib/copy.js';
+	import { delivery as d, errorText, productStatus, productEditor as t, ph } from '#lib/copy.js';
 	import { toPoisha, toTaka } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -208,9 +208,17 @@
 		<div class="col-main">
 			<Card title={t.details} level={2}>
 				<div class="fields">
-					<Input label={t.name} bind:value={f.name} required maxlength={150} error={fields.name} />
+					<Input
+						label={t.name}
+						placeholder={ph.productName}
+						bind:value={f.name}
+						required
+						maxlength={150}
+						error={fields.name}
+					/>
 					<Textarea
 						label={t.description}
+						placeholder={ph.description}
 						bind:value={f.description}
 						rows={5}
 						hint={t.descriptionHint}
@@ -280,6 +288,7 @@
 									/>
 									<Input
 										label={t.sku}
+										placeholder={ph.sku}
 										bind:value={row.sku}
 										maxlength={64}
 										error={fields[`variants.${i}.sku`]}
@@ -328,6 +337,7 @@
 					</Select>
 					<Input
 						label={t.brand}
+						placeholder={ph.brand}
 						bind:value={f.brand}
 						maxlength={80}
 						hint={t.brandHint}
@@ -428,7 +438,7 @@
 				{#each Object.entries(t.reasons) as [value, label] (value)}<option {value}>{label}</option
 					>{/each}
 			</Select>
-			<Input label={t.note} name="note" maxlength={200} />
+			<Input label={t.note} placeholder={ph.note} name="note" maxlength={200} />
 			<Button type="submit">{t.adjustSave}</Button>
 		</form>
 	{/if}

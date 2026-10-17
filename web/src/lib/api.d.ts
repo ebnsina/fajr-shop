@@ -255,6 +255,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/products/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What the current filters could still narrow to, with counts
+         * @description Takes the same filters as the product list. Each group's counts ignore that group's own
+         *     filter, so ticking a second brand shows how many it adds rather than zero.
+         */
+        get: operations["listProductFacets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/products/{slug}": {
         parameters: {
             query?: never;
@@ -568,27 +589,6 @@ export interface paths {
         get: operations["listBrands"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/newsletter": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Sign an email up for the shop's news and offers
-         * @description Always answers 204, whether or not the address was already signed up, so the form can't be
-         *     used to find out who shops here. Rate-limited per address.
-         */
-        post: operations["subscribeNewsletter"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1078,8 +1078,6 @@ export interface components {
             out_of_stock: number;
             /** @description Up to 10 variants of products for sale with 1 to 3 left, fewest first. */
             low_stock: components["schemas"]["LowStockItem"][];
-            /** @description Emails signed up for the newsletter. */
-            subscribers: number;
         };
         LowStockItem: {
             /** Format: uuid */
@@ -1156,6 +1154,37 @@ export interface components {
             /** Format: int64 */
             subtotal: number;
         };
+        Facets: {
+            categories: components["schemas"]["CategoryFacet"][];
+            brands: components["schemas"]["BrandFacet"][];
+            /** @description Each option name with its values, most products first. */
+            options: components["schemas"]["OptionFacet"][];
+            /** @description Cheapest and dearest among the matches, in poisha; null when nothing matches. */
+            price?: components["schemas"]["PriceRange"] | null;
+        };
+        CategoryFacet: {
+            slug: string;
+            name: string;
+            count: number;
+        };
+        BrandFacet: {
+            name: string;
+            count: number;
+        };
+        OptionFacet: {
+            name: string;
+            values: components["schemas"]["ValueFacet"][];
+        };
+        ValueFacet: {
+            value: string;
+            count: number;
+        };
+        PriceRange: {
+            /** Format: int64 */
+            min: number;
+            /** Format: int64 */
+            max: number;
+        };
     };
     responses: {
         /** @description Something went wrong; `error.code` says what */
@@ -1169,6 +1198,24 @@ export interface components {
         };
     };
     parameters: {
+        /** @description Words to search for in names and descriptions. */
+        SearchQuery: string;
+        /** @description A category slug; products in its subcategories are included. */
+        CategorySlug: string;
+        MinPrice: number;
+        MaxPrice: number;
+        InStockOnly: boolean;
+        /** @description Only these brands (exact names, as facets give them). Repeat for several; any matches. */
+        BrandFilter: string[];
+        /** @description Only products the shop marked as featured. */
+        FeaturedOnly: boolean;
+        /** @description Only products with a variant priced below its old price. */
+        OnSaleOnly: boolean;
+        /**
+         * @description `Name:Value`, e.g. `Size:M`. Values of one option match any of them; different options must
+         *     all match the same variant (`Size:M&Size:L&Color:Red`: a red M or a red L).
+         */
+        OptionFilter: string[];
         /** @description A guest's cart, from an earlier `token`. */
         CartToken: string;
         Id: string;
@@ -1497,20 +1544,23 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Words to search for in names and descriptions. */
-                q?: string;
+                q?: components["parameters"]["SearchQuery"];
                 /** @description A category slug; products in its subcategories are included. */
-                category?: string;
-                min_price?: number;
-                max_price?: number;
-                in_stock?: boolean;
-                /** @description Only this brand's products (exact name, as `GET /v1/brands` gives it). */
-                brand?: string;
+                category?: components["parameters"]["CategorySlug"];
+                min_price?: components["parameters"]["MinPrice"];
+                max_price?: components["parameters"]["MaxPrice"];
+                in_stock?: components["parameters"]["InStockOnly"];
+                /** @description Only these brands (exact names, as facets give them). Repeat for several; any matches. */
+                brand?: components["parameters"]["BrandFilter"];
                 /** @description Only products the shop marked as featured. */
-                featured?: boolean;
+                featured?: components["parameters"]["FeaturedOnly"];
                 /** @description Only products with a variant priced below its old price. */
-                on_sale?: boolean;
-                /** @description Only products with a variant having this option, as `Name:Value` (e.g. `Color:Red`). Repeat to require several. */
-                option?: string[];
+                on_sale?: components["parameters"]["OnSaleOnly"];
+                /**
+                 * @description `Name:Value`, e.g. `Size:M`. Values of one option match any of them; different options must
+                 *     all match the same variant (`Size:M&Size:L&Color:Red`: a red M or a red L).
+                 */
+                option?: components["parameters"]["OptionFilter"];
                 sort?: "newest" | "price_asc" | "price_desc" | "name";
                 /** @description `next_cursor` from the previous page. */
                 cursor?: components["parameters"]["Cursor"];
@@ -1529,6 +1579,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listProductFacets: {
+        parameters: {
+            query?: {
+                /** @description Words to search for in names and descriptions. */
+                q?: components["parameters"]["SearchQuery"];
+                /** @description A category slug; products in its subcategories are included. */
+                category?: components["parameters"]["CategorySlug"];
+                min_price?: components["parameters"]["MinPrice"];
+                max_price?: components["parameters"]["MaxPrice"];
+                in_stock?: components["parameters"]["InStockOnly"];
+                /** @description Only these brands (exact names, as facets give them). Repeat for several; any matches. */
+                brand?: components["parameters"]["BrandFilter"];
+                /** @description Only products the shop marked as featured. */
+                featured?: components["parameters"]["FeaturedOnly"];
+                /** @description Only products with a variant priced below its old price. */
+                on_sale?: components["parameters"]["OnSaleOnly"];
+                /**
+                 * @description `Name:Value`, e.g. `Size:M`. Values of one option match any of them; different options must
+                 *     all match the same variant (`Size:M&Size:L&Color:Red`: a red M or a red L).
+                 */
+                option?: components["parameters"]["OptionFilter"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Facets */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Facets"];
                 };
             };
             default: components["responses"]["Error"];
@@ -2031,32 +2121,6 @@ export interface operations {
                         items: components["schemas"]["Brand"][];
                     };
                 };
-            };
-            default: components["responses"]["Error"];
-        };
-    };
-    subscribeNewsletter: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: email */
-                    email: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Signed up */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             default: components["responses"]["Error"];
         };

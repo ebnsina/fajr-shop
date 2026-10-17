@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { account as t } from '#lib/copy.js';
+	import { account as t, ph } from '#lib/copy.js';
 	import AuthCard from '#lib/sinaui/blocks/auth/AuthCard.svelte';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -33,12 +33,19 @@
 			{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
 			<Input
 				label={t.login}
+				placeholder={ph.login}
 				name="login"
 				autocomplete="username"
 				value={form?.login ?? ''}
 				required
 			/>
-			<PasswordInput label={t.password} name="password" autocomplete="current-password" required />
+			<PasswordInput
+				label={t.password}
+				placeholder={ph.password}
+				name="password"
+				autocomplete="current-password"
+				required
+			/>
 			<Button type="submit" loading={busy}>{t.signIn}</Button>
 		</form>
 		{#snippet footer()}{t.noAccount} <a href="/account/register">{t.createOne}</a>{/snippet}

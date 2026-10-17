@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { deserialize, enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import { apiKeys as t, errorText, keyScopes, permissions } from '#lib/copy.js';
+	import { apiKeys as t, errorText, keyScopes, permissions, ph } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -74,6 +74,7 @@
 				{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
 				<Input
 					label={t.name}
+					placeholder={ph.apiKeyName}
 					name="name"
 					maxlength={80}
 					hint={t.nameHint}

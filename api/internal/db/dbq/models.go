@@ -202,11 +202,6 @@ type Category struct {
 	ImageID   uuid.NullUUID
 }
 
-type NewsletterSubscriber struct {
-	Email     string
-	CreatedAt pgtype.Timestamptz
-}
-
 type Product struct {
 	ID          uuid.UUID
 	Slug        string

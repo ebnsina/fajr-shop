@@ -26,10 +26,16 @@
 		hint,
 		error,
 		children,
+		onpointerdown,
+		onkeydown,
+		onblur,
 		id = uid,
 		class: className,
 		...rest
 	}: Props = $props();
+
+	// Chromium keeps :focus-visible on a <select> after a mouse pick; the ring is for keyboard use only.
+	let pointer = $state(false);
 
 	const describedby = $derived(
 		[hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined
@@ -45,6 +51,10 @@
 			bind:value
 			aria-invalid={error ? true : undefined}
 			aria-describedby={describedby}
+			data-pointer={pointer || undefined}
+			onpointerdown={(e) => ((pointer = true), onpointerdown?.(e))}
+			onkeydown={(e) => ((pointer = false), onkeydown?.(e))}
+			onblur={(e) => ((pointer = false), onblur?.(e))}
 			{...rest}
 		>
 			{#if placeholder}<option value="" disabled>{placeholder}</option>{/if}
@@ -101,19 +111,18 @@
 	select :global(option) {
 		color: var(--ui-fg);
 	}
-	/* Chromium matches :focus-visible on a <select> after a mouse pick too, so an offset ring would
-	   stay on after every choice; a tinted border and halo reads as focus without looking stuck. */
-	select:focus-visible {
-		/* Transparent outline: invisible normally, drawn in forced-colors mode where shadows vanish. */
-		outline: 2px solid transparent;
-		border-color: var(--ui-ring);
-		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ui-ring) 25%, transparent);
+	select[data-pointer] {
+		outline: none;
+	}
+	select:focus-visible:not([data-pointer]) {
+		outline: var(--ui-ring-width) solid var(--ui-ring);
+		outline-offset: var(--ui-ring-offset);
 	}
 	select[aria-invalid='true'] {
 		border-color: var(--ui-danger);
 	}
 	select[aria-invalid='true']:focus-visible {
-		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ui-danger) 25%, transparent);
+		outline-color: var(--ui-danger);
 	}
 	select:disabled {
 		background: var(--ui-subtle);

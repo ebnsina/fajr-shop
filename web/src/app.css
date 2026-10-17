@@ -7,6 +7,9 @@
 /* Sina UI's tokens already name IBM Plex Sans and Mono; these just load them. */
 :root {
 	--font-heading: var(--ui-font);
+	/* The shop's brand color when the owner hasn't chosen one: blue, as shoppers here expect. */
+	--ui-accent: light-dark(#1d4ed8, #60a5fa);
+	--ui-on-accent: light-dark(#ffffff, #0b1220);
 	/* Light unless the shopper picks dark. */
 	color-scheme: light;
 }

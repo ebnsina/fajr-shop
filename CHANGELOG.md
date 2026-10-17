@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Shop filters: categories, brands and every option (size, color, capacity…) with how many
+  products each choice has, price placeholders from the real range, in stock and on sale,
+  and removable chips for the filters in use. Several brands or values of one option match any
+  of them (`GET /v1/products/facets`, repeatable `brand` and `option`).
+- Product pages have a photo gallery: thumbnails, arrows, swipe on phones. Demo products get
+  four photos each, in flat colors.
+- Polish: hero slides line up with the side banners, product rows scroll with arrows instead
+  of a scrollbar, quantity and "Add to bag" are the same height, selected options have a thin
+  border, and the sort box has the same focus ring as every other field.
 - Delivery zones: group districts, set a charge for a base weight plus each extra kilo, an
   optional free-delivery amount and a delivery time. Shoppers see the charge for their district
   on the bag page and the zones on every product page. Variants have a weight.

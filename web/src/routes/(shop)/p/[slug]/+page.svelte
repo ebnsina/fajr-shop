@@ -9,9 +9,9 @@
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import { bag } from '#lib/shop/bag.svelte.js';
-	import RadioCards from '#lib/sinaui/ui/RadioCards.svelte';
+	import OptionChips from '#lib/shop/OptionChips.svelte';
 	import Price from '#lib/shop/Price.svelte';
-	import ProductImage from '#lib/shop/ProductImage.svelte';
+	import Gallery from '#lib/shop/Gallery.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -20,14 +20,12 @@
 	// Starts on the first variant in stock, or the first one when all are sold out.
 	const start = () => (p.variants.find((v) => v.stock > 0) ?? p.variants[0]).options;
 	let chosen = $state<Record<string, string>>({});
-	let view = $state(0);
 	let quantity = $state(1);
 	let adding = $state(false);
 	let addError = $state('');
 	$effect.pre(() => {
 		p.id; // a new product (via a link on this page) starts fresh
 		chosen = { ...start() };
-		view = 0;
 		quantity = 1;
 	});
 
@@ -40,7 +38,6 @@
 			p.options.every((o) => v.options[o.name] === (o.name === name ? value : chosen[o.name]))
 		);
 
-	const shots = $derived(p.images.length ? p.images : [undefined]);
 	const stockText = $derived(
 		!variant
 			? pt.notOffered
@@ -100,33 +97,7 @@
 </section>
 
 <section class="site-container product">
-	<div class="gallery">
-		{#key view}
-			<div class="photo">
-				<ProductImage
-					src={shots[view]?.url}
-					alt={shots.length > 1 ? `${p.name}, ${t.picture(view + 1, shots.length)}` : p.name}
-					loading="eager"
-					zoom
-				/>
-			</div>
-		{/key}
-		{#if shots.length > 1}
-			<div class="thumbs" role="group" aria-label={t.pictures}>
-				{#each shots as shot, i (i)}
-					<button
-						type="button"
-						class={['thumb', view === i && 'on']}
-						aria-label={t.picture(i + 1, shots.length)}
-						aria-pressed={view === i}
-						onclick={() => (view = i)}
-					>
-						<ProductImage src={shot?.url} alt="" ratio="1" icon={18} />
-					</button>
-				{/each}
-			</div>
-		{/if}
-	</div>
+	<div class="gallery"><Gallery images={p.images} name={p.name} /></div>
 
 	<div class="buy">
 		<h1 class="site-title">{p.name}</h1>
@@ -142,17 +113,14 @@
 		{/if}
 
 		{#each p.options as o (o.name)}
-			<RadioCards
+			<OptionChips
 				legend={o.name}
+				values={o.values}
 				bind:value={() => chosen[o.name], (v) => (chosen[o.name] = v ?? chosen[o.name])}
-				options={o.values.map((value) => {
+				unavailable={(value) => {
 					const v = withValue(o.name, value);
-					return {
-						value,
-						label: value,
-						detail: !v ? pt.notOffered : v.stock === 0 ? pt.soldOut : undefined
-					};
-				})}
+					return !v ? 'not_offered' : v.stock === 0 ? 'sold_out' : null;
+				}}
 			/>
 		{/each}
 
@@ -200,7 +168,7 @@
 						max={Math.min(99, variant.stock)}
 					/>
 				</div>
-				<Button type="submit" size="lg" loading={adding}>{c.add}</Button>
+				<Button type="submit" loading={adding}>{c.add}</Button>
 			</form>
 			{#if addError}<p class="add-error" role="alert">{addError}</p>{/if}
 		{/if}
@@ -240,39 +208,6 @@
 	.gallery {
 		position: sticky;
 		inset-block-start: 5rem;
-		display: grid;
-		gap: 0.75rem;
-	}
-	.photo {
-		animation: in var(--ui-dur) var(--ui-ease-out);
-	}
-	@keyframes in {
-		from {
-			opacity: 0.4;
-		}
-	}
-	.thumbs {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	.thumb {
-		inline-size: 4.5rem;
-		padding: 0;
-		border: 0;
-		border-radius: var(--ui-radius);
-		background: none;
-		opacity: 0.6;
-		cursor: pointer;
-		transition: opacity var(--ui-dur-press) ease;
-	}
-	.thumb.on,
-	.thumb:hover {
-		opacity: 1;
-	}
-	.thumb:focus-visible {
-		outline: var(--ui-ring-width) solid var(--ui-ring);
-		outline-offset: var(--ui-ring-offset);
 	}
 	.buy {
 		display: grid;
@@ -354,11 +289,6 @@
 		}
 		.gallery {
 			position: static;
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.photo {
-			animation: none;
 		}
 	}
 </style>

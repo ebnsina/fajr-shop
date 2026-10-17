@@ -316,7 +316,22 @@ export const shop = {
 	filters: 'Filters',
 	minPrice: 'Lowest price',
 	maxPrice: 'Highest price',
+	minPlaceholder: 'Min ৳',
+	maxPlaceholder: 'Max ৳',
+	priceRange: 'Price',
+	availability: 'Availability',
+	showing: (n: number, more: boolean) =>
+		more ? `Showing ${n} products, more below` : `${n} ${n === 1 ? 'product' : 'products'}`,
 	inStockOnly: 'In stock only',
+	onSaleOnly: 'On sale',
+	category: 'Category',
+	brand: 'Brand',
+	more: (n: number) => `${n} more`,
+	from_: (price: string) => `From ${price}`,
+	upTo: (price: string) => `Up to ${price}`,
+	active: 'Filters in use',
+	remove: (what: string) => `Remove ${what}`,
+	clearAll: 'Clear all',
 	apply: 'Apply',
 	clear: 'Clear filters',
 	sort: 'Sort by',
@@ -390,6 +405,7 @@ export const storefront = {
 	shop: 'Shop',
 	contact: 'Contact us',
 	cod: 'Cash on delivery available',
+	backToTop: 'Back to top',
 	myAccount: 'My account',
 	service: 'Customer service',
 	hotlineHours: 'Call us any day'
@@ -459,13 +475,7 @@ export const home = {
 	recommended: 'Recommended for you',
 	tabs: { newest: 'New arrivals', sale: 'On sale', featured: 'Featured' },
 	brands: 'Top brands',
-	products: (n: number) => `${n} ${n === 1 ? 'product' : 'products'}`,
-	newsletterTitle: 'Subscribe to our newsletter',
-	newsletterText: 'News about sales and new arrivals. No spam; leave any time.',
-	newsletterEmail: 'Your email',
-	newsletterButton: 'Subscribe',
-	newsletterThanks: 'Thank you. You’re on the list.',
-	backHome: 'Back to the shop'
+	products: (n: number) => `${n} ${n === 1 ? 'product' : 'products'}`
 };
 
 export const overview = {
@@ -477,7 +487,6 @@ export const overview = {
 	drafts: 'Drafts',
 	soldOut: 'Sold-out variants',
 	categories: 'Categories',
-	subscribers: 'Newsletter sign-ups',
 	lowStock: 'Running low',
 	lowStockNone: 'Nothing is running low.',
 	product: 'Product',
@@ -537,4 +546,36 @@ export const delivery = {
 	notDeliverable: 'We don’t deliver to that district yet.',
 	zones: 'Delivery charges',
 	weight: 'Weight (g)'
+};
+
+export const slider = {
+	previous: 'Previous slide',
+	next: 'Next slide',
+	goTo: (n: number) => `Show slide ${n}`,
+	of: (i: number, n: number) => `${i} of ${n}`
+};
+
+/** Example values shown inside empty fields. */
+export const ph = {
+	apiKeyName: 'Accounting sync',
+	shopName: 'Fajr Bazar',
+	phone: '01712345678',
+	email: 'hello@yourshop.com',
+	bin: '000123456-0101',
+	highlightTitle: 'Cash on delivery',
+	highlightText: 'Pay when your order arrives',
+	productName: 'Cotton Panjabi',
+	description: 'Fabric, fit, size guide, how to care for it…',
+	sku: 'PJ-001-M',
+	brand: 'Aarong',
+	note: 'Invoice 1042 from the supplier',
+	freeOver: '3000',
+	bannerAlt: 'Eid sale: 20% off panjabis',
+	bannerLink: '/c/saree',
+	categoryName: 'Saree',
+	customerName: 'Rahim Uddin',
+	customerEmail: 'you@example.com',
+	newPassword: 'At least 8 characters',
+	login: 'Email or 01712345678',
+	password: 'Your password'
 };

@@ -581,17 +581,15 @@ SELECT
     (SELECT count(*) FROM products WHERE status = 'archived')::int AS archived,
     (SELECT count(*) FROM categories)::int AS categories,
     (SELECT count(*) FROM variants v JOIN products p ON p.id = v.product_id
-        WHERE p.status = 'active' AND v.stock = 0)::int AS out_of_stock,
-    (SELECT count(*) FROM newsletter_subscribers)::int AS subscribers
+        WHERE p.status = 'active' AND v.stock = 0)::int AS out_of_stock
 `
 
 type OverviewCountsRow struct {
-	Active      int32
-	Draft       int32
-	Archived    int32
-	Categories  int32
-	OutOfStock  int32
-	Subscribers int32
+	Active     int32
+	Draft      int32
+	Archived   int32
+	Categories int32
+	OutOfStock int32
 }
 
 func (q *Queries) OverviewCounts(ctx context.Context) (OverviewCountsRow, error) {
@@ -603,7 +601,6 @@ func (q *Queries) OverviewCounts(ctx context.Context) (OverviewCountsRow, error)
 		&i.Archived,
 		&i.Categories,
 		&i.OutOfStock,
-		&i.Subscribers,
 	)
 	return i, err
 }
@@ -688,15 +685,6 @@ func (q *Queries) SlugTaken(ctx context.Context, arg SlugTakenParams) (pgtype.Bo
 	var column_1 pgtype.Bool
 	err := row.Scan(&column_1)
 	return column_1, err
-}
-
-const subscribe = `-- name: Subscribe :exec
-INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING
-`
-
-func (q *Queries) Subscribe(ctx context.Context, email string) error {
-	_, err := q.db.Exec(ctx, subscribe, email)
-	return err
 }
 
 const updateCategory = `-- name: UpdateCategory :one

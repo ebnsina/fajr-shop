@@ -3,7 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { components } from '#lib/api.js';
 	import ImageField from '#lib/admin/ImageField.svelte';
-	import { banners as t, errorText } from '#lib/copy.js';
+	import { banners as t, errorText, ph } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -79,6 +79,7 @@
 	/>
 	<Input
 		label={t.alt}
+		placeholder={ph.bannerAlt}
 		name="alt"
 		value={b?.alt}
 		required
@@ -88,6 +89,7 @@
 	/>
 	<Input
 		label={t.link}
+		placeholder={ph.bannerLink}
 		name="link"
 		value={b?.link}
 		maxlength={500}

@@ -3,7 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import type { components } from '#lib/api.js';
 	import DistrictPicker from '#lib/admin/DistrictPicker.svelte';
-	import { errorText, shippingAdmin as t } from '#lib/copy.js';
+	import { errorText, shippingAdmin as t, ph } from '#lib/copy.js';
 	import { formatMoney, toTaka } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
@@ -116,6 +116,7 @@
 		/>
 		<Input
 			label={t.freeOver}
+			placeholder={ph.freeOver}
 			name="free_over"
 			type="number"
 			inputmode="numeric"

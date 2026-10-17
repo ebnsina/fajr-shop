@@ -43,11 +43,7 @@
 		place-items: center;
 		inline-size: 100%;
 		border-radius: var(--ui-radius);
-		background: linear-gradient(
-			135deg,
-			var(--ui-subtle),
-			color-mix(in srgb, var(--ui-subtle) 50%, transparent)
-		);
+		background: var(--ui-subtle);
 		color: color-mix(in srgb, var(--ui-muted) 55%, transparent);
 	}
 </style>

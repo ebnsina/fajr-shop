@@ -315,61 +315,15 @@ paths:
       tags: [catalog]
       summary: Products for sale, filtered and sorted
       parameters:
-        - name: q
-          in: query
-          description: Words to search for in names and descriptions.
-          schema:
-            type: string
-            maxLength: 100
-        - name: category
-          in: query
-          description: A category slug; products in its subcategories are included.
-          schema:
-            type: string
-            maxLength: 100
-        - name: min_price
-          in: query
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-        - name: max_price
-          in: query
-          schema:
-            type: integer
-            format: int64
-            minimum: 0
-        - name: in_stock
-          in: query
-          schema:
-            type: boolean
-        - name: brand
-          in: query
-          description: Only this brand's products (exact name, as `GET /v1/brands` gives it).
-          schema:
-            type: string
-            maxLength: 80
-        - name: featured
-          in: query
-          description: Only products the shop marked as featured.
-          schema:
-            type: boolean
-        - name: on_sale
-          in: query
-          description: Only products with a variant priced below its old price.
-          schema:
-            type: boolean
-        - name: option
-          in: query
-          description: "Only products with a variant having this option, as `Name:Value` (e.g. `Color:Red`). Repeat to require several."
-          style: form
-          explode: true
-          schema:
-            type: array
-            maxItems: 5
-            items:
-              type: string
-              maxLength: 100
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/CategorySlug"
+        - $ref: "#/components/parameters/MinPrice"
+        - $ref: "#/components/parameters/MaxPrice"
+        - $ref: "#/components/parameters/InStockOnly"
+        - $ref: "#/components/parameters/BrandFilter"
+        - $ref: "#/components/parameters/FeaturedOnly"
+        - $ref: "#/components/parameters/OnSaleOnly"
+        - $ref: "#/components/parameters/OptionFilter"
         - name: sort
           in: query
           schema:
@@ -385,6 +339,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProductPage"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/products/facets:
+    get:
+      operationId: listProductFacets
+      tags: [catalog]
+      summary: What the current filters could still narrow to, with counts
+      description: |
+        Takes the same filters as the product list. Each group's counts ignore that group's own
+        filter, so ticking a second brand shows how many it adds rather than zero.
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/CategorySlug"
+        - $ref: "#/components/parameters/MinPrice"
+        - $ref: "#/components/parameters/MaxPrice"
+        - $ref: "#/components/parameters/InStockOnly"
+        - $ref: "#/components/parameters/BrandFilter"
+        - $ref: "#/components/parameters/FeaturedOnly"
+        - $ref: "#/components/parameters/OnSaleOnly"
+        - $ref: "#/components/parameters/OptionFilter"
+      responses:
+        "200":
+          description: Facets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Facets"
         default:
           $ref: "#/components/responses/Error"
 
@@ -868,32 +850,6 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
-  /v1/newsletter:
-    post:
-      operationId: subscribeNewsletter
-      tags: [store]
-      summary: Sign an email up for the shop's news and offers
-      description: |
-        Always answers 204, whether or not the address was already signed up, so the form can't be
-        used to find out who shops here. Rate-limited per address.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email]
-              properties:
-                email:
-                  type: string
-                  format: email
-                  maxLength: 254
-      responses:
-        "204":
-          description: Signed up
-        default:
-          $ref: "#/components/responses/Error"
-
   /v1/admin/overview:
     get:
       operationId: adminOverview
@@ -1090,6 +1046,77 @@ components:
       description: An access token from sign-in (`fsa_…`) or an API key (`fsk_…`).
 
   parameters:
+    SearchQuery:
+      name: q
+      in: query
+      description: Words to search for in names and descriptions.
+      schema:
+        type: string
+        maxLength: 100
+    CategorySlug:
+      name: category
+      in: query
+      description: A category slug; products in its subcategories are included.
+      schema:
+        type: string
+        maxLength: 100
+    MinPrice:
+      name: min_price
+      in: query
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
+    MaxPrice:
+      name: max_price
+      in: query
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
+    InStockOnly:
+      name: in_stock
+      in: query
+      schema:
+        type: boolean
+    BrandFilter:
+      name: brand
+      in: query
+      description: Only these brands (exact names, as facets give them). Repeat for several; any matches.
+      style: form
+      explode: true
+      schema:
+        type: array
+        maxItems: 30
+        items:
+          type: string
+          maxLength: 80
+    FeaturedOnly:
+      name: featured
+      in: query
+      description: Only products the shop marked as featured.
+      schema:
+        type: boolean
+    OnSaleOnly:
+      name: on_sale
+      in: query
+      description: Only products with a variant priced below its old price.
+      schema:
+        type: boolean
+    OptionFilter:
+      name: option
+      in: query
+      description: |
+        `Name:Value`, e.g. `Size:M`. Values of one option match any of them; different options must
+        all match the same variant (`Size:M&Size:L&Color:Red`: a red M or a red L).
+      style: form
+      explode: true
+      schema:
+        type: array
+        maxItems: 30
+        items:
+          type: string
+          maxLength: 100
     CartToken:
       name: X-Cart-Token
       in: header
@@ -1847,7 +1874,7 @@ components:
 
     Overview:
       type: object
-      required: [products, categories, out_of_stock, low_stock, subscribers]
+      required: [products, categories, out_of_stock, low_stock]
       properties:
         products:
           type: object
@@ -1869,9 +1896,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LowStockItem"
-        subscribers:
-          description: Emails signed up for the newsletter.
-          type: integer
 
     LowStockItem:
       type: object
@@ -2003,5 +2027,79 @@ components:
           description: The cart's total weight.
           type: integer
         subtotal:
+          type: integer
+          format: int64
+
+    Facets:
+      type: object
+      required: [categories, brands, options]
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryFacet"
+        brands:
+          type: array
+          items:
+            $ref: "#/components/schemas/BrandFacet"
+        options:
+          description: Each option name with its values, most products first.
+          type: array
+          items:
+            $ref: "#/components/schemas/OptionFacet"
+        price:
+          description: Cheapest and dearest among the matches, in poisha; null when nothing matches.
+          oneOf:
+            - $ref: "#/components/schemas/PriceRange"
+            - type: "null"
+
+    CategoryFacet:
+      type: object
+      required: [slug, name, count]
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        count:
+          type: integer
+
+    BrandFacet:
+      type: object
+      required: [name, count]
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+
+    OptionFacet:
+      type: object
+      required: [name, values]
+      properties:
+        name:
+          type: string
+        values:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValueFacet"
+
+    ValueFacet:
+      type: object
+      required: [value, count]
+      properties:
+        value:
+          type: string
+        count:
+          type: integer
+
+    PriceRange:
+      type: object
+      required: [min, max]
+      properties:
+        min:
+          type: integer
+          format: int64
+        max:
           type: integer
           format: int64

@@ -1,7 +1,8 @@
 <script lang="ts">
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { components } from '#lib/api.js';
-	import { storefront as sf } from '#lib/copy.js';
+	import { slider as s, storefront as sf } from '#lib/copy.js';
 	import ProductCard from './ProductCard.svelte';
 
 	// A titled, sideways-scrolling row of products, with a link to all of them.
@@ -16,14 +17,26 @@
 		href: string;
 		products: components['schemas']['ProductSummary'][];
 	} = $props();
+
+	let track = $state<HTMLElement>();
+	const by = (dir: number) =>
+		track?.scrollBy({ left: dir * track.clientWidth, behavior: 'smooth' });
 </script>
 
 <section class="site-container row" aria-labelledby={id}>
 	<div class="head">
 		<h2 class="site-title" {id}>{title}</h2>
 		<a {href}>{sf.more} <ChevronRight size={16} /></a>
+		<div class="arrows">
+			<button type="button" aria-label={s.previous} onclick={() => by(-1)}
+				><ChevronLeft size={18} /></button
+			>
+			<button type="button" aria-label={s.next} onclick={() => by(1)}
+				><ChevronRight size={18} /></button
+			>
+		</div>
 	</div>
-	<ul class="track">
+	<ul class="track" bind:this={track}>
 		{#each products as p (p.id)}<li><ProductCard product={p} /></li>{/each}
 	</ul>
 </section>
@@ -37,8 +50,10 @@
 	.head {
 		display: flex;
 		align-items: baseline;
-		justify-content: space-between;
 		gap: 1rem;
+	}
+	.head h2 {
+		margin-inline-end: auto;
 	}
 	.head a {
 		display: inline-flex;
@@ -59,8 +74,41 @@
 		padding: 0 0 0.5rem;
 		overflow-x: auto;
 		scroll-snap-type: x mandatory;
-		scrollbar-width: thin;
+		scrollbar-width: none;
 		list-style: none;
+	}
+	.track::-webkit-scrollbar {
+		display: none;
+	}
+	.arrows {
+		display: flex;
+		gap: 0.375rem;
+		align-self: center;
+	}
+	.arrows button {
+		display: grid;
+		place-items: center;
+		inline-size: 2rem;
+		block-size: 2rem;
+		padding: 0;
+		border: 1px solid var(--ui-field-line);
+		border-radius: 50%;
+		background: var(--ui-surface);
+		color: var(--ui-fg);
+		cursor: pointer;
+	}
+	.arrows button:hover {
+		border-color: var(--ui-accent);
+		color: var(--ui-accent);
+	}
+	.arrows button:focus-visible {
+		outline: var(--ui-ring-width) solid var(--ui-ring);
+		outline-offset: var(--ui-ring-offset);
+	}
+	@media (hover: none) {
+		.arrows {
+			display: none; /* phones swipe */
+		}
 	}
 	li {
 		scroll-snap-align: start;

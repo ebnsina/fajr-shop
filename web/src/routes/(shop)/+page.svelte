@@ -2,11 +2,11 @@
 	import { page } from '$app/state';
 	import { home as h, storefront as sf, shop as t } from '#lib/copy.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
-	import Carousel from '#lib/sinaui/ui/Carousel.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import * as Tabs from '#lib/sinaui/ui/tabs/index.js';
 	import Banner from '#lib/shop/Banner.svelte';
 	import Brands from '#lib/shop/Brands.svelte';
+	import HeroSlider from '#lib/shop/HeroSlider.svelte';
 	import Highlights from '#lib/shop/Highlights.svelte';
 	import ProductCard from '#lib/shop/ProductCard.svelte';
 	import ProductRow from '#lib/shop/ProductRow.svelte';
@@ -57,13 +57,7 @@
 	aria-label={sf.featured}
 >
 	{#if data.hero.length}
-		<div class="slides">
-			<Carousel label={data.store.name} slides={data.hero} autoplay={6000}>
-				{#snippet slide(b, i)}<div class="slide">
-						<Banner banner={b} eager={i === 0} />
-					</div>{/snippet}
-			</Carousel>
-		</div>
+		<HeroSlider slides={data.hero} label={data.store.name} />
 	{:else}
 		<div class="plain">
 			<p class="site-display">{data.store.name}</p>
@@ -190,14 +184,12 @@
 	.hero.with-side {
 		grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
 	}
-	.slide {
-		aspect-ratio: 2 / 1;
-	}
 	.side {
 		display: grid;
 		grid-template-rows: 1fr 1fr;
 		gap: 1rem;
-		min-block-size: 0;
+		/* The slider sets the row's height; the side banners share it instead of stretching it. */
+		contain: size;
 	}
 	.plain {
 		display: grid;
@@ -254,6 +246,7 @@
 			grid-template-columns: minmax(0, 1fr);
 		}
 		.side {
+			contain: none;
 			grid-template-rows: none;
 			grid-template-columns: 1fr 1fr;
 		}

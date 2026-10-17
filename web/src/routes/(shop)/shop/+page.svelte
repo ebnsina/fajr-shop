@@ -22,7 +22,7 @@
 	<h1 class="site-title">{title}</h1>
 </section>
 <section class="site-container">
-	<Listing products={data.page} filters={data.filters} paged={data.paged} />
+	<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged} />
 </section>
 
 <style>

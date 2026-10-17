@@ -2,7 +2,7 @@
 	import { deserialize, enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { components } from '#lib/api.js';
-	import { categories as t, errorText } from '#lib/copy.js';
+	import { categories as t, errorText, ph } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
@@ -95,7 +95,14 @@
 					title={form.message}
 					live
 				/>{/if}
-			<Input label={t.name} name="name" required maxlength={80} error={fields('create')?.name} />
+			<Input
+				label={t.name}
+				placeholder={ph.categoryName}
+				name="name"
+				required
+				maxlength={80}
+				error={fields('create')?.name}
+			/>
 			{@render parentSelect(null)}
 			<ImageField
 				label={t.picture}
@@ -160,6 +167,7 @@
 					/>{/if}
 				<Input
 					label={t.name}
+					placeholder={ph.categoryName}
 					name="name"
 					value={editing.name}
 					required

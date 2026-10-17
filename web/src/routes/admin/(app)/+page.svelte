@@ -1,7 +1,6 @@
 <script lang="ts">
 	import Box from '@lucide/svelte/icons/box';
 	import FolderTree from '@lucide/svelte/icons/folder-tree';
-	import Mail from '@lucide/svelte/icons/mail';
 	import PackageX from '@lucide/svelte/icons/package-x';
 	import PencilLine from '@lucide/svelte/icons/pencil-line';
 	import { activity, overview as t } from '#lib/copy.js';
@@ -34,8 +33,7 @@
 			href: '/admin/products',
 			warn: o.out_of_stock > 0
 		},
-		{ label: t.categories, value: o.categories, icon: FolderTree, href: '/admin/categories' },
-		{ label: t.subscribers, value: o.subscribers, icon: Mail }
+		{ label: t.categories, value: o.categories, icon: FolderTree, href: '/admin/categories' }
 	]);
 </script>
 

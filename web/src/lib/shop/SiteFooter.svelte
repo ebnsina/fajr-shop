@@ -3,7 +3,6 @@
 	import Phone from '@lucide/svelte/icons/phone';
 	import type { components } from '#lib/api.js';
 	import { account as a, cart as c, storefront as sf, shop as t } from '#lib/copy.js';
-	import Newsletter from './Newsletter.svelte';
 
 	let {
 		store,
@@ -14,8 +13,6 @@
 	} = $props();
 	const year = new Date().getFullYear();
 </script>
-
-<Newsletter />
 
 <footer class="footer">
 	<div class="cols">
@@ -57,6 +54,7 @@
 
 <style>
 	.footer {
+		margin-block-start: 4rem;
 		background: var(--ui-surface);
 		color: var(--ui-muted);
 		font-size: 0.875rem;
