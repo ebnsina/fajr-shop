@@ -2,6 +2,7 @@
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { onMount } from 'svelte';
+	import { scrollEdges } from '#lib/sinaui/ui/scroll-edges.js';
 	import type { components } from '#lib/api.js';
 	import { shop as t, slider as s } from '#lib/copy.js';
 	import ProductImage from './ProductImage.svelte';
@@ -31,7 +32,7 @@
 
 <div class={['gallery', many && 'many']}>
 	{#if many}
-		<div class="thumbs" role="group" aria-label={t.pictures}>
+		<div class="thumbs" role="group" aria-label={t.pictures} {@attach scrollEdges} data-fade="x">
 			{#each images as img, i (img.id)}
 				<button
 					type="button"

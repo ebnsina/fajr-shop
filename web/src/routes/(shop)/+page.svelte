@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { home as h, storefront as sf, shop as t } from '#lib/copy.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
+	import { scrollEdges } from '#lib/sinaui/ui/scroll-edges.js';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import * as Tabs from '#lib/sinaui/ui/tabs/index.js';
 	import Banner from '#lib/shop/Banner.svelte';
@@ -37,7 +38,12 @@
 <h1 class="sr">{data.store.name}</h1>
 
 {#if top.length}
-	<nav class="site-container circles" aria-label={sf.categories}>
+	<nav
+		class="site-container circles"
+		aria-label={sf.categories}
+		{@attach scrollEdges}
+		data-fade="x"
+	>
 		{#each top as c (c.id)}
 			<a href="/c/{c.slug}">
 				<span class="circle">

@@ -6,6 +6,7 @@
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 	import User from '@lucide/svelte/icons/user';
 	import { page } from '$app/state';
+	import { scrollEdges } from '#lib/sinaui/ui/scroll-edges.js';
 	import type { components } from '#lib/api.js';
 	import { account as a, cart as c, storefront as sf, shop as t } from '#lib/copy.js';
 	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
@@ -81,7 +82,8 @@
 </header>
 
 <nav class="cats" aria-label={sf.categories}>
-	<div class="row">
+	<!-- Fades out at an edge with more to scroll to, instead of cutting a name in half. -->
+	<div class="row" {@attach scrollEdges} data-fade="x">
 		{#each nav as link (link.href)}
 			<a href={link.href} aria-current={page.url.pathname === link.href ? 'page' : undefined}
 				>{link.label}</a
