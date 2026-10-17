@@ -95,24 +95,26 @@
 		display: grid;
 		gap: 0.5rem;
 	}
+	/* The ring sits outside the picture, so it follows the picture's own corners exactly. */
 	.thumb {
 		padding: 0;
-		border: 2px solid transparent;
-		border-radius: calc(var(--ui-radius) * 0.75);
-		overflow: hidden;
+		border: 0;
+		border-radius: var(--ui-radius);
 		background: none;
 		cursor: pointer;
-		opacity: 0.7;
+		opacity: 0.65;
+		outline: 2px solid transparent;
+		outline-offset: 2px;
 		transition:
 			opacity var(--ui-dur-press) ease,
-			border-color var(--ui-dur-press) ease;
+			outline-color var(--ui-dur-press) ease;
 	}
 	.thumb:hover,
 	.thumb.on {
 		opacity: 1;
 	}
 	.thumb.on {
-		border-color: var(--ui-accent);
+		outline-color: var(--ui-accent);
 	}
 	.stage {
 		position: relative;
@@ -171,7 +173,10 @@
 		font-size: 0.75rem;
 		font-variant-numeric: tabular-nums;
 	}
-	:is(.thumb, .arrow):focus-visible {
+	.thumb:focus-visible {
+		outline-color: var(--ui-ring);
+	}
+	.arrow:focus-visible {
 		outline: var(--ui-ring-width) solid var(--ui-ring);
 		outline-offset: var(--ui-ring-offset);
 	}
@@ -190,6 +195,7 @@
 			grid-auto-flow: column;
 			grid-auto-columns: 4rem;
 			overflow-x: auto;
+			padding: 4px; /* room for the ring inside the scroll area */
 		}
 	}
 </style>

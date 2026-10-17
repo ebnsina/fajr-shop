@@ -8,5 +8,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		locals.api.GET('/v1/shipping/zones')
 	]);
 	if (!product.data) error(product.response.status, errorText(product.error?.error.code));
-	return { product: product.data, zones: zones.data?.items ?? [] };
+	// Others from the same category; the page still works if this list can't be had.
+	const cat = product.data.category?.slug;
+	const similar = cat
+		? await locals.api.GET('/v1/products', { params: { query: { category: cat, limit: 6 } } })
+		: null;
+	return {
+		product: product.data,
+		zones: zones.data?.items ?? [],
+		similar: (similar?.data?.items ?? []).filter((x) => x.id !== product.data.id).slice(0, 5)
+	};
 };

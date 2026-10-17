@@ -362,7 +362,15 @@ export const shop = {
 export const productPage = {
 	soldOut: 'Sold out',
 	notOffered: 'Not available in this combination',
-	description: 'About this product'
+	description: 'Description',
+	details: 'Details',
+	sections: 'About this product',
+	brand: 'Brand',
+	category: 'Category',
+	sku: 'SKU',
+	weight: 'Weight',
+	noDescription: 'The shop hasn’t written a description yet.',
+	similar: 'Similar products'
 };
 
 export const cart = {
@@ -386,6 +394,10 @@ export const cart = {
 	soldOut: 'Sold out',
 	onlyLeft: (n: number) => `Only ${n} left. Lower the quantity to buy it.`,
 	title: 'Your bag',
+	each: (price: string) => `${price} each`,
+	summary: 'Order summary',
+	keepShopping: 'Continue shopping',
+	items: (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`,
 	code: 'Discount code',
 	codePlaceholder: 'Enter a code',
 	useCode: 'Apply',
@@ -412,6 +424,7 @@ export const storefront = {
 	onSale: 'On sale',
 	newArrivals: 'New arrivals',
 	more: 'More products',
+	viewAll: 'View all',
 	off: (pct: number) => `${pct}% off`,
 	bottomNav: 'Shop sections',
 	home: 'Home',
@@ -603,6 +616,8 @@ export const delivery = {
 	title: 'Delivery',
 	to: 'Deliver to',
 	choose: 'Choose your district',
+	search: 'Search districts',
+	noMatch: 'No district by that name',
 	check: 'Check',
 	charge: 'Delivery',
 	free: 'Free',
@@ -621,6 +636,12 @@ export const slider = {
 };
 
 /** Example values shown inside empty fields. */
+/** Search inside long dropdowns. */
+export const picker = {
+	searchCategories: 'Search categories',
+	noCategory: 'No category by that name'
+};
+
 export const ph = {
 	apiKeyName: 'Accounting sync',
 	shopName: 'Fajr Bazar',

@@ -24,11 +24,11 @@
 		{#each items as h (h.title)}
 			{@const Icon = icons[h.icon]}
 			<li>
-				<span class="icon"><Icon size={24} strokeWidth={1.75} /></span>
 				<span>
 					<strong>{h.title}</strong>
 					{#if h.text}<span class="text">{h.text}</span>{/if}
 				</span>
+				<span class="icon"><Icon size={22} strokeWidth={1.75} /></span>
 			</li>
 		{/each}
 	</ul>
@@ -41,20 +41,20 @@
 	.highlights {
 		display: grid;
 		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 1px;
+		gap: 1rem;
 		margin: 0;
 		padding: 0;
-		overflow: hidden;
-		border-radius: var(--ui-radius);
-		background: var(--ui-line);
 		list-style: none;
 	}
 	li {
 		display: flex;
 		align-items: center;
+		justify-content: space-between;
 		gap: 0.875rem;
 		padding: 1rem 1.25rem;
+		border-radius: calc(var(--ui-radius) * 1.5);
 		background: var(--ui-surface);
+		box-shadow: var(--ui-shadow-xs);
 	}
 	.icon {
 		display: grid;
@@ -62,13 +62,14 @@
 		place-items: center;
 		inline-size: 2.75rem;
 		block-size: 2.75rem;
-		border-radius: 50%;
-		background: color-mix(in srgb, var(--ui-accent) 12%, transparent);
-		color: var(--ui-accent);
+		border-radius: var(--ui-radius);
+		background: var(--ui-accent);
+		color: var(--ui-on-accent);
 	}
 	@media (width < 64rem) {
 		.highlights {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.75rem;
 		}
 	}
 	@media (width < 32rem) {

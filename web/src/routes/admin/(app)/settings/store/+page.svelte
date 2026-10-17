@@ -9,7 +9,7 @@
 	import { errorText } from '#lib/copy.js';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
-	import Select from '#lib/sinaui/ui/Select.svelte';
+	import CustomSelect from '#lib/sinaui/ui/CustomSelect.svelte';
 	import Switch from '#lib/sinaui/ui/Switch.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
@@ -163,10 +163,12 @@
 			{#each [0, 1, 2, 3] as i (i)}
 				{@const h = store.highlights?.[i]}
 				<div class="highlight">
-					<Select label={t.highlightIcon} name="h_icon_{i}" value={h?.icon ?? 'truck'}>
-						{#each Object.entries(t.icons) as [value, label] (value)}<option {value}>{label}</option
-							>{/each}
-					</Select>
+					<CustomSelect
+						label={t.highlightIcon}
+						name="h_icon_{i}"
+						value={h?.icon ?? 'truck'}
+						options={Object.entries(t.icons).map(([value, label]) => ({ value, label }))}
+					/>
 					<Input
 						label={t.highlightTitle}
 						placeholder={ph.highlightTitle}

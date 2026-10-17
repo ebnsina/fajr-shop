@@ -77,6 +77,7 @@
 			<div class="end">
 				<span class={['amount', !item.purchasable && 'struck']}>{formatMoney(item.line_total)}</span
 				>
+				{#if item.quantity > 1}<span class="opt">{t.each(formatMoney(item.unit_price))}</span>{/if}
 				<form method="POST" action="/cart?/set" use:enhance={update}>
 					<input type="hidden" name="variant" value={item.variant_id} />
 					<Button
@@ -99,7 +100,6 @@
 <style>
 	.lines {
 		display: grid;
-		gap: 0.75rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -109,6 +109,16 @@
 		grid-template-columns: 4rem minmax(0, 1fr) auto;
 		gap: 0.75rem;
 		align-items: start;
+		padding-block: 0.875rem;
+	}
+	li:first-child {
+		padding-block-start: 0;
+	}
+	li:last-child {
+		padding-block-end: 0;
+	}
+	li + li {
+		border-block-start: 1px solid var(--ui-line);
 	}
 	.thumb {
 		display: block;
@@ -140,8 +150,9 @@
 		gap: 0.25rem;
 		margin-block-start: 0.25rem;
 		padding: 0.125rem;
+		border: 1px solid var(--ui-field-line);
 		border-radius: var(--ui-radius-control);
-		background: var(--ui-subtle);
+		background: var(--ui-surface);
 		font-variant-numeric: tabular-nums;
 	}
 	.qty span {

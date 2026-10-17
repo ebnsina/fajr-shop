@@ -53,8 +53,6 @@
 	class={['dialog', side !== 'center' && 'sheet', side === 'end' && 'end', className]}
 	aria-labelledby="{id}-title"
 	aria-describedby={description ? `${id}-desc` : undefined}
-	{@attach scrollEdges}
-	data-fade-over
 	{...rest}
 	onclose={(e) => {
 		open = false;
@@ -77,7 +75,8 @@
 			{/if}
 		</header>
 		{#if description}<p id="{id}-desc" class="desc">{description}</p>{/if}
-		{@render children?.()}
+		<!-- Only the content scrolls: the title, close button and footer actions stay in view. -->
+		<div class="content" {@attach scrollEdges} data-fade-over>{@render children?.()}</div>
 		{#if footer}<footer>{@render footer()}</footer>{/if}
 	</div>
 </dialog>
@@ -96,8 +95,7 @@
 		margin: auto;
 		inline-size: min(32rem, 100vw - 2rem);
 		max-block-size: calc(100dvh - 2rem);
-		overflow: auto;
-		overscroll-behavior: contain;
+		overflow: hidden;
 		/* Invisible normally; outlines the dialog in Windows High Contrast. */
 		border: 1px solid transparent;
 		border-radius: calc(var(--ui-radius) * 1.75);
@@ -110,16 +108,37 @@
 		background: var(--ui-backdrop);
 	}
 	.body {
-		padding: 1.25rem 1.5rem 1.5rem;
+		display: flex;
+		flex-direction: column;
+		max-block-size: inherit;
+		box-sizing: border-box;
+		padding-block-start: 1.25rem;
+	}
+	header,
+	.desc {
+		padding-inline: 1.5rem;
+	}
+	.content {
+		--fade-bg: var(--ui-surface-overlay);
+		flex: 1 1 auto;
+		min-block-size: 0;
+		overflow: auto;
+		overscroll-behavior: contain;
+		/* Room for focus rings, which a scroll area would otherwise clip. */
+		padding: 0.25rem 1.5rem 1.5rem;
+	}
+	.content:has(+ footer) {
+		padding-block-end: 0.5rem;
 	}
 	header {
+		flex: none;
 		display: flex;
 		align-items: start;
 		justify-content: space-between;
 		gap: 1rem;
 	}
 	header:not(:has(+ .desc)) {
-		margin-block-end: 1rem;
+		margin-block-end: 0.75rem;
 	}
 	h2 {
 		margin: 0.25rem 0 0;
@@ -130,6 +149,7 @@
 		text-wrap: balance;
 	}
 	.desc {
+		flex: none;
 		margin: 0.375rem 0 1rem;
 		color: var(--ui-muted);
 	}
@@ -166,10 +186,11 @@
 	}
 	footer {
 		display: flex;
+		flex: none;
 		flex-wrap: wrap-reverse;
 		justify-content: flex-end;
 		gap: 0.5rem;
-		margin-block-start: 1.5rem;
+		padding: 1rem 1.5rem 1.25rem;
 	}
 
 	/* Focused itself on open so its title is read first; that isn't a control, so no ring. */
@@ -231,6 +252,10 @@
 	.end {
 		--from: 100%;
 		margin-inline: auto 0;
+	}
+	/* A sheet's footer sits at the bottom edge however little content there is. */
+	.sheet .body {
+		block-size: 100%;
 	}
 	.end:dir(rtl) {
 		--from: -100%;

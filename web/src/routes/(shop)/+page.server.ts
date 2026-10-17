@@ -8,7 +8,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const { categories } = await parent();
 	// The first three departments get a row of their own.
 	const departments = categories.filter((c) => !c.parent_id).slice(0, 3);
-	const list = (query: Query, limit = 10) =>
+	// A row shows five; "View all" leads to the rest.
+	const list = (query: Query, limit = 5) =>
 		locals.api.GET('/v1/products', { params: { query: { ...query, sort: 'newest', limit } } });
 
 	const [banners, brands, featured, onSale, newest, ...rows] = await Promise.all([
@@ -16,7 +17,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		locals.api.GET('/v1/brands'),
 		list({ featured: true }),
 		list({ on_sale: true }),
-		list({}),
+		list({}, 10),
 		...departments.map((d) => list({ category: d.slug }))
 	]);
 	for (const r of [banners, brands, featured, onSale, newest, ...rows]) {

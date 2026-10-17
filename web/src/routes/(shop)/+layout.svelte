@@ -41,6 +41,8 @@
 
 <style>
 	.site {
+		/* Where sticky side panels stop: just under the header once it has shrunk. */
+		--site-sticky: 5.5rem;
 		min-block-size: 100dvb;
 		background: color-mix(in srgb, var(--ui-subtle) 70%, var(--ui-bg));
 	}

@@ -2,7 +2,7 @@
 	import { deserialize, enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { components } from '#lib/api.js';
-	import { categories as t, errorText, ph } from '#lib/copy.js';
+	import { categories as t, errorText, picker, ph } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
@@ -12,7 +12,7 @@
 	import ImageField from '#lib/admin/ImageField.svelte';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
-	import Select from '#lib/sinaui/ui/Select.svelte';
+	import CustomSelect from '#lib/sinaui/ui/CustomSelect.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
 
@@ -67,12 +67,25 @@
 </div>
 
 {#snippet parentSelect(current: Category | null)}
-	<Select label={t.parent} name="parent_id" value={current?.parent_id ?? ''}>
-		<option value="">{t.topLevel}</option>
-		{#each tree as { c, depth } (c.id)}
-			{#if c.id !== current?.id}<option value={c.id}>{' '.repeat(depth) + c.name}</option>{/if}
-		{/each}
-	</Select>
+	<CustomSelect
+		label={t.parent}
+		name="parent_id"
+		value={current?.parent_id ?? ''}
+		placeholder={t.topLevel}
+		searchable
+		searchLabel={picker.searchCategories}
+		empty={picker.noCategory}
+		options={[
+			{ value: '', label: t.topLevel },
+			...tree
+				.filter(({ c }) => c.id !== current?.id)
+				.map(({ c }) => ({
+					value: c.id,
+					label: c.name,
+					description: data.categories.find((p) => p.id === c.parent_id)?.name
+				}))
+		]}
+	/>
 {/snippet}
 
 <div class="split">

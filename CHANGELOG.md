@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Storefront fixes: the header bag is an icon only; the promise strip is separate cards with a
+  colored icon on the right; home rows show five products and "View all" instead of scrolling;
+  product photos' thumbnails keep their corners when picked; the bag drawer keeps its title and
+  total in view while the items scroll; a new bag page with an order summary; custom dropdowns
+  instead of the browser's (districts and categories are searchable); the shop's filter card
+  stays beside the results.
+- Product pages: Description and Details tabs, and similar products from the same category.
 - Discount codes: a percentage (with an optional cap) or an amount off, with an optional
   minimum order, start and end, and a usage limit. Managed under Discounts in the dashboard;
   shoppers enter a code in their bag, which says how much more to add when the minimum isn't met.

@@ -4,7 +4,14 @@
 	import { untrack } from 'svelte';
 	import { Cancel01Icon } from '@hugeicons/core-free-icons';
 	import type { components } from '#lib/api.js';
-	import { delivery as d, errorText, productStatus, productEditor as t, ph } from '#lib/copy.js';
+	import {
+		delivery as d,
+		errorText,
+		picker,
+		productStatus,
+		productEditor as t,
+		ph
+	} from '#lib/copy.js';
 	import { toPoisha, toTaka } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -16,7 +23,7 @@
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
 	import Segmented from '#lib/sinaui/ui/Segmented.svelte';
-	import Select from '#lib/sinaui/ui/Select.svelte';
+	import CustomSelect from '#lib/sinaui/ui/CustomSelect.svelte';
 	import Sortable from '#lib/sinaui/ui/Sortable.svelte';
 	import Switch from '#lib/sinaui/ui/Switch.svelte';
 	import TagInput from '#lib/sinaui/ui/TagInput.svelte';
@@ -154,16 +161,20 @@
 		} else await applyAction(result);
 	}
 
+	// Parents before children; each child names its parent underneath.
 	const categoryOptions = $derived.by(() => {
 		const byParent = Map.groupBy(data.categories, (c) => c.parent_id ?? '');
-		const out: { id: string; label: string }[] = [];
-		const walk = (parent: string, depth: number) => {
+		const name = new Map(data.categories.map((c) => [c.id, c.name]));
+		const out: { value: string; label: string; description?: string }[] = [
+			{ value: '', label: t.noCategory }
+		];
+		const walk = (parent: string) => {
 			for (const c of byParent.get(parent) ?? []) {
-				out.push({ id: c.id, label: ' '.repeat(depth) + c.name });
-				walk(c.id, depth + 1);
+				out.push({ value: c.id, label: c.name, description: name.get(c.parent_id ?? '') });
+				walk(c.id);
 			}
 		};
-		walk('', 0);
+		walk('');
 		return out;
 	});
 	const statuses = (['draft', 'active', 'archived'] as const).map((s) => ({
@@ -331,10 +342,16 @@
 				<div class="fields">
 					<Segmented label={t.status} options={statuses} bind:value={f.status} />
 					<Switch bind:checked={f.featured}>{t.featured}</Switch>
-					<Select label={t.category} bind:value={f.categoryId} error={fields.category_id}>
-						<option value="">{t.noCategory}</option>
-						{#each categoryOptions as c (c.id)}<option value={c.id}>{c.label}</option>{/each}
-					</Select>
+					<CustomSelect
+						label={t.category}
+						options={categoryOptions}
+						bind:value={f.categoryId}
+						placeholder={t.noCategory}
+						searchable
+						searchLabel={picker.searchCategories}
+						empty={picker.noCategory}
+						error={fields.category_id}
+					/>
 					<Input
 						label={t.brand}
 						placeholder={ph.brand}
@@ -434,10 +451,12 @@
 				max={100000}
 				hint={t.deltaHint}
 			/>
-			<Select label={t.reason} name="reason" value="received">
-				{#each Object.entries(t.reasons) as [value, label] (value)}<option {value}>{label}</option
-					>{/each}
-			</Select>
+			<CustomSelect
+				label={t.reason}
+				name="reason"
+				value="received"
+				options={Object.entries(t.reasons).map(([value, label]) => ({ value, label }))}
+			/>
 			<Input label={t.note} placeholder={ph.note} name="note" maxlength={200} />
 			<Button type="submit">{t.adjustSave}</Button>
 		</form>

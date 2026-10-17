@@ -75,7 +75,6 @@
 					<ShoppingBag size={24} />
 					<span class="badge" aria-hidden="true"><RollingNumber value={count} /></span>
 				</span>
-				<span class="wide">{sf.bag}</span>
 			</a>
 		</div>
 	</div>

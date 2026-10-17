@@ -48,13 +48,6 @@
 	:global(.dialog.bag) {
 		inline-size: min(26rem, 100vw);
 	}
-	:global(.dialog.bag footer) {
-		position: sticky;
-		inset-block-end: 0;
-		z-index: 3;
-		padding-block: 1rem;
-		background: var(--ui-surface-overlay);
-	}
 	.empty {
 		display: grid;
 		justify-items: center;

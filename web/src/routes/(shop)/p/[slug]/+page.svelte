@@ -12,6 +12,8 @@
 	import OptionChips from '#lib/shop/OptionChips.svelte';
 	import Price from '#lib/shop/Price.svelte';
 	import Gallery from '#lib/shop/Gallery.svelte';
+	import ProductRow from '#lib/shop/ProductRow.svelte';
+	import * as Tabs from '#lib/sinaui/ui/tabs/index.js';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -47,6 +49,30 @@
 					? t.onlyLeft(variant.stock)
 					: t.inStock
 	);
+	let tab = $state('description');
+	// Paragraphs split by a blank line; a paragraph whose lines all start with "- " is a list.
+	const blocks = $derived(
+		p.description
+			.split(/\n\s*\n/)
+			.map((b) =>
+				b
+					.split('\n')
+					.map((l) => l.trim())
+					.filter(Boolean)
+			)
+			.filter((lines) => lines.length)
+			.map((lines) => {
+				const list = lines.every((l) => /^[-•]\s/.test(l));
+				return { list, lines: list ? lines.map((l) => l.replace(/^[-•]\s+/, '')) : lines };
+			})
+	);
+	const grams = new Intl.NumberFormat('en-BD', { style: 'unit', unit: 'gram' });
+	const kilos = new Intl.NumberFormat('en-BD', {
+		style: 'unit',
+		unit: 'kilogram',
+		maximumFractionDigits: 2
+	});
+	const weight = (g: number) => (g >= 1000 ? kilos.format(g / 1000) : grams.format(g));
 	const vatRate = $derived(
 		new Intl.NumberFormat('en-BD', { style: 'percent', maximumFractionDigits: 2 }).format(
 			data.store.vat.rate_bp / 10000
@@ -185,15 +211,50 @@
 				</ul>
 			</div>
 		{/if}
-
-		{#if p.description}
-			<div class="about">
-				<h2>{pt.description}</h2>
-				<p>{p.description}</p>
-			</div>
-		{/if}
 	</div>
 </section>
+
+<section class="site-container sections" aria-label={pt.sections}>
+	<Tabs.Root bind:value={tab}>
+		<Tabs.List label={pt.sections}>
+			<Tabs.Tab value="description">{pt.description}</Tabs.Tab>
+			<Tabs.Tab value="details">{pt.details}</Tabs.Tab>
+		</Tabs.List>
+		<Tabs.Panel value="description">
+			<div class="prose">
+				{#each blocks as b, i (i)}
+					{#if b.list}
+						<ul>
+							{#each b.lines as line, j (j)}<li>{line}</li>{/each}
+						</ul>
+					{:else}
+						<p>{b.lines.join(' ')}</p>
+					{/if}
+				{:else}
+					<p class="muted">{pt.noDescription}</p>
+				{/each}
+			</div>
+		</Tabs.Panel>
+		<Tabs.Panel value="details">
+			<dl class="specs">
+				{#if p.brand}<dt>{pt.brand}</dt>
+					<dd>{p.brand}</dd>{/if}
+				{#if p.category}<dt>{pt.category}</dt>
+					<dd><a href="/c/{p.category.slug}">{p.category.name}</a></dd>{/if}
+				{#each p.options as o (o.name)}<dt>{o.name}</dt>
+					<dd>{o.values.join(', ')}</dd>{/each}
+				{#if variant?.sku}<dt>{pt.sku}</dt>
+					<dd>{variant.sku}</dd>{/if}
+				{#if variant}<dt>{pt.weight}</dt>
+					<dd>{weight(variant.weight_g)}</dd>{/if}
+			</dl>
+		</Tabs.Panel>
+	</Tabs.Root>
+</section>
+
+{#if data.similar.length && p.category}
+	<ProductRow id="similar" title={pt.similar} href="/c/{p.category.slug}" products={data.similar} />
+{/if}
 
 <style>
 	.top {
@@ -207,7 +268,7 @@
 	}
 	.gallery {
 		position: sticky;
-		inset-block-start: 5rem;
+		inset-block-start: var(--site-sticky);
 	}
 	.buy {
 		display: grid;
@@ -272,15 +333,42 @@
 		gap: 1rem;
 		color: var(--ui-muted);
 	}
-	.about h2 {
-		margin: 0.5rem 0 0.5rem;
-		font-size: 1rem;
+	.sections {
+		margin-block-start: 3rem;
 	}
-	.about p {
-		margin: 0;
+	.prose,
+	.specs {
+		max-inline-size: 48rem;
+		padding-block: 1.25rem 0;
+	}
+	.prose p,
+	.prose ul {
+		margin: 0 0 0.875rem;
+		line-height: 1.65;
+	}
+	.prose ul {
+		padding-inline-start: 1.25rem;
+	}
+	.muted {
 		color: var(--ui-muted);
-		line-height: 1.6;
-		white-space: pre-line;
+	}
+	.specs {
+		display: grid;
+		grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr);
+		margin: 0;
+	}
+	.specs dt,
+	.specs dd {
+		margin: 0;
+		padding: 0.625rem 0;
+		border-block-end: 1px solid var(--ui-line);
+	}
+	.specs dt {
+		padding-inline-end: 2rem;
+		color: var(--ui-muted);
+	}
+	.specs a {
+		color: var(--ui-accent);
 	}
 	@media (width < 56rem) {
 		.product {

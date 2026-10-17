@@ -1,11 +1,10 @@
 <script lang="ts">
-	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { components } from '#lib/api.js';
-	import { slider as s, storefront as sf } from '#lib/copy.js';
+	import { storefront as sf } from '#lib/copy.js';
 	import ProductCard from './ProductCard.svelte';
 
-	// A titled, sideways-scrolling row of products, with a link to all of them.
+	// A titled row of five products, with a link to all of them.
 	let {
 		id,
 		title,
@@ -17,27 +16,15 @@
 		href: string;
 		products: components['schemas']['ProductSummary'][];
 	} = $props();
-
-	let track = $state<HTMLElement>();
-	const by = (dir: number) =>
-		track?.scrollBy({ left: dir * track.clientWidth, behavior: 'smooth' });
 </script>
 
 <section class="site-container row" aria-labelledby={id}>
 	<div class="head">
 		<h2 class="site-title" {id}>{title}</h2>
-		<a {href}>{sf.more} <ChevronRight size={16} /></a>
-		<div class="arrows">
-			<button type="button" aria-label={s.previous} onclick={() => by(-1)}
-				><ChevronLeft size={18} /></button
-			>
-			<button type="button" aria-label={s.next} onclick={() => by(1)}
-				><ChevronRight size={18} /></button
-			>
-		</div>
+		<a {href}>{sf.viewAll} <ChevronRight size={16} /></a>
 	</div>
-	<ul class="track" bind:this={track}>
-		{#each products as p (p.id)}<li><ProductCard product={p} /></li>{/each}
+	<ul class="grid">
+		{#each products.slice(0, 5) as p (p.id)}<li><ProductCard product={p} /></li>{/each}
 	</ul>
 </section>
 
@@ -50,10 +37,8 @@
 	.head {
 		display: flex;
 		align-items: baseline;
+		justify-content: space-between;
 		gap: 1rem;
-	}
-	.head h2 {
-		margin-inline-end: auto;
 	}
 	.head a {
 		display: inline-flex;
@@ -65,64 +50,42 @@
 		font-weight: 600;
 		text-decoration: none;
 	}
-	.track {
-		display: grid;
-		grid-auto-flow: column;
-		grid-auto-columns: calc((100% - 4 * 1rem) / 5);
-		gap: 1rem;
-		margin: 0;
-		padding: 0 0 0.5rem;
-		overflow-x: auto;
-		scroll-snap-type: x mandatory;
-		scrollbar-width: none;
-		list-style: none;
+	.head a:hover {
+		text-decoration: underline;
 	}
-	.track::-webkit-scrollbar {
-		display: none;
-	}
-	.arrows {
-		display: flex;
-		gap: 0.375rem;
-		align-self: center;
-	}
-	.arrows button {
-		display: grid;
-		place-items: center;
-		inline-size: 2rem;
-		block-size: 2rem;
-		padding: 0;
-		border: 1px solid var(--ui-field-line);
-		border-radius: 50%;
-		background: var(--ui-surface);
-		color: var(--ui-fg);
-		cursor: pointer;
-	}
-	.arrows button:hover {
-		border-color: var(--ui-accent);
-		color: var(--ui-accent);
-	}
-	.arrows button:focus-visible {
+	.head a:focus-visible {
 		outline: var(--ui-ring-width) solid var(--ui-ring);
 		outline-offset: var(--ui-ring-offset);
+		border-radius: 2px;
 	}
-	@media (hover: none) {
-		.arrows {
-			display: none; /* phones swipe */
-		}
-	}
-	li {
-		scroll-snap-align: start;
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
 	@media (width < 64rem) {
-		.track {
-			grid-auto-columns: calc((100% - 2 * 0.75rem) / 3);
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 			gap: 0.75rem;
+		}
+		/* Three across: the last two wait for "View all". */
+		li:nth-child(n + 4) {
+			display: none;
 		}
 	}
 	@media (width < 40rem) {
-		.track {
-			grid-auto-columns: 44%;
+		.grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 0.625rem;
+		}
+		li:nth-child(n + 4) {
+			display: list-item;
+		}
+		li:nth-child(n + 5) {
+			display: none;
 		}
 	}
 </style>

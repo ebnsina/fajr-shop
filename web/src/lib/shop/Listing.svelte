@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 	import X from '@lucide/svelte/icons/x';
+	import { tick } from 'svelte';
 	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
 	import { shop as t } from '#lib/copy.js';
@@ -10,7 +11,7 @@
 	import Checkbox from '#lib/sinaui/ui/Checkbox.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import Input from '#lib/sinaui/ui/Input.svelte';
-	import Select from '#lib/sinaui/ui/Select.svelte';
+	import CustomSelect from '#lib/sinaui/ui/CustomSelect.svelte';
 	import ProductCard from './ProductCard.svelte';
 
 	// Filters in a side card, sorting above the results. It's one plain GET form, so a filtered
@@ -67,12 +68,25 @@
 	});
 	const filtered = $derived(chips.length > 0);
 
+	let form = $state<HTMLFormElement>();
 	const submit = (e: Event) => (e.currentTarget as HTMLElement).closest('form')?.requestSubmit();
 	// Ticking a box applies it straight away; prices wait for Apply so typing isn't interrupted.
 	const onchange = (e: Event) => {
 		if ((e.target as HTMLInputElement).type === 'checkbox') submit(e);
 	};
 </script>
+
+{#snippet cats(list: Facets['categories'])}
+	<ul class="cats">
+		{#each list as c (c.slug)}
+			<li>
+				<a href={categoryHref(c.slug)} aria-current={c.slug === filters.category || undefined}
+					>{c.name}<span class="n">{num.format(c.count)}</span></a
+				>
+			</li>
+		{/each}
+	</ul>
+{/snippet}
 
 {#snippet boxes(name: string, items: Choice[])}
 	<div class="list">
@@ -95,7 +109,7 @@
 	{/if}
 {/snippet}
 
-<form method="get" class="listing" {onchange}>
+<form method="get" class="listing" {onchange} bind:this={form}>
 	{#if filters.q}<input type="hidden" name="q" value={filters.q} />{/if}
 	{#if filters.category}<input type="hidden" name="category" value={filters.category} />{/if}
 	{#if filters.featured}<input type="hidden" name="featured" value="1" />{/if}
@@ -106,17 +120,14 @@
 			{#if facets && facets.categories.length > 1}
 				<details class="group" open>
 					<summary>{t.category}</summary>
-					<ul class="cats">
-						{#each facets.categories as c (c.slug)}
-							<li>
-								<a
-									href={categoryHref(c.slug)}
-									aria-current={c.slug === filters.category || undefined}
-									>{c.name}<span class="n">{num.format(c.count)}</span></a
-								>
-							</li>
-						{/each}
-					</ul>
+					{@render cats(facets.categories.slice(0, SHOWN))}
+					{#if facets.categories.length > SHOWN}
+						{@const rest = facets.categories.slice(SHOWN)}
+						<details class="more" open={rest.some((c) => c.slug === filters.category)}>
+							<summary>{t.more(rest.length)}</summary>
+							{@render cats(rest)}
+						</details>
+					{/if}
 				</details>
 			{/if}
 
@@ -190,10 +201,14 @@
 		<div class="bar">
 			<p class="count">{t.showing(products.items.length, !!products.next_cursor)}</p>
 			<div class="sort">
-				<Select label={t.sort} hideLabel name="sort" value={filters.sort} onchange={submit}>
-					{#each Object.entries(t.sorts) as [value, label] (value)}<option {value}>{label}</option
-						>{/each}
-				</Select>
+				<CustomSelect
+					label={t.sort}
+					hideLabel
+					name="sort"
+					value={filters.sort}
+					options={Object.entries(t.sorts).map(([value, label]) => ({ value, label }))}
+					onchange={() => tick().then(() => form?.requestSubmit())}
+				/>
 			</div>
 		</div>
 
@@ -241,11 +256,21 @@
 		align-items: start;
 		gap: 1.5rem;
 	}
+	/* Beside the results as they scroll; a long list of choices scrolls inside it. */
+	.filters {
+		position: sticky;
+		inset-block-start: var(--site-sticky);
+	}
 	.toggle {
 		display: none;
 	}
 	.card {
 		display: grid;
+		max-block-size: calc(100dvh - var(--site-sticky) - 1rem);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: thin;
+		scrollbar-color: var(--ui-line) transparent;
 		padding: 0.25rem 1rem;
 		border-radius: var(--ui-radius);
 		background: var(--ui-surface);
@@ -406,6 +431,12 @@
 	@media (width < 56rem) {
 		.listing {
 			grid-template-columns: minmax(0, 1fr);
+		}
+		.filters {
+			position: static;
+		}
+		.card {
+			max-block-size: none;
 		}
 		/* On phones the filters fold away under a "Filters" button. */
 		.toggle {

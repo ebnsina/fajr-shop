@@ -15,6 +15,7 @@ import (
 	"log/slog"
 	"math"
 	"math/rand/v2"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -233,7 +234,7 @@ func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category uuid.UUID,
 	}
 	created := now.Add(-time.Duration(rng.IntN(120*24*60)) * time.Minute)
 	slug := catalog.Slugify(name) + "-" + key
-	desc := s.about + "\n\n" + name + " is sold with a valid invoice. Check the size or model before you order."
+	desc := describe(s, name, brand)
 	b.Queue(`INSERT INTO products (id, slug, name, description, status, category_id, options, price_min, price_max, featured, brand, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5::product_status, $6, $7, $8, $9, $10, $11, $12, $12)`,
 		id, slug, name, desc, status, category, optsJSON, int64(lo)*100, int64(hi)*100, rng.IntN(100) < 3, brand, created)
@@ -360,4 +361,23 @@ func hsl(h, s, l float64) color.RGBA {
 	}
 	p := 2*l - q
 	return color.RGBA{uint8(255 * hue(p, q, h+1.0/3)), uint8(255 * hue(p, q, h)), uint8(255 * hue(p, q, h-1.0/3)), 255}
+}
+
+// describe writes a demo description: what it is, then the points shoppers here ask about.
+func describe(s sub, name, brand string) string {
+	lines := []string{
+		s.about,
+		"",
+		name + " from " + brand + ", one of our best-loved " + strings.ToLower(s.name) + ". Every order comes with a printed invoice, and you pay when it arrives.",
+		"",
+		"- Genuine " + brand + " product, straight from the brand or its official distributor",
+	}
+	for _, o := range s.opts {
+		lines = append(lines, "- "+o.name+": "+strings.Join(o.values, ", "))
+	}
+	lines = append(lines,
+		"- Cash on delivery all over Bangladesh",
+		"- Return within 7 days if it arrives damaged or isn't what you ordered",
+	)
+	return strings.Join(lines, "\n")
 }
