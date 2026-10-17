@@ -135,6 +135,9 @@ func (s *Server) MergeCart(ctx context.Context, req apigen.MergeCartRequestObjec
 			if err := q.MergeCartItems(ctx, dbq.MergeCartItemsParams{IntoCart: mine.ID, FromCart: guest.ID}); err != nil {
 				return err
 			}
+			if err := q.MergeCartDiscount(ctx, dbq.MergeCartDiscountParams{IntoCart: mine.ID, FromCart: guest.ID}); err != nil {
+				return err
+			}
 			if err := q.DeleteCart(ctx, guest.ID); err != nil {
 				return err
 			}
@@ -180,7 +183,8 @@ func (s *Server) loadCart(ctx context.Context, q *dbq.Queries, cartID uuid.UUID)
 			out.Subtotal += item.LineTotal
 		}
 	}
-	return out, nil
+	out.Total = out.Subtotal
+	return out, priceDiscount(ctx, q, cartID, &out)
 }
 
 func emptyCart() apigen.Cart {

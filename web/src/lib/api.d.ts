@@ -505,6 +505,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cart/discount": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Use a discount code on the cart
+         * @description Replaces any code already on it. A code that doesn't exist, isn't on, hasn't started, has
+         *     ended or is used up is refused (`validation`, on `code`). A code whose minimum order isn't
+         *     met yet is kept: `discount.applies` is false and `discount.note` says what's missing.
+         */
+        put: operations["applyCartDiscount"];
+        post?: never;
+        /** Take the discount code off the cart */
+        delete: operations["removeCartDiscount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/discounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every discount code, newest first
+         * @description Needs `store:write`.
+         */
+        get: operations["adminListDiscounts"];
+        put?: never;
+        /**
+         * Add a discount code
+         * @description Needs `store:write`. Codes are unique, ignoring case.
+         */
+        post: operations["createDiscount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/discounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change a discount code
+         * @description Needs `store:write`. How many times it has been used is kept.
+         */
+        put: operations["updateDiscount"];
+        post?: never;
+        /**
+         * Remove a discount code
+         * @description Needs `store:write`. Carts using it lose it.
+         */
+        delete: operations["deleteDiscount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/banners": {
         parameters: {
             query?: never;
@@ -1025,9 +1101,95 @@ export interface components {
              * @description Sum of the purchasable lines, before shipping, discounts and any VAT added on top.
              */
             subtotal: number;
+            discount?: components["schemas"]["CartDiscount"] | null;
+            /**
+             * Format: int64
+             * @description Taken off the subtotal, in poisha; 0 without a code that applies.
+             */
+            discount_total: number;
+            /**
+             * Format: int64
+             * @description Subtotal less the discount, before shipping and any VAT added on top.
+             */
+            total: number;
             currency: string;
             /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
             token?: string | null;
+        };
+        CartDiscount: {
+            code: string;
+            description?: string | null;
+            /**
+             * Format: int64
+             * @description Taken off, in poisha; 0 when it doesn't apply.
+             */
+            amount: number;
+            applies: boolean;
+            /**
+             * @description Why it doesn't apply: `below_minimum` (add more; see min_subtotal), `not_started`,
+             *     `ended`, `used_up` or `inactive` (it changed after it was put on the cart).
+             * @enum {string|null}
+             */
+            reason?: "below_minimum" | "not_started" | "ended" | "used_up" | "inactive" | null;
+            /** Format: int64 */
+            min_subtotal: number;
+        };
+        /**
+         * @description `percent`: value is a whole percentage. `fixed`: value is an amount in poisha.
+         * @enum {string}
+         */
+        DiscountKind: "percent" | "fixed";
+        Discount: {
+            /** Format: uuid */
+            id: string;
+            /** @description Stored in capitals; shoppers can type it in any case. */
+            code: string;
+            /** @description Shown to shoppers beside the code, e.g. "10% off for Eid". */
+            description?: string | null;
+            kind: components["schemas"]["DiscountKind"];
+            /** Format: int64 */
+            value: number;
+            /**
+             * Format: int64
+             * @description For a percentage, the most it takes off, in poisha.
+             */
+            max_discount?: number | null;
+            /**
+             * Format: int64
+             * @description The subtotal needed for it to apply, in poisha.
+             */
+            min_subtotal: number;
+            /** Format: date-time */
+            starts_at?: string | null;
+            /** Format: date-time */
+            ends_at?: string | null;
+            /** @description How many orders may use it in all; null for no limit. */
+            usage_limit?: number | null;
+            used_count: number;
+            active: boolean;
+            /** Format: date-time */
+            created_at: string;
+        };
+        DiscountInput: {
+            /** @description Letters, digits, - and _. */
+            code: string;
+            description?: string | null;
+            kind: components["schemas"]["DiscountKind"];
+            /**
+             * Format: int64
+             * @description 1–100 for a percentage; an amount in poisha for a fixed discount.
+             */
+            value: number;
+            /** Format: int64 */
+            max_discount?: number | null;
+            /** Format: int64 */
+            min_subtotal?: number;
+            /** Format: date-time */
+            starts_at?: string | null;
+            /** Format: date-time */
+            ends_at?: string | null;
+            usage_limit?: number | null;
+            active?: boolean;
         };
         /**
          * @description `hero`: the big slides at the top. `side`: beside them. `wide`: across the page lower down.
@@ -1977,6 +2139,156 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Cart"];
                 };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    applyCartDiscount: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The cart with the code on it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    removeCartDiscount: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The cart without a code */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListDiscounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Discounts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Discount"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createDiscount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscountInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Discount"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateDiscount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscountInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Discount"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteDiscount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Error"];
         };

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Discount codes: a percentage (with an optional cap) or an amount off, with an optional
+  minimum order, start and end, and a usage limit. Managed under Discounts in the dashboard;
+  shoppers enter a code in their bag, which says how much more to add when the minimum isn't met.
+  A guest's code comes along when they sign in. (`PUT/DELETE /v1/cart/discount`,
+  `/v1/admin/discounts`; carts now have `discount`, `discount_total` and `total`.)
+- Fixed: the dashboard's delivery, banner and discount pages crashed after a successful save.
 - Shop filters: categories, brands and every option (size, color, capacity…) with how many
   products each choice has, price placeholders from the real range, in stock and on sale,
   and removable chips for the filters in use. Several brands or values of one option match any

@@ -13,7 +13,7 @@ import (
 )
 
 const cartByToken = `-- name: CartByToken :one
-SELECT id, user_id, token_hash, created_at, updated_at FROM carts WHERE token_hash = $1
+SELECT id, user_id, token_hash, created_at, updated_at, discount_id FROM carts WHERE token_hash = $1
 `
 
 func (q *Queries) CartByToken(ctx context.Context, tokenHash []byte) (Cart, error) {
@@ -25,12 +25,13 @@ func (q *Queries) CartByToken(ctx context.Context, tokenHash []byte) (Cart, erro
 		&i.TokenHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountID,
 	)
 	return i, err
 }
 
 const cartByUser = `-- name: CartByUser :one
-SELECT id, user_id, token_hash, created_at, updated_at FROM carts WHERE user_id = $1
+SELECT id, user_id, token_hash, created_at, updated_at, discount_id FROM carts WHERE user_id = $1
 `
 
 func (q *Queries) CartByUser(ctx context.Context, userID uuid.NullUUID) (Cart, error) {
@@ -42,6 +43,7 @@ func (q *Queries) CartByUser(ctx context.Context, userID uuid.NullUUID) (Cart, e
 		&i.TokenHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountID,
 	)
 	return i, err
 }
@@ -116,7 +118,7 @@ func (q *Queries) CartLines(ctx context.Context, cartID uuid.UUID) ([]CartLinesR
 }
 
 const createGuestCart = `-- name: CreateGuestCart :one
-INSERT INTO carts (token_hash) VALUES ($1) RETURNING id, user_id, token_hash, created_at, updated_at
+INSERT INTO carts (token_hash) VALUES ($1) RETURNING id, user_id, token_hash, created_at, updated_at, discount_id
 `
 
 func (q *Queries) CreateGuestCart(ctx context.Context, tokenHash []byte) (Cart, error) {
@@ -128,6 +130,7 @@ func (q *Queries) CreateGuestCart(ctx context.Context, tokenHash []byte) (Cart, 
 		&i.TokenHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountID,
 	)
 	return i, err
 }
@@ -135,7 +138,7 @@ func (q *Queries) CreateGuestCart(ctx context.Context, tokenHash []byte) (Cart, 
 const createUserCart = `-- name: CreateUserCart :one
 INSERT INTO carts (user_id) VALUES ($1)
 ON CONFLICT (user_id) DO UPDATE SET updated_at = now()
-RETURNING id, user_id, token_hash, created_at, updated_at
+RETURNING id, user_id, token_hash, created_at, updated_at, discount_id
 `
 
 func (q *Queries) CreateUserCart(ctx context.Context, userID uuid.NullUUID) (Cart, error) {
@@ -147,6 +150,7 @@ func (q *Queries) CreateUserCart(ctx context.Context, userID uuid.NullUUID) (Car
 		&i.TokenHash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountID,
 	)
 	return i, err
 }

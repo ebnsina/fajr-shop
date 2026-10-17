@@ -31,6 +31,12 @@
 					<span>{t.subtotal(cart.item_count)}</span>
 					<strong><RollingNumber value={formatMoney(cart.subtotal)} /></strong>
 				</p>
+				{#if cart.discount?.applies && cart.discount_total}
+					<p class="sub">
+						<span>{t.discountLine(cart.discount.code)}</span>
+						<strong>−{formatMoney(cart.discount_total)}</strong>
+					</p>
+				{/if}
 				<p class="note">{vatNote ? `${vatNote} ` : ''}{t.note}</p>
 				<Button size="lg" href="/cart" onclick={close}>{t.viewBag}</Button>
 			</div>

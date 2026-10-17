@@ -23,7 +23,7 @@
 
 	const money = { style: 'currency', currency: 'BDT', currencyDisplay: 'narrowSymbol' } as const;
 	const fields = (action: string) =>
-		(form?.action === action ? form.fields : {}) as Record<string, string>;
+		((form?.action === action && form.fields) || {}) as Record<string, string>;
 	/** Which active zone has each district, leaving out the zone being edited. */
 	const takenBy = (except?: string) =>
 		Object.fromEntries(

@@ -67,5 +67,23 @@ export const actions: Actions = {
 	set: async ({ request, locals, cookies }) => {
 		const { variant, quantity } = read(await request.formData());
 		return setQuantity(locals.api, cookies, variant, quantity);
+	},
+	code: async ({ request, locals, cookies }) => {
+		const code = String((await request.formData()).get('code') ?? '').trim();
+		if (!code) return fail(400, { code, codeError: t.codePlaceholder });
+		const { data, error } = await locals.api.PUT('/v1/cart/discount', { body: { code } });
+		// "That code has ended." and the like come from the API in plain words.
+		if (!data)
+			return fail(400, {
+				code,
+				codeError: error?.error.fields?.code ?? errorText(error?.error.code)
+			});
+		if (data.token) saveCartToken(cookies, data.token);
+		return { cart: data };
+	},
+	uncode: async ({ locals }) => {
+		const { data, error } = await locals.api.DELETE('/v1/cart/discount');
+		if (!data) return fail(400, { codeError: errorText(error?.error.code) });
+		return { cart: data };
 	}
 };

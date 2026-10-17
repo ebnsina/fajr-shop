@@ -26,7 +26,7 @@
 		label: t.placements[value].label
 	}));
 	const fields = (action: string) =>
-		(form?.action === action ? form.fields : {}) as Record<string, string>;
+		((form?.action === action && form.fields) || {}) as Record<string, string>;
 	const groups = $derived(
 		(['hero', 'side', 'wide'] as const)
 			.map((p) => ({ p, items: data.banners.filter((b) => b.placement === p) }))

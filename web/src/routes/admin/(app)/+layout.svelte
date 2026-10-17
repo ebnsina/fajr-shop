@@ -5,6 +5,7 @@
 		Activity01Icon,
 		DashboardSquare01Icon,
 		DeliveryTruck01Icon,
+		DiscountTag01Icon,
 		Folder01Icon,
 		Image01Icon,
 		Key01Icon,
@@ -34,6 +35,7 @@
 			items: [
 				{ label: nav.storeSettings, href: '/admin/settings/store', icon: Store01Icon },
 				{ label: nav.shipping, href: '/admin/shipping', icon: DeliveryTruck01Icon },
+				{ label: nav.discounts, href: '/admin/discounts', icon: DiscountTag01Icon },
 				{ label: nav.activity, href: '/admin/activity', icon: Activity01Icon }
 			]
 		},

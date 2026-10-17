@@ -83,6 +83,7 @@ export const nav = {
 	categories: 'Categories',
 	banners: 'Banners',
 	shipping: 'Delivery',
+	discounts: 'Discounts',
 	storeSettings: 'Store settings',
 	activity: 'Activity',
 	developers: 'Developers',
@@ -384,7 +385,21 @@ export const cart = {
 	unavailable: 'No longer for sale',
 	soldOut: 'Sold out',
 	onlyLeft: (n: number) => `Only ${n} left. Lower the quantity to buy it.`,
-	title: 'Your bag'
+	title: 'Your bag',
+	code: 'Discount code',
+	codePlaceholder: 'Enter a code',
+	useCode: 'Apply',
+	removeCode: (code: string) => `Remove code ${code}`,
+	discountLine: (code: string) => `Discount (${code})`,
+	afterDiscount: 'After discount',
+	/** Why a code on the bag isn't taking anything off; min is already formatted. */
+	codeWaits: {
+		below_minimum: (more: string) => `Add ${more} more to use this code.`,
+		not_started: () => 'This code isn’t on yet.',
+		ended: () => 'This code has ended.',
+		used_up: () => 'This code has been used up.',
+		inactive: () => 'This code isn’t valid any more.'
+	}
 };
 
 export const storefront = {
@@ -532,6 +547,56 @@ export const shippingAdmin = {
 	freeFrom: (amount: string) => `Free over ${amount}`,
 	emptyTitle: 'No delivery zones yet',
 	emptyBody: 'Add one so shoppers can see what delivery costs. Start with Inside Dhaka.'
+};
+
+export const discountAdmin = {
+	title: 'Discounts',
+	description:
+		'Codes shoppers type in their bag for money off. Set a minimum order, dates and how many times a code can be used.',
+	add: 'Add a code',
+	edit: 'Edit',
+	editTitle: 'Edit code',
+	save: 'Save',
+	saved: 'Code saved',
+	delete: 'Delete',
+	deleteConfirm: 'Delete it?',
+	deleted: 'Code deleted',
+	code: 'Code',
+	codeHint: 'Letters, numbers, - and _. Shoppers can type it in any case.',
+	codePlaceholder: 'EID10',
+	about: 'Shown to shoppers (optional)',
+	aboutPlaceholder: '10% off for Eid',
+	kind: 'Type',
+	kinds: [
+		{ value: 'percent', label: 'Percentage' },
+		{ value: 'fixed', label: 'Amount' }
+	],
+	percent: 'Percentage off',
+	amount: 'Amount off',
+	cap: 'At most (optional)',
+	capHint: 'The most a percentage can take off one order.',
+	capPlaceholder: '500',
+	min: 'Minimum order (optional)',
+	minPlaceholder: '2000',
+	starts: 'Starts (optional)',
+	ends: 'Ends (optional)',
+	limit: 'Times it can be used (optional)',
+	limitHint: 'Across all orders. Leave empty for no limit.',
+	limitPlaceholder: '100',
+	active: 'On',
+	off: 'Off',
+	scheduled: 'Not started',
+	ended: 'Ended',
+	usedUp: 'Used up',
+	takesOff: (p: string) => `${p} off`,
+	upTo: (amount: string) => `up to ${amount}`,
+	over: (amount: string) => `on orders over ${amount}`,
+	from: (d: string) => `from ${d}`,
+	until: (d: string) => `until ${d}`,
+	used: (n: number, limit?: number | null) =>
+		limit ? `Used ${n} of ${limit}` : `Used ${n} ${n === 1 ? 'time' : 'times'}`,
+	emptyTitle: 'No discount codes yet',
+	emptyBody: 'Add one, like EID10 for 10% off, and share it with your customers.'
 };
 
 export const delivery = {

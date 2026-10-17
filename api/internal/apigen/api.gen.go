@@ -69,6 +69,51 @@ func (e BannerPlacement) Valid() bool {
 	}
 }
 
+// Defines values for CartDiscountReason.
+const (
+	BelowMinimum CartDiscountReason = "below_minimum"
+	Ended        CartDiscountReason = "ended"
+	Inactive     CartDiscountReason = "inactive"
+	NotStarted   CartDiscountReason = "not_started"
+	UsedUp       CartDiscountReason = "used_up"
+)
+
+// Valid indicates whether the value is a known member of the CartDiscountReason enum.
+func (e CartDiscountReason) Valid() bool {
+	switch e {
+	case BelowMinimum:
+		return true
+	case Ended:
+		return true
+	case Inactive:
+		return true
+	case NotStarted:
+		return true
+	case UsedUp:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DiscountKind.
+const (
+	Fixed   DiscountKind = "fixed"
+	Percent DiscountKind = "percent"
+)
+
+// Valid indicates whether the value is a known member of the DiscountKind enum.
+func (e DiscountKind) Valid() bool {
+	switch e {
+	case Fixed:
+		return true
+	case Percent:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ErrorCode.
 const (
 	AccountExists      ErrorCode = "account_exists"
@@ -391,16 +436,41 @@ type BrandFacet struct {
 
 // Cart defines model for Cart.
 type Cart struct {
-	Currency  string     `json:"currency"`
-	ItemCount int        `json:"item_count"`
-	Items     []CartItem `json:"items"`
+	Currency string        `json:"currency"`
+	Discount *CartDiscount `json:"discount,omitempty"`
+
+	// DiscountTotal Taken off the subtotal, in poisha; 0 without a code that applies.
+	DiscountTotal int64      `json:"discount_total"`
+	ItemCount     int        `json:"item_count"`
+	Items         []CartItem `json:"items"`
 
 	// Subtotal Sum of the purchasable lines, before shipping, discounts and any VAT added on top.
 	Subtotal int64 `json:"subtotal"`
 
 	// Token Only when this response created a guest cart. Send it back as X-Cart-Token.
 	Token *string `json:"token,omitempty"`
+
+	// Total Subtotal less the discount, before shipping and any VAT added on top.
+	Total int64 `json:"total"`
 }
+
+// CartDiscount defines model for CartDiscount.
+type CartDiscount struct {
+	// Amount Taken off, in poisha; 0 when it doesn't apply.
+	Amount      int64   `json:"amount"`
+	Applies     bool    `json:"applies"`
+	Code        string  `json:"code"`
+	Description *string `json:"description,omitempty"`
+	MinSubtotal int64   `json:"min_subtotal"`
+
+	// Reason Why it doesn't apply: `below_minimum` (add more; see min_subtotal), `not_started`,
+	// `ended`, `used_up` or `inactive` (it changed after it was put on the cart).
+	Reason *CartDiscountReason `json:"reason,omitempty"`
+}
+
+// CartDiscountReason Why it doesn't apply: `below_minimum` (add more; see min_subtotal), `not_started`,
+// `ended`, `used_up` or `inactive` (it changed after it was put on the cart).
+type CartDiscountReason string
 
 // CartItem defines model for CartItem.
 type CartItem struct {
@@ -454,6 +524,58 @@ type CategoryInput struct {
 	// Slug Made from the name when left out.
 	Slug *string `json:"slug,omitempty"`
 }
+
+// Discount defines model for Discount.
+type Discount struct {
+	Active bool `json:"active"`
+
+	// Code Stored in capitals; shoppers can type it in any case.
+	Code      string    `json:"code"`
+	CreatedAt time.Time `json:"created_at"`
+
+	// Description Shown to shoppers beside the code, e.g. "10% off for Eid".
+	Description *string            `json:"description,omitempty"`
+	EndsAt      *time.Time         `json:"ends_at,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+
+	// Kind `percent`: value is a whole percentage. `fixed`: value is an amount in poisha.
+	Kind DiscountKind `json:"kind"`
+
+	// MaxDiscount For a percentage, the most it takes off, in poisha.
+	MaxDiscount *int64 `json:"max_discount,omitempty"`
+
+	// MinSubtotal The subtotal needed for it to apply, in poisha.
+	MinSubtotal int64      `json:"min_subtotal"`
+	StartsAt    *time.Time `json:"starts_at,omitempty"`
+
+	// UsageLimit How many orders may use it in all; null for no limit.
+	UsageLimit *int  `json:"usage_limit,omitempty"`
+	UsedCount  int   `json:"used_count"`
+	Value      int64 `json:"value"`
+}
+
+// DiscountInput defines model for DiscountInput.
+type DiscountInput struct {
+	Active *bool `json:"active,omitempty"`
+
+	// Code Letters, digits, - and _.
+	Code        string     `json:"code"`
+	Description *string    `json:"description,omitempty"`
+	EndsAt      *time.Time `json:"ends_at,omitempty"`
+
+	// Kind `percent`: value is a whole percentage. `fixed`: value is an amount in poisha.
+	Kind        DiscountKind `json:"kind"`
+	MaxDiscount *int64       `json:"max_discount,omitempty"`
+	MinSubtotal *int64       `json:"min_subtotal,omitempty"`
+	StartsAt    *time.Time   `json:"starts_at,omitempty"`
+	UsageLimit  *int         `json:"usage_limit,omitempty"`
+
+	// Value 1–100 for a percentage; an amount in poisha for a fixed discount.
+	Value int64 `json:"value"`
+}
+
+// DiscountKind `percent`: value is a whole percentage. `fixed`: value is an amount in poisha.
+type DiscountKind string
 
 // District defines model for District.
 type District struct {
@@ -883,6 +1005,23 @@ type GetCartParams struct {
 	XCartToken *CartToken `json:"X-Cart-Token,omitempty"`
 }
 
+// RemoveCartDiscountParams defines parameters for RemoveCartDiscount.
+type RemoveCartDiscountParams struct {
+	// XCartToken A guest's cart, from an earlier `token`.
+	XCartToken *CartToken `json:"X-Cart-Token,omitempty"`
+}
+
+// ApplyCartDiscountJSONBody defines parameters for ApplyCartDiscount.
+type ApplyCartDiscountJSONBody struct {
+	Code string `json:"code"`
+}
+
+// ApplyCartDiscountParams defines parameters for ApplyCartDiscount.
+type ApplyCartDiscountParams struct {
+	// XCartToken A guest's cart, from an earlier `token`.
+	XCartToken *CartToken `json:"X-Cart-Token,omitempty"`
+}
+
 // SetCartItemJSONBody defines parameters for SetCartItem.
 type SetCartItemJSONBody struct {
 	Quantity int `json:"quantity"`
@@ -988,6 +1127,12 @@ type CreateCategoryJSONRequestBody = CategoryInput
 // UpdateCategoryJSONRequestBody defines body for UpdateCategory for application/json ContentType.
 type UpdateCategoryJSONRequestBody = CategoryInput
 
+// CreateDiscountJSONRequestBody defines body for CreateDiscount for application/json ContentType.
+type CreateDiscountJSONRequestBody = DiscountInput
+
+// UpdateDiscountJSONRequestBody defines body for UpdateDiscount for application/json ContentType.
+type UpdateDiscountJSONRequestBody = DiscountInput
+
 // CreateProductJSONRequestBody defines body for CreateProduct for application/json ContentType.
 type CreateProductJSONRequestBody = ProductInput
 
@@ -1017,6 +1162,9 @@ type RefreshJSONRequestBody = RefreshRequest
 
 // RegisterJSONRequestBody defines body for Register for application/json ContentType.
 type RegisterJSONRequestBody = RegisterRequest
+
+// ApplyCartDiscountJSONRequestBody defines body for ApplyCartDiscount for application/json ContentType.
+type ApplyCartDiscountJSONRequestBody ApplyCartDiscountJSONBody
 
 // SetCartItemJSONRequestBody defines body for SetCartItem for application/json ContentType.
 type SetCartItemJSONRequestBody SetCartItemJSONBody
@@ -1062,6 +1210,18 @@ type ServerInterface interface {
 	// UpdateCategory Rename, move or reorder a category
 	// (PUT /v1/admin/categories/{id})
 	UpdateCategory(w http.ResponseWriter, r *http.Request, id Id)
+	// AdminListDiscounts Every discount code, newest first
+	// (GET /v1/admin/discounts)
+	AdminListDiscounts(w http.ResponseWriter, r *http.Request)
+	// CreateDiscount Add a discount code
+	// (POST /v1/admin/discounts)
+	CreateDiscount(w http.ResponseWriter, r *http.Request)
+	// DeleteDiscount Remove a discount code
+	// (DELETE /v1/admin/discounts/{id})
+	DeleteDiscount(w http.ResponseWriter, r *http.Request, id Id)
+	// UpdateDiscount Change a discount code
+	// (PUT /v1/admin/discounts/{id})
+	UpdateDiscount(w http.ResponseWriter, r *http.Request, id Id)
 	// AdminOverview The numbers on the dashboard's home page
 	// (GET /v1/admin/overview)
 	AdminOverview(w http.ResponseWriter, r *http.Request)
@@ -1122,6 +1282,12 @@ type ServerInterface interface {
 	// GetCart The shopper's cart
 	// (GET /v1/cart)
 	GetCart(w http.ResponseWriter, r *http.Request, params GetCartParams)
+	// RemoveCartDiscount Take the discount code off the cart
+	// (DELETE /v1/cart/discount)
+	RemoveCartDiscount(w http.ResponseWriter, r *http.Request, params RemoveCartDiscountParams)
+	// ApplyCartDiscount Use a discount code on the cart
+	// (PUT /v1/cart/discount)
+	ApplyCartDiscount(w http.ResponseWriter, r *http.Request, params ApplyCartDiscountParams)
 	// SetCartItem Set how many of a variant are in the cart
 	// (PUT /v1/cart/items/{variant_id})
 	SetCartItem(w http.ResponseWriter, r *http.Request, variantId openapi_types.UUID, params SetCartItemParams)
@@ -1227,6 +1393,30 @@ func (_ Unimplemented) DeleteCategory(w http.ResponseWriter, r *http.Request, id
 // UpdateCategory Rename, move or reorder a category
 // (PUT /v1/admin/categories/{id})
 func (_ Unimplemented) UpdateCategory(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AdminListDiscounts Every discount code, newest first
+// (GET /v1/admin/discounts)
+func (_ Unimplemented) AdminListDiscounts(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateDiscount Add a discount code
+// (POST /v1/admin/discounts)
+func (_ Unimplemented) CreateDiscount(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteDiscount Remove a discount code
+// (DELETE /v1/admin/discounts/{id})
+func (_ Unimplemented) DeleteDiscount(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateDiscount Change a discount code
+// (PUT /v1/admin/discounts/{id})
+func (_ Unimplemented) UpdateDiscount(w http.ResponseWriter, r *http.Request, id Id) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1347,6 +1537,18 @@ func (_ Unimplemented) ListBrands(w http.ResponseWriter, r *http.Request) {
 // GetCart The shopper's cart
 // (GET /v1/cart)
 func (_ Unimplemented) GetCart(w http.ResponseWriter, r *http.Request, params GetCartParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RemoveCartDiscount Take the discount code off the cart
+// (DELETE /v1/cart/discount)
+func (_ Unimplemented) RemoveCartDiscount(w http.ResponseWriter, r *http.Request, params RemoveCartDiscountParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ApplyCartDiscount Use a discount code on the cart
+// (PUT /v1/cart/discount)
+func (_ Unimplemented) ApplyCartDiscount(w http.ResponseWriter, r *http.Request, params ApplyCartDiscountParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1668,6 +1870,86 @@ func (siw *ServerInterfaceWrapper) UpdateCategory(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateCategory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminListDiscounts operation middleware
+func (siw *ServerInterfaceWrapper) AdminListDiscounts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListDiscounts(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDiscount operation middleware
+func (siw *ServerInterfaceWrapper) CreateDiscount(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDiscount(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteDiscount operation middleware
+func (siw *ServerInterfaceWrapper) DeleteDiscount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteDiscount(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDiscount operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDiscount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDiscount(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2105,6 +2387,88 @@ func (siw *ServerInterfaceWrapper) GetCart(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetCart(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveCartDiscount operation middleware
+func (siw *ServerInterfaceWrapper) RemoveCartDiscount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveCartDiscountParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-Cart-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cart-Token")]; found {
+		var XCartToken CartToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Cart-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cart-Token", valueList[0], &XCartToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Cart-Token", Err: err})
+			return
+		}
+
+		params.XCartToken = &XCartToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveCartDiscount(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ApplyCartDiscount operation middleware
+func (siw *ServerInterfaceWrapper) ApplyCartDiscount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ApplyCartDiscountParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-Cart-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cart-Token")]; found {
+		var XCartToken CartToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Cart-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cart-Token", valueList[0], &XCartToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Cart-Token", Err: err})
+			return
+		}
+
+		params.XCartToken = &XCartToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ApplyCartDiscount(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2870,6 +3234,24 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1/cart/merge", wrapper.MergeCart)
 	})
 	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/cart/discount", wrapper.RemoveCartDiscount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/cart/discount", wrapper.ApplyCartDiscount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/discounts", wrapper.AdminListDiscounts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/discounts", wrapper.CreateDiscount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/admin/discounts/{id}", wrapper.DeleteDiscount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/discounts/{id}", wrapper.UpdateDiscount)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/banners", wrapper.ListBanners)
 	})
 	r.Group(func(r chi.Router) {
@@ -3321,6 +3703,158 @@ type UpdateCategorydefaultJSONResponse struct {
 }
 
 func (response UpdateCategorydefaultJSONResponse) VisitUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListDiscountsRequestObject struct {
+}
+
+type AdminListDiscountsResponseObject interface {
+	VisitAdminListDiscountsResponse(w http.ResponseWriter) error
+}
+
+type AdminListDiscounts200JSONResponse struct {
+	Items []Discount `json:"items"`
+}
+
+func (response AdminListDiscounts200JSONResponse) VisitAdminListDiscountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListDiscountsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response AdminListDiscountsdefaultJSONResponse) VisitAdminListDiscountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiscountRequestObject struct {
+	Body *CreateDiscountJSONRequestBody
+}
+
+type CreateDiscountResponseObject interface {
+	VisitCreateDiscountResponse(w http.ResponseWriter) error
+}
+
+type CreateDiscount201JSONResponse Discount
+
+func (response CreateDiscount201JSONResponse) VisitCreateDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiscountdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreateDiscountdefaultJSONResponse) VisitCreateDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteDiscountRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeleteDiscountResponseObject interface {
+	VisitDeleteDiscountResponse(w http.ResponseWriter) error
+}
+
+type DeleteDiscount204Response struct {
+}
+
+func (response DeleteDiscount204Response) VisitDeleteDiscountResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteDiscountdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response DeleteDiscountdefaultJSONResponse) VisitDeleteDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiscountRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateDiscountJSONRequestBody
+}
+
+type UpdateDiscountResponseObject interface {
+	VisitUpdateDiscountResponse(w http.ResponseWriter) error
+}
+
+type UpdateDiscount200JSONResponse Discount
+
+func (response UpdateDiscount200JSONResponse) VisitUpdateDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiscountdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateDiscountdefaultJSONResponse) VisitUpdateDiscountResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -4114,6 +4648,85 @@ func (response GetCartdefaultJSONResponse) VisitGetCartResponse(w http.ResponseW
 	return err
 }
 
+type RemoveCartDiscountRequestObject struct {
+	Params RemoveCartDiscountParams
+}
+
+type RemoveCartDiscountResponseObject interface {
+	VisitRemoveCartDiscountResponse(w http.ResponseWriter) error
+}
+
+type RemoveCartDiscount200JSONResponse Cart
+
+func (response RemoveCartDiscount200JSONResponse) VisitRemoveCartDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveCartDiscountdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response RemoveCartDiscountdefaultJSONResponse) VisitRemoveCartDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ApplyCartDiscountRequestObject struct {
+	Params ApplyCartDiscountParams
+	Body   *ApplyCartDiscountJSONRequestBody
+}
+
+type ApplyCartDiscountResponseObject interface {
+	VisitApplyCartDiscountResponse(w http.ResponseWriter) error
+}
+
+type ApplyCartDiscount200JSONResponse Cart
+
+func (response ApplyCartDiscount200JSONResponse) VisitApplyCartDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ApplyCartDiscountdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ApplyCartDiscountdefaultJSONResponse) VisitApplyCartDiscountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type SetCartItemRequestObject struct {
 	VariantId openapi_types.UUID `json:"variant_id"`
 	Params    SetCartItemParams
@@ -4663,6 +5276,18 @@ type StrictServerInterface interface {
 	// UpdateCategory Rename, move or reorder a category
 	// (PUT /v1/admin/categories/{id})
 	UpdateCategory(ctx context.Context, request UpdateCategoryRequestObject) (UpdateCategoryResponseObject, error)
+	// AdminListDiscounts Every discount code, newest first
+	// (GET /v1/admin/discounts)
+	AdminListDiscounts(ctx context.Context, request AdminListDiscountsRequestObject) (AdminListDiscountsResponseObject, error)
+	// CreateDiscount Add a discount code
+	// (POST /v1/admin/discounts)
+	CreateDiscount(ctx context.Context, request CreateDiscountRequestObject) (CreateDiscountResponseObject, error)
+	// DeleteDiscount Remove a discount code
+	// (DELETE /v1/admin/discounts/{id})
+	DeleteDiscount(ctx context.Context, request DeleteDiscountRequestObject) (DeleteDiscountResponseObject, error)
+	// UpdateDiscount Change a discount code
+	// (PUT /v1/admin/discounts/{id})
+	UpdateDiscount(ctx context.Context, request UpdateDiscountRequestObject) (UpdateDiscountResponseObject, error)
 	// AdminOverview The numbers on the dashboard's home page
 	// (GET /v1/admin/overview)
 	AdminOverview(ctx context.Context, request AdminOverviewRequestObject) (AdminOverviewResponseObject, error)
@@ -4723,6 +5348,12 @@ type StrictServerInterface interface {
 	// GetCart The shopper's cart
 	// (GET /v1/cart)
 	GetCart(ctx context.Context, request GetCartRequestObject) (GetCartResponseObject, error)
+	// RemoveCartDiscount Take the discount code off the cart
+	// (DELETE /v1/cart/discount)
+	RemoveCartDiscount(ctx context.Context, request RemoveCartDiscountRequestObject) (RemoveCartDiscountResponseObject, error)
+	// ApplyCartDiscount Use a discount code on the cart
+	// (PUT /v1/cart/discount)
+	ApplyCartDiscount(ctx context.Context, request ApplyCartDiscountRequestObject) (ApplyCartDiscountResponseObject, error)
 	// SetCartItem Set how many of a variant are in the cart
 	// (PUT /v1/cart/items/{variant_id})
 	SetCartItem(ctx context.Context, request SetCartItemRequestObject) (SetCartItemResponseObject, error)
@@ -5104,6 +5735,120 @@ func (sh *strictHandler) UpdateCategory(w http.ResponseWriter, r *http.Request, 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateCategoryResponseObject); ok {
 		if err := validResponse.VisitUpdateCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminListDiscounts operation middleware
+func (sh *strictHandler) AdminListDiscounts(w http.ResponseWriter, r *http.Request) {
+	var request AdminListDiscountsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListDiscounts(ctx, request.(AdminListDiscountsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListDiscounts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListDiscountsResponseObject); ok {
+		if err := validResponse.VisitAdminListDiscountsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDiscount operation middleware
+func (sh *strictHandler) CreateDiscount(w http.ResponseWriter, r *http.Request) {
+	var request CreateDiscountRequestObject
+
+	var body CreateDiscountJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateDiscount(ctx, request.(CreateDiscountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateDiscount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateDiscountResponseObject); ok {
+		if err := validResponse.VisitCreateDiscountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteDiscount operation middleware
+func (sh *strictHandler) DeleteDiscount(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeleteDiscountRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteDiscount(ctx, request.(DeleteDiscountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteDiscount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteDiscountResponseObject); ok {
+		if err := validResponse.VisitDeleteDiscountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDiscount operation middleware
+func (sh *strictHandler) UpdateDiscount(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateDiscountRequestObject
+
+	request.Id = id
+
+	var body UpdateDiscountJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDiscount(ctx, request.(UpdateDiscountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDiscount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateDiscountResponseObject); ok {
+		if err := validResponse.VisitUpdateDiscountResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5677,6 +6422,65 @@ func (sh *strictHandler) GetCart(w http.ResponseWriter, r *http.Request, params 
 	}
 }
 
+// RemoveCartDiscount operation middleware
+func (sh *strictHandler) RemoveCartDiscount(w http.ResponseWriter, r *http.Request, params RemoveCartDiscountParams) {
+	var request RemoveCartDiscountRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveCartDiscount(ctx, request.(RemoveCartDiscountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveCartDiscount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RemoveCartDiscountResponseObject); ok {
+		if err := validResponse.VisitRemoveCartDiscountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ApplyCartDiscount operation middleware
+func (sh *strictHandler) ApplyCartDiscount(w http.ResponseWriter, r *http.Request, params ApplyCartDiscountParams) {
+	var request ApplyCartDiscountRequestObject
+
+	request.Params = params
+
+	var body ApplyCartDiscountJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ApplyCartDiscount(ctx, request.(ApplyCartDiscountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ApplyCartDiscount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ApplyCartDiscountResponseObject); ok {
+		if err := validResponse.VisitApplyCartDiscountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // SetCartItem operation middleware
 func (sh *strictHandler) SetCartItem(w http.ResponseWriter, r *http.Request, variantId openapi_types.UUID, params SetCartItemParams) {
 	var request SetCartItemRequestObject
@@ -6004,141 +6808,158 @@ func (sh *strictHandler) GetStore(w http.ResponseWriter, r *http.Request, params
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"yMlr/V+Jts5P2rb/r3mg/RlKg735cPP/BgA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

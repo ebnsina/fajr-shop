@@ -178,11 +178,12 @@ type Banner struct {
 }
 
 type Cart struct {
-	ID        uuid.UUID
-	UserID    uuid.NullUUID
-	TokenHash []byte
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	ID         uuid.UUID
+	UserID     uuid.NullUUID
+	TokenHash  []byte
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
+	DiscountID uuid.NullUUID
 }
 
 type CartItem struct {
@@ -200,6 +201,22 @@ type Category struct {
 	Position  int32
 	CreatedAt pgtype.Timestamptz
 	ImageID   uuid.NullUUID
+}
+
+type Discount struct {
+	ID          uuid.UUID
+	Code        string
+	Description *string
+	Kind        string
+	Value       int64
+	MaxDiscount pgtype.Int8
+	MinSubtotal int64
+	StartsAt    pgtype.Timestamptz
+	EndsAt      pgtype.Timestamptz
+	UsageLimit  pgtype.Int4
+	UsedCount   int32
+	Active      bool
+	CreatedAt   pgtype.Timestamptz
 }
 
 type Product struct {

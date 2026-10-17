@@ -20,6 +20,7 @@ tags:
   - name: catalog
   - name: cart
   - name: shipping
+  - name: discounts
   - name: admin
 
 paths:
@@ -709,6 +710,142 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cart"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/cart/discount:
+    parameters:
+      - $ref: "#/components/parameters/CartToken"
+    put:
+      operationId: applyCartDiscount
+      tags: [cart, discounts]
+      summary: Use a discount code on the cart
+      description: |
+        Replaces any code already on it. A code that doesn't exist, isn't on, hasn't started, has
+        ended or is used up is refused (`validation`, on `code`). A code whose minimum order isn't
+        met yet is kept: `discount.applies` is false and `discount.note` says what's missing.
+      security:
+        - {}
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                  maxLength: 30
+      responses:
+        "200":
+          description: The cart with the code on it
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: removeCartDiscount
+      tags: [cart, discounts]
+      summary: Take the discount code off the cart
+      security:
+        - {}
+        - bearer: []
+      responses:
+        "200":
+          description: The cart without a code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/discounts:
+    get:
+      operationId: adminListDiscounts
+      tags: [admin, discounts]
+      summary: Every discount code, newest first
+      description: Needs `store:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Discounts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Discount"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createDiscount
+      tags: [admin, discounts]
+      summary: Add a discount code
+      description: "Needs `store:write`. Codes are unique, ignoring case."
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discount"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/discounts/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      operationId: updateDiscount
+      tags: [admin, discounts]
+      summary: Change a discount code
+      description: Needs `store:write`. How many times it has been used is kept.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscountInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Discount"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteDiscount
+      tags: [admin, discounts]
+      summary: Remove a discount code
+      description: Needs `store:write`. Carts using it lose it.
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Removed
         default:
           $ref: "#/components/responses/Error"
 
@@ -1775,7 +1912,7 @@ components:
 
     Cart:
       type: object
-      required: [items, item_count, subtotal, currency]
+      required: [items, item_count, subtotal, discount_total, total, currency]
       properties:
         items:
           type: array
@@ -1787,11 +1924,133 @@ components:
           description: Sum of the purchasable lines, before shipping, discounts and any VAT added on top.
           type: integer
           format: int64
+        discount:
+          oneOf:
+            - $ref: "#/components/schemas/CartDiscount"
+            - type: "null"
+        discount_total:
+          description: Taken off the subtotal, in poisha; 0 without a code that applies.
+          type: integer
+          format: int64
+        total:
+          description: Subtotal less the discount, before shipping and any VAT added on top.
+          type: integer
+          format: int64
         currency:
           type: string
         token:
           description: Only when this response created a guest cart. Send it back as X-Cart-Token.
           type: [string, "null"]
+
+    CartDiscount:
+      type: object
+      required: [code, amount, applies, min_subtotal]
+      properties:
+        code:
+          type: string
+        description:
+          type: [string, "null"]
+        amount:
+          description: Taken off, in poisha; 0 when it doesn't apply.
+          type: integer
+          format: int64
+        applies:
+          type: boolean
+        reason:
+          description: |
+            Why it doesn't apply: `below_minimum` (add more; see min_subtotal), `not_started`,
+            `ended`, `used_up` or `inactive` (it changed after it was put on the cart).
+          type: [string, "null"]
+          enum: [below_minimum, not_started, ended, used_up, inactive]
+        min_subtotal:
+          type: integer
+          format: int64
+
+    DiscountKind:
+      description: "`percent`: value is a whole percentage. `fixed`: value is an amount in poisha."
+      type: string
+      enum: [percent, fixed]
+
+    Discount:
+      type: object
+      required: [id, code, kind, value, min_subtotal, used_count, active, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          description: Stored in capitals; shoppers can type it in any case.
+          type: string
+        description:
+          description: Shown to shoppers beside the code, e.g. "10% off for Eid".
+          type: [string, "null"]
+        kind:
+          $ref: "#/components/schemas/DiscountKind"
+        value:
+          type: integer
+          format: int64
+        max_discount:
+          description: For a percentage, the most it takes off, in poisha.
+          type: [integer, "null"]
+          format: int64
+        min_subtotal:
+          description: The subtotal needed for it to apply, in poisha.
+          type: integer
+          format: int64
+        starts_at:
+          type: [string, "null"]
+          format: date-time
+        ends_at:
+          type: [string, "null"]
+          format: date-time
+        usage_limit:
+          description: How many orders may use it in all; null for no limit.
+          type: [integer, "null"]
+        used_count:
+          type: integer
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    DiscountInput:
+      type: object
+      required: [code, kind, value]
+      properties:
+        code:
+          description: Letters, digits, - and _.
+          type: string
+          pattern: "^[A-Za-z0-9_-]{3,30}$"
+        description:
+          type: [string, "null"]
+          maxLength: 120
+        kind:
+          $ref: "#/components/schemas/DiscountKind"
+        value:
+          description: 1–100 for a percentage; an amount in poisha for a fixed discount.
+          type: integer
+          format: int64
+          minimum: 1
+        max_discount:
+          type: [integer, "null"]
+          format: int64
+          minimum: 1
+        min_subtotal:
+          type: integer
+          format: int64
+          minimum: 0
+        starts_at:
+          type: [string, "null"]
+          format: date-time
+        ends_at:
+          type: [string, "null"]
+          format: date-time
+        usage_limit:
+          type: [integer, "null"]
+          minimum: 1
+        active:
+          type: boolean
 
     BannerPlacement:
       description: "`hero`: the big slides at the top. `side`: beside them. `wide`: across the page lower down."

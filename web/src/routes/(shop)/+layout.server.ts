@@ -8,6 +8,8 @@ const noCart: components['schemas']['Cart'] = {
 	items: [],
 	item_count: 0,
 	subtotal: 0,
+	discount_total: 0,
+	total: 0,
 	currency: 'BDT'
 };
 
