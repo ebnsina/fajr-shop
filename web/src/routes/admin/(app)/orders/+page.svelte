@@ -4,6 +4,7 @@
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
+	import SearchField from '#lib/sinaui/ui/SearchField.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -22,22 +23,35 @@
 	<p>{t.description}</p>
 </div>
 
-<nav class="filter" aria-label={t.status}>
-	<Button
-		size="sm"
-		variant={data.status ? 'ghost' : 'secondary'}
-		href="?"
-		aria-current={!data.status ? 'page' : undefined}>{t.all}</Button
-	>
-	{#each data.statuses as s (s)}
+<div class="tools">
+	<form method="get" role="search" class="search">
+		<SearchField
+			label={t.search}
+			hideLabel
+			name="q"
+			value={data.q}
+			placeholder={t.searchPlaceholder}
+		/>
+		{#if data.status}<input type="hidden" name="status" value={data.status} />{/if}
+		<Button type="submit" variant="secondary">{t.searchButton}</Button>
+	</form>
+	<nav class="filter" aria-label={t.status}>
 		<Button
 			size="sm"
-			variant={data.status === s ? 'secondary' : 'ghost'}
-			href="?status={s}"
-			aria-current={data.status === s ? 'page' : undefined}>{o.statuses[s]}</Button
+			variant={data.status ? 'ghost' : 'secondary'}
+			href={data.q ? `?q=${encodeURIComponent(data.q)}` : '?'}
+			aria-current={!data.status ? 'page' : undefined}>{t.all}</Button
 		>
-	{/each}
-</nav>
+		{#each data.statuses as s (s)}
+			<Button
+				size="sm"
+				variant={data.status === s ? 'secondary' : 'ghost'}
+				href="?status={s}{data.q ? `&q=${encodeURIComponent(data.q)}` : ''}"
+				aria-current={data.status === s ? 'page' : undefined}>{o.statuses[s]}</Button
+			>
+		{/each}
+	</nav>
+</div>
 
 {#if data.orders.length}
 	<div class="table">
@@ -73,21 +87,40 @@
 		<div class="more">
 			<Button
 				variant="secondary"
-				href="?{data.status ? `status=${data.status}&` : ''}cursor={encodeURIComponent(data.next)}"
-				>{t.more}</Button
+				href="?{data.status ? `status=${data.status}&` : ''}{data.q
+					? `q=${encodeURIComponent(data.q)}&`
+					: ''}cursor={encodeURIComponent(data.next)}">{t.more}</Button
 			>
 		</div>
 	{/if}
 {:else}
-	<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
+	<EmptyState title={data.q ? t.noMatch(data.q) : t.emptyTitle}
+		>{data.q ? '' : t.emptyBody}</EmptyState
+	>
 {/if}
 
 <style>
+	.tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem 1.5rem;
+		margin-block-end: 1rem;
+	}
+	.search {
+		display: flex;
+		flex: 1 1 22rem;
+		gap: 0.5rem;
+		max-inline-size: 30rem;
+	}
+	.search > :global(:first-child) {
+		flex: 1;
+	}
 	.filter {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.375rem;
-		margin-block-end: 1rem;
 	}
 	.table {
 		overflow-x: auto;

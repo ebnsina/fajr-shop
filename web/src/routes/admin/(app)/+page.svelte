@@ -1,11 +1,16 @@
 <script lang="ts">
 	import {
+		ChartLineData01Icon,
+		Clock01Icon,
 		CubeIcon,
+		DeliveryTruck01Icon,
+		Money03Icon,
 		FolderTreeIcon,
 		PackageRemoveIcon,
 		PencilEdit02Icon
 	} from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
+	import { formatMoney } from '#lib/money.js';
 	import { activity, overview as t } from '#lib/copy.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
@@ -16,27 +21,65 @@
 	const o = $derived(data.overview);
 	const n = new Intl.NumberFormat('en-US');
 	const when = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-	const stats = $derived([
+	type Stat = { label: string; value: string; icon: typeof CubeIcon; href: string; warn?: boolean };
+	// Orders first, for whoever handles them: what's waiting, then how sales are going.
+	const orderStats = $derived<Stat[]>(
+		o.orders
+			? [
+					{
+						label: t.waiting,
+						value: n.format(o.orders.waiting),
+						icon: Clock01Icon,
+						href: '/admin/orders?status=pending',
+						warn: o.orders.waiting > 0
+					},
+					{
+						label: t.toShip,
+						value: n.format(o.orders.to_ship),
+						icon: DeliveryTruck01Icon,
+						href: '/admin/orders?status=confirmed'
+					},
+					{
+						label: t.today(o.orders.today_orders),
+						value: formatMoney(o.orders.today_sales),
+						icon: Money03Icon,
+						href: '/admin/orders'
+					},
+					{
+						label: t.week(o.orders.week_orders),
+						value: formatMoney(o.orders.week_sales),
+						icon: ChartLineData01Icon,
+						href: '/admin/orders'
+					}
+				]
+			: []
+	);
+	const stats = $derived<Stat[]>([
 		{
 			label: t.forSale,
-			value: o.products.active,
+			value: n.format(o.products.active),
 			icon: CubeIcon,
 			href: '/admin/products?status=active'
 		},
 		{
 			label: t.drafts,
-			value: o.products.draft,
+			value: n.format(o.products.draft),
 			icon: PencilEdit02Icon,
 			href: '/admin/products?status=draft'
 		},
 		{
 			label: t.soldOut,
-			value: o.out_of_stock,
+			value: n.format(o.out_of_stock),
 			icon: PackageRemoveIcon,
 			href: '/admin/products',
 			warn: o.out_of_stock > 0
 		},
-		{ label: t.categories, value: o.categories, icon: FolderTreeIcon, href: '/admin/categories' }
+		{
+			label: t.categories,
+			value: n.format(o.categories),
+			icon: FolderTreeIcon,
+			href: '/admin/categories'
+		}
 	]);
 </script>
 
@@ -54,11 +97,11 @@
 </div>
 
 <ul class="stats">
-	{#each stats as s (s.label)}
+	{#each [...orderStats, ...stats] as s (s.label)}
 		<li class={[s.warn && 'warn']}>
 			<svelte:element this={s.href ? 'a' : 'div'} href={s.href} class="stat">
 				<span class="icon"><Icon icon={s.icon} size={20} /></span>
-				<span class="value">{n.format(s.value)}</span>
+				<span class="value">{s.value}</span>
 				<span class="label">{s.label}</span>
 			</svelte:element>
 		</li>

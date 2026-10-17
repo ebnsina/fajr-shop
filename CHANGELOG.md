@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dashboard: search orders by number, phone (any 4+ digits, however typed) or name; the
+  Overview starts with orders to confirm, orders to ship, and sales today and over 7 days
+  (Dhaka time), each linking to the orders behind it.
 - Search page: no second search box (the header's is the one search). Header search button in onyx.
 - Shop, category and search pages: the title shows how many products match, "Shop all
   (3,223)", with the sort on the right of it; the "Showing 24 products" line is gone. The API's

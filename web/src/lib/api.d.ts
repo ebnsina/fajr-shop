@@ -1687,6 +1687,8 @@ export interface components {
             image?: components["schemas"]["Image"] | null;
         };
         Overview: {
+            /** @description Only for people who handle orders. */
+            orders?: components["schemas"]["OrderStats"] | null;
             products: {
                 active: number;
                 draft: number;
@@ -1697,6 +1699,24 @@ export interface components {
             out_of_stock: number;
             /** @description Up to 10 variants of products for sale with 1 to 3 left, fewest first. */
             low_stock: components["schemas"]["LowStockItem"][];
+        };
+        OrderStats: {
+            /** @description Placed and not yet confirmed. */
+            waiting: number;
+            /** @description Confirmed or packed, not yet shipped. */
+            to_ship: number;
+            today_orders: number;
+            /**
+             * Format: int64
+             * @description Totals of today's orders that aren't cancelled, in poisha (Dhaka time).
+             */
+            today_sales: number;
+            week_orders: number;
+            /**
+             * Format: int64
+             * @description The same over the last 7 days, today included.
+             */
+            week_sales: number;
         };
         LowStockItem: {
             /** Format: uuid */
@@ -3140,6 +3160,8 @@ export interface operations {
         parameters: {
             query?: {
                 status?: components["schemas"]["OrderStatus"];
+                /** @description An order number, a phone number (any 4+ of its digits) or part of the customer's name. */
+                q?: string;
                 /** @description `next_cursor` from the previous page. */
                 cursor?: components["parameters"]["Cursor"];
                 limit?: components["parameters"]["Limit"];

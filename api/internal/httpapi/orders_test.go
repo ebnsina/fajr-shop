@@ -2,6 +2,8 @@ package httpapi_test
 
 import (
 	"fmt"
+	"net/url"
+	"slices"
 	"testing"
 
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
@@ -115,6 +117,31 @@ func TestCheckoutAndOrders(t *testing.T) {
 	all := decode[struct{ Items []apigen.OrderSummary }](t, expect2(t, h.call("GET", "/v1/admin/orders?status=cancelled", staff.AccessToken, nil), 200)).Items
 	if len(all) == 0 || all[0].Number != o.Number {
 		t.Errorf("cancelled list: %+v", all)
+	}
+
+	// Search by number, by phone digits however they're typed, or by part of the name.
+	search := func(q string) []int64 {
+		t.Helper()
+		items := decode[struct{ Items []apigen.OrderSummary }](t, expect2(t, h.call("GET", "/v1/admin/orders?limit=100&q="+url.QueryEscape(q), staff.AccessToken, nil), 200)).Items
+		var nums []int64
+		for _, x := range items {
+			nums = append(nums, x.Number)
+		}
+		return nums
+	}
+	for _, q := range []string{fmt.Sprint(o.Number), "017123", "+880 1712-345", "rahim ud"} {
+		if !slices.Contains(search(q), o.Number) {
+			t.Errorf("search %q misses order %d", q, o.Number)
+		}
+	}
+	if got := search("nobody-by-this-name"); len(got) != 0 {
+		t.Errorf("search found %v", got)
+	}
+
+	// The overview counts orders for those who handle them, and only for them.
+	ov := decode[apigen.Overview](t, expect2(t, h.call("GET", "/v1/admin/overview", staff.AccessToken, nil), 200))
+	if ov.Orders == nil || ov.Orders.TodayOrders < 1 || ov.Orders.TodaySales < mine.Total {
+		t.Errorf("overview orders: %+v", ov.Orders)
 	}
 }
 

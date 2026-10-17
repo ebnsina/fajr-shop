@@ -262,6 +262,22 @@ func (s *Server) AdminListOrders(ctx context.Context, req apigen.AdminListOrders
 	if st := req.Params.Status; st != nil {
 		params.Status = dbq.NullOrderStatus{OrderStatus: dbq.OrderStatus(*st), Valid: true}
 	}
+	if q := strings.TrimSpace(ptrOr(req.Params.Q)); q != "" {
+		params.Q = &q
+		// LIKE's own wildcards in a name are matched as themselves.
+		name := strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(q)
+		params.NameLike = &name
+		digits := strings.Map(func(r rune) rune {
+			if r >= '0' && r <= '9' {
+				return r
+			}
+			return -1
+		}, q)
+		digits = strings.TrimPrefix(strings.TrimPrefix(digits, "88"), "0") // match +8801… however it's typed
+		if len(digits) >= 4 {
+			params.Digits = &digits
+		}
+	}
 	if c := req.Params.Cursor; c != nil {
 		n, err := strconv.ParseInt(*c, 10, 64)
 		if err != nil {
@@ -428,4 +444,11 @@ func loadOrder(ctx context.Context, q *dbq.Queries, o dbq.Order) (apigen.Order, 
 		out.NextStatuses = append(out.NextStatuses, apigen.OrderStatus(n))
 	}
 	return out, nil
+}
+
+func ptrOr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

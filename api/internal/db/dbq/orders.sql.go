@@ -74,14 +74,22 @@ SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.cu
 FROM orders o
 WHERE ($1::order_status IS NULL OR o.status = $1)
   AND ($2::bigint IS NULL OR o.number < $2)
+  -- Search: the order number, a phone number by its digits, or part of the name.
+  AND ($3::text IS NULL
+       OR o.number::text = $3
+       OR ($4::text IS NOT NULL AND o.phone LIKE '%' || $4 || '%')
+       OR o.customer_name ILIKE '%' || $5::text || '%')
 ORDER BY o.number DESC
-LIMIT $3
+LIMIT $6
 `
 
 type AdminOrdersParams struct {
-	Status NullOrderStatus
-	Before pgtype.Int8
-	Lim    int32
+	Status   NullOrderStatus
+	Before   pgtype.Int8
+	Q        *string
+	Digits   *string
+	NameLike *string
+	Lim      int32
 }
 
 type AdminOrdersRow struct {
@@ -115,7 +123,14 @@ type AdminOrdersRow struct {
 }
 
 func (q *Queries) AdminOrders(ctx context.Context, arg AdminOrdersParams) ([]AdminOrdersRow, error) {
-	rows, err := q.db.Query(ctx, adminOrders, arg.Status, arg.Before, arg.Lim)
+	rows, err := q.db.Query(ctx, adminOrders,
+		arg.Status,
+		arg.Before,
+		arg.Q,
+		arg.Digits,
+		arg.NameLike,
+		arg.Lim,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -507,6 +522,42 @@ func (q *Queries) OrderItems(ctx context.Context, orderID uuid.UUID) ([]OrderIte
 		return nil, err
 	}
 	return items, nil
+}
+
+const orderStats = `-- name: OrderStats :one
+WITH day AS (SELECT date_trunc('day', now() AT TIME ZONE 'Asia/Dhaka') AT TIME ZONE 'Asia/Dhaka' AS start)
+SELECT
+    count(*) FILTER (WHERE o.status = 'pending')::int AS waiting,
+    count(*) FILTER (WHERE o.status IN ('confirmed', 'packed'))::int AS to_ship,
+    count(*) FILTER (WHERE o.created_at >= day.start AND o.status <> 'cancelled')::int AS today_orders,
+    coalesce(sum(o.total) FILTER (WHERE o.created_at >= day.start AND o.status <> 'cancelled'), 0)::bigint AS today_sales,
+    count(*) FILTER (WHERE o.created_at >= day.start - interval '6 days' AND o.status <> 'cancelled')::int AS week_orders,
+    coalesce(sum(o.total) FILTER (WHERE o.created_at >= day.start - interval '6 days' AND o.status <> 'cancelled'), 0)::bigint AS week_sales
+FROM orders o, day
+`
+
+type OrderStatsRow struct {
+	Waiting     int32
+	ToShip      int32
+	TodayOrders int32
+	TodaySales  int64
+	WeekOrders  int32
+	WeekSales   int64
+}
+
+// "Today" and "this week" are counted from midnight in Dhaka; cancelled orders don't count as sales.
+func (q *Queries) OrderStats(ctx context.Context) (OrderStatsRow, error) {
+	row := q.db.QueryRow(ctx, orderStats)
+	var i OrderStatsRow
+	err := row.Scan(
+		&i.Waiting,
+		&i.ToShip,
+		&i.TodayOrders,
+		&i.TodaySales,
+		&i.WeekOrders,
+		&i.WeekSales,
+	)
+	return i, err
 }
 
 const orderStockMovement = `-- name: OrderStockMovement :exec

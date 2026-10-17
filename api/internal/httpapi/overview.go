@@ -7,6 +7,7 @@ import (
 
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
 	"github.com/ebnsina/fajr-shop/api/internal/auth"
+	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
 )
 
 func (s *Server) ListBrands(ctx context.Context, _ apigen.ListBrandsRequestObject) (apigen.ListBrandsResponseObject, error) {
@@ -50,6 +51,19 @@ func (s *Server) AdminOverview(ctx context.Context, _ apigen.AdminOverviewReques
 		item.Name, item.ProductId, item.VariantId, item.Stock = l.Name, l.ProductID, l.VariantID, int(l.Stock)
 		if err := json.Unmarshal(l.Options, &item.Options); err != nil {
 			return nil, fmt.Errorf("overview: options: %w", err)
+		}
+	}
+	if p := caller(ctx); p != nil && auth.Has(p.perms, auth.OrdersWrite) {
+		err := s.scoped(ctx, func(q *dbq.Queries) error {
+			st, err := q.OrderStats(ctx)
+			out.Orders = &apigen.OrderStats{
+				Waiting: int(st.Waiting), ToShip: int(st.ToShip), TodayOrders: int(st.TodayOrders),
+				TodaySales: st.TodaySales, WeekOrders: int(st.WeekOrders), WeekSales: st.WeekSales,
+			}
+			return err
+		})
+		if err != nil {
+			return nil, fmt.Errorf("overview: orders: %w", err)
 		}
 	}
 	return apigen.AdminOverview200JSONResponse(out), nil

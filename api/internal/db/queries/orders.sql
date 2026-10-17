@@ -60,6 +60,11 @@ SELECT o.*, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.orde
 FROM orders o
 WHERE (sqlc.narg(status)::order_status IS NULL OR o.status = sqlc.narg(status))
   AND (sqlc.narg(before)::bigint IS NULL OR o.number < sqlc.narg(before))
+  -- Search: the order number, a phone number by its digits, or part of the name.
+  AND (sqlc.narg(q)::text IS NULL
+       OR o.number::text = sqlc.narg(q)
+       OR (sqlc.narg(digits)::text IS NOT NULL AND o.phone LIKE '%' || sqlc.narg(digits) || '%')
+       OR o.customer_name ILIKE '%' || sqlc.narg(name_like)::text || '%')
 ORDER BY o.number DESC
 LIMIT sqlc.arg(lim);
 
@@ -68,3 +73,15 @@ LIMIT sqlc.arg(lim);
 UPDATE orders SET status = sqlc.arg(status), updated_at = now()
 WHERE id = sqlc.arg(id) AND status = sqlc.arg(was)
 RETURNING *;
+
+-- name: OrderStats :one
+-- "Today" and "this week" are counted from midnight in Dhaka; cancelled orders don't count as sales.
+WITH day AS (SELECT date_trunc('day', now() AT TIME ZONE 'Asia/Dhaka') AT TIME ZONE 'Asia/Dhaka' AS start)
+SELECT
+    count(*) FILTER (WHERE o.status = 'pending')::int AS waiting,
+    count(*) FILTER (WHERE o.status IN ('confirmed', 'packed'))::int AS to_ship,
+    count(*) FILTER (WHERE o.created_at >= day.start AND o.status <> 'cancelled')::int AS today_orders,
+    coalesce(sum(o.total) FILTER (WHERE o.created_at >= day.start AND o.status <> 'cancelled'), 0)::bigint AS today_sales,
+    count(*) FILTER (WHERE o.created_at >= day.start - interval '6 days' AND o.status <> 'cancelled')::int AS week_orders,
+    coalesce(sum(o.total) FILTER (WHERE o.created_at >= day.start - interval '6 days' AND o.status <> 'cancelled'), 0)::bigint AS week_sales
+FROM orders o, day;

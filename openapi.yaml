@@ -1268,6 +1268,12 @@ paths:
           in: query
           schema:
             $ref: "#/components/schemas/OrderStatus"
+        - name: q
+          in: query
+          description: An order number, a phone number (any 4+ of its digits) or part of the customer's name.
+          schema:
+            type: string
+            maxLength: 80
         - $ref: "#/components/parameters/Cursor"
         - $ref: "#/components/parameters/Limit"
       responses:
@@ -2929,6 +2935,11 @@ components:
       type: object
       required: [products, categories, out_of_stock, low_stock]
       properties:
+        orders:
+          description: Only for people who handle orders.
+          oneOf:
+            - $ref: "#/components/schemas/OrderStats"
+            - type: "null"
         products:
           type: object
           required: [active, draft, archived]
@@ -2949,6 +2960,29 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/LowStockItem"
+
+    OrderStats:
+      type: object
+      required: [waiting, to_ship, today_orders, today_sales, week_orders, week_sales]
+      properties:
+        waiting:
+          description: Placed and not yet confirmed.
+          type: integer
+        to_ship:
+          description: Confirmed or packed, not yet shipped.
+          type: integer
+        today_orders:
+          type: integer
+        today_sales:
+          description: Totals of today's orders that aren't cancelled, in poisha (Dhaka time).
+          type: integer
+          format: int64
+        week_orders:
+          type: integer
+        week_sales:
+          description: The same over the last 7 days, today included.
+          type: integer
+          format: int64
 
     LowStockItem:
       type: object
