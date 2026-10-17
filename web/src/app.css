@@ -14,6 +14,9 @@
 	--brand-600: #0284c7;
 	--brand-700: #0369a1;
 	--brand-800: #075985;
+	/* The header: the light sky-400, with dark text and icons (8.3:1); white would be 2.1:1. */
+	--header-bg: #38bdf8;
+	--header-fg: var(--text-primary);
 
 	--accent-700: #c2410c;
 	--accent-800: #9a3412;

@@ -163,8 +163,8 @@
 		position: sticky;
 		inset-block-start: 0;
 		z-index: 20;
-		background: var(--brand-600);
-		color: var(--ui-on-accent);
+		background: var(--header-bg);
+		color: var(--header-fg);
 	}
 	.main {
 		display: grid;
@@ -310,7 +310,7 @@
 		text-decoration: none;
 	}
 	.header :is(a, button, input):focus-visible {
-		outline: var(--ui-ring-width) solid var(--ui-on-accent);
+		outline: var(--ui-ring-width) solid var(--header-fg);
 		outline-offset: 2px;
 	}
 	.cats a:focus-visible,
