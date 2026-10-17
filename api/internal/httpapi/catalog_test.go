@@ -291,3 +291,22 @@ func TestUploadsAndProductImages(t *testing.T) {
 	body["image_ids"] = []string{uuid.NewString()}
 	expect(t, h.call("PUT", "/v1/admin/products/"+p.Id.String(), admin.AccessToken, body), 400, apigen.Validation)
 }
+
+func TestValidationMessagesArePlain(t *testing.T) {
+	h := newHarness(t)
+	admin := h.admin()
+	body := map[string]any{
+		"name": "x", "status": "active", "options": []any{},
+		"variants": []any{map[string]any{"price": nil, "options": map[string]string{}}},
+	}
+	e := expect(t, h.call("POST", "/v1/admin/products", admin.AccessToken, body), 400, apigen.Validation)
+	if got := (*e.Error.Fields)["variants.0.price"]; got != "Fill this in." {
+		t.Errorf("fields = %v", *e.Error.Fields)
+	}
+	body["variants"] = []any{map[string]any{"price": 100, "options": map[string]string{}}}
+	delete(body, "status")
+	e = expect(t, h.call("POST", "/v1/admin/products", admin.AccessToken, body), 400, apigen.Validation)
+	if got := (*e.Error.Fields)["status"]; got != "Fill this in." {
+		t.Errorf("missing property: fields = %v", *e.Error.Fields)
+	}
+}

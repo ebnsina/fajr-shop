@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { Activity01Icon, Key01Icon, Store01Icon } from '@hugeicons/core-free-icons';
+	import {
+		Activity01Icon,
+		Folder01Icon,
+		Key01Icon,
+		PackageIcon,
+		Store01Icon
+	} from '@hugeicons/core-free-icons';
 	import { nav } from '#lib/copy.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import SidebarLayout, { type SidebarGroup } from '#lib/sinaui/ui/SidebarLayout.svelte';
@@ -11,6 +17,13 @@
 	let { data, children }: LayoutProps = $props();
 
 	const groups: SidebarGroup[] = [
+		{
+			title: nav.catalog,
+			items: [
+				{ label: nav.products, href: '/admin/products', icon: PackageIcon },
+				{ label: nav.categories, href: '/admin/categories', icon: Folder01Icon }
+			]
+		},
 		{
 			title: nav.shop,
 			items: [
@@ -24,6 +37,13 @@
 		}
 	];
 
+	// The section being shown, so a product's own page still highlights "Products".
+	const current = $derived(
+		groups
+			.flatMap((g) => g.items)
+			.find((i) => page.url.pathname === i.href || page.url.pathname.startsWith(i.href + '/'))?.href
+	);
+
 	let signingOut = $state(false);
 	async function signOut() {
 		signingOut = true;
@@ -36,7 +56,7 @@
 
 <!-- The full window: the sidebar runs top to bottom and the content scrolls on its own. -->
 <div class="frame">
-	<SidebarLayout label={nav.label} {groups} current={page.url.pathname} persist="fs-admin-sidebar">
+	<SidebarLayout label={nav.label} {groups} {current} persist="fs-admin-sidebar">
 		{#snippet header(collapsed)}
 			<span class="shop">{collapsed ? data.store.name.slice(0, 1) : data.store.name}</span>
 		{/snippet}

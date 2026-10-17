@@ -18,6 +18,7 @@ export const actions: Actions = {
 		const body: Store = {
 			name: text(form, 'name'),
 			currency: 'BDT',
+			logo_url: text(form, 'logo_url') || null,
 			accent_color: text(form, 'accent_color') || null,
 			contact_phone: text(form, 'contact_phone') || null,
 			contact_email: text(form, 'contact_email') || null,

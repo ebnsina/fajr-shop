@@ -5,6 +5,8 @@
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
 	import ColorPicker from '#lib/sinaui/ui/ColorPicker.svelte';
+	import FileDrop from '#lib/sinaui/ui/FileDrop.svelte';
+	import { errorText } from '#lib/copy.js';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
 	import Switch from '#lib/sinaui/ui/Switch.svelte';
@@ -18,6 +20,18 @@
 	const fields = $derived<Record<string, string>>(form?.fields ?? {});
 	let vatOn = $derived(store.vat.enabled);
 	let saving = $state(false);
+	let logo = $derived(store.logo_url ?? '');
+	let logoError = $state('');
+
+	async function uploadLogo([file]: File[]) {
+		logoError = '';
+		const body = new FormData();
+		body.set('file', file);
+		const res = await fetch('/admin/uploads', { method: 'POST', body });
+		const json = await res.json().catch(() => ({}));
+		if (res.ok) logo = json.url;
+		else logoError = errorText(json.code);
+	}
 </script>
 
 <svelte:head><title>{t.title} · {data.store.name}</title></svelte:head>
@@ -51,6 +65,24 @@
 				maxlength={80}
 				error={fields.name}
 			/>
+			<div class="logo">
+				<input type="hidden" name="logo_url" value={logo} />
+				<span class="label">{t.logo}</span>
+				{#if logo}
+					<img src={logo} alt="" />
+					<div>
+						<Button variant="ghost" size="sm" onclick={() => (logo = '')}>{t.logoRemove}</Button>
+					</div>
+				{/if}
+				<FileDrop
+					label={t.logoUpload}
+					accept="image/jpeg,image/png,image/webp"
+					maxSize={10 * 1024 * 1024}
+					hint={t.logoHint}
+					onfiles={uploadLogo}
+				/>
+				{#if logoError}<Alert tone="danger" title={logoError} live />{/if}
+			</div>
 			<ColorPicker
 				label={t.accent}
 				name="accent_color"
@@ -148,6 +180,20 @@
 	.fields {
 		display: grid;
 		gap: 1rem;
+	}
+	.logo {
+		display: grid;
+		gap: 0.5rem;
+	}
+	.logo .label {
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
+	.logo img {
+		max-inline-size: 12rem;
+		max-block-size: 4rem;
+		object-fit: contain;
+		justify-self: start;
 	}
 	.actions {
 		display: flex;
