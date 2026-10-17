@@ -258,7 +258,9 @@
 				<ul>
 					{#each data.zones as z (z.id)}
 						<li>
-							<span>{z.name}</span><span>{formatMoney(z.base_charge)} · {z.delivery_days}</span>
+							<span>{z.name}</span><span
+								><strong>{formatMoney(z.base_charge)}</strong> · {z.delivery_days}</span
+							>
 						</li>
 					{/each}
 				</ul>
@@ -344,14 +346,14 @@
 	}
 	.stock {
 		margin: 0;
-		color: var(--ui-accent);
-		font-weight: 500;
+		color: var(--success-700);
+		font-weight: 600;
 	}
 	.low {
-		color: var(--ui-warning);
+		color: var(--warning-700);
 	}
 	.out {
-		color: var(--ui-muted);
+		color: var(--text-muted);
 	}
 	.add {
 		display: flex;
@@ -372,11 +374,11 @@
 	}
 	.cta {
 		--ui-accent: var(--accent-700);
-		--ui-on-accent: #fff;
+		--ui-on-accent: var(--on-dark);
 	}
 	.wa {
 		--ui-accent: var(--whatsapp);
-		--ui-on-accent: #fff;
+		--ui-on-accent: var(--on-dark);
 	}
 	.add-error {
 		margin: 0;
@@ -412,8 +414,9 @@
 	.delivery,
 	.panel {
 		padding: 0.875rem 1rem;
+		border: 1px solid var(--border);
 		border-radius: var(--ui-radius);
-		background: var(--ui-surface);
+		background: var(--bg-surface);
 		font-size: 0.875rem;
 	}
 	.ptitle {
@@ -444,7 +447,6 @@
 	}
 	.promises :global(svg) {
 		flex: none;
-		color: var(--ui-accent);
 	}
 	.dtitle {
 		display: flex;
@@ -464,7 +466,15 @@
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
-		color: var(--ui-muted);
+		color: var(--text-secondary);
+	}
+	.delivery li strong {
+		color: var(--text-primary);
+		font-weight: 600;
+	}
+	.dtitle :global(svg),
+	.promises :global(svg) {
+		color: var(--brand-600);
 	}
 	.sections {
 		margin-block-start: 3rem;

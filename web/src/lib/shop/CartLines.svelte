@@ -150,9 +150,9 @@
 		gap: 0.25rem;
 		margin-block-start: 0.25rem;
 		padding: 0.125rem;
-		border: 1px solid var(--ui-field-line);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--ui-radius-control);
-		background: var(--ui-surface);
+		background: var(--bg-surface);
 		font-variant-numeric: tabular-nums;
 	}
 	.qty span {
@@ -165,16 +165,15 @@
 		border: 0;
 		border-radius: calc(var(--ui-radius-control) - 0.125rem);
 		background: none;
-		color: var(--ui-fg);
+		color: var(--text-secondary);
 		font: 600 1rem var(--ui-font);
 		cursor: pointer;
 	}
 	.qty button:hover:not(:disabled) {
-		background: var(--ui-hover);
+		background: var(--bg-subtle);
 	}
 	.qty button:disabled {
-		color: var(--ui-muted);
-		opacity: 0.5;
+		color: var(--text-disabled);
 		cursor: not-allowed;
 	}
 	.qty button:focus-visible,

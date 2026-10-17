@@ -7,8 +7,10 @@ export function accentCss(hex: string | null | undefined) {
 	});
 	const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 	// White text when it contrasts better than near-black (WCAG relative luminance).
-	const on = (luminance + 0.05) / 0.05 < 1.05 / (luminance + 0.05) ? '#ffffff' : '#0b0f19';
-	const dark = `color-mix(in oklab, ${hex} 60%, white)`;
-	// html:root outranks the default color in app.css, whichever stylesheet loads last.
-	return `html:root{--ui-accent:light-dark(${hex},${dark});--ui-on-accent:light-dark(${on},#0b0f19)}`;
+	const on =
+		(luminance + 0.05) / 0.05 < 1.05 / (luminance + 0.05)
+			? 'var(--on-dark)'
+			: 'var(--text-primary)';
+	// html:root outranks the default brand in app.css, whichever stylesheet loads last.
+	return `html:root{--brand-600:${hex};--ui-on-accent:${on}}`;
 }

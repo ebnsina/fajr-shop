@@ -182,7 +182,7 @@
 		padding: 1.25rem;
 		border-radius: calc(var(--ui-radius) * 1.5);
 		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-xs);
+		border: 1px solid var(--border);
 	}
 	.summary {
 		position: sticky;

@@ -54,7 +54,7 @@
 			background: var(--ui-surface);
 			box-shadow:
 				0 -1px 0 var(--ui-line),
-				0 -6px 20px -12px rgb(0 0 0 / 0.2);
+				0 -6px 20px -12px color-mix(in srgb, var(--text-primary) 20%, transparent);
 		}
 		a {
 			display: grid;

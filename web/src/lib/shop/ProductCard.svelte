@@ -64,15 +64,15 @@
 		inset-inline-end: 0.375rem;
 		padding: 0.1875rem 0.5rem;
 		border-radius: 999px;
-		background: var(--ui-danger);
-		color: var(--ui-on-danger);
+		background: var(--danger-600);
+		color: var(--on-dark);
 		font-size: 0.6875rem;
 		font-weight: 700;
 		text-transform: uppercase;
 	}
 	.sold {
-		background: var(--ui-fg);
-		color: var(--ui-bg);
+		background: var(--badge-out-bg);
+		color: var(--badge-out-text);
 	}
 	.brand {
 		margin: 0;
@@ -97,7 +97,7 @@
 		text-decoration: none;
 	}
 	.card:hover h3 a {
-		color: var(--ui-accent);
+		color: var(--brand-600);
 	}
 	h3 a::after {
 		/* The whole card is the link's target, so it's easy to tap on a phone. */

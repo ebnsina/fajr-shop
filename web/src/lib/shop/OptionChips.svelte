@@ -60,10 +60,10 @@
 		block-size: 2.25rem;
 		padding-inline: 0.75rem;
 		box-sizing: border-box;
-		border: 1px solid var(--ui-field-line);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--ui-radius-control);
-		background: var(--ui-surface);
-		color: var(--ui-fg);
+		background: var(--bg-surface);
+		color: var(--text-primary);
 		font-size: 0.875rem;
 		font-weight: 500;
 		cursor: pointer;
@@ -72,20 +72,21 @@
 			background var(--ui-dur-press) ease;
 	}
 	.chip:hover {
-		border-color: var(--ui-accent);
+		border-color: var(--brand-600);
 	}
 	.chip:has(input:checked) {
-		border-color: var(--ui-accent);
-		background: color-mix(in srgb, var(--ui-accent) 10%, var(--ui-surface));
-		color: var(--ui-accent);
+		border-color: var(--brand-600);
+		background: var(--brand-50);
+		color: var(--brand-700);
 	}
 	.chip:has(input:focus-visible) {
 		outline: var(--ui-ring-width) solid var(--ui-ring);
 		outline-offset: var(--ui-ring-offset);
 	}
+	/* Unavailable: struck through and dashed, not only paler. */
 	.off {
-		color: var(--ui-muted);
-		background: var(--ui-subtle);
+		border-style: dashed;
+		color: var(--text-disabled);
 	}
 	.off span:first-of-type {
 		text-decoration: line-through;

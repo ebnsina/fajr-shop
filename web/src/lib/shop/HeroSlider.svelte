@@ -120,8 +120,8 @@
 		block-size: 2.5rem;
 		border: 0;
 		border-radius: 50%;
-		background: rgb(255 255 255 / 0.85);
-		color: #0f172a;
+		background: color-mix(in srgb, var(--bg-surface) 85%, transparent);
+		color: var(--text-primary);
 		box-shadow: var(--ui-shadow-xs);
 		cursor: pointer;
 		opacity: 0;
@@ -157,18 +157,18 @@
 		padding: 0;
 		border: 0;
 		border-radius: 999px;
-		background: rgb(255 255 255 / 0.55);
-		box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08);
+		background: color-mix(in srgb, var(--on-dark) 55%, transparent);
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-primary) 8%, transparent);
 		cursor: pointer;
 		transition: inline-size var(--ui-dur) var(--ui-ease-out);
 	}
 	.dot.on {
 		inline-size: 1.5rem;
-		background: #fff;
+		background: var(--on-dark);
 	}
 	.arrow:focus-visible,
 	.dot:focus-visible {
-		outline: var(--ui-ring-width) solid #fff;
+		outline: var(--ui-ring-width) solid var(--on-dark);
 		outline-offset: 2px;
 	}
 	@media (prefers-reduced-motion: reduce) {

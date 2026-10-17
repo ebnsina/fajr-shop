@@ -276,7 +276,7 @@
 		padding: 0.25rem 1.125rem;
 		border-radius: calc(var(--ui-radius) * 1.5);
 		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-xs);
+		border: 1px solid var(--border);
 	}
 	/* The accordion clips while it animates, so content keeps room for focus rings. */
 	.pane,
@@ -410,7 +410,7 @@
 			padding: 0.5rem 0.875rem;
 			border-radius: var(--ui-radius-control);
 			background: var(--ui-surface);
-			box-shadow: var(--ui-shadow-xs);
+			border: 1px solid var(--border);
 			font-weight: 500;
 			cursor: pointer;
 		}

@@ -114,7 +114,7 @@
 		padding-inline: 1rem;
 	}
 	.topbar {
-		background: var(--ui-surface);
+		background: var(--bg-subtle);
 		font-size: 0.8125rem;
 	}
 	.topbar .row {
@@ -128,7 +128,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		color: var(--ui-muted);
+		color: var(--text-secondary);
 		text-decoration: none;
 	}
 	.header {
@@ -177,7 +177,7 @@
 		font: 0.9375rem var(--ui-font);
 	}
 	.search input::placeholder {
-		color: var(--ui-muted);
+		color: var(--text-muted);
 	}
 	.search button {
 		position: absolute;
@@ -188,9 +188,12 @@
 		inline-size: 2.25rem;
 		border: 0;
 		border-radius: calc(var(--ui-radius-control) - 0.125rem);
-		background: var(--ui-accent);
-		color: var(--ui-on-accent);
+		background: var(--brand-800);
+		color: var(--on-dark);
 		cursor: pointer;
+	}
+	.search button:hover {
+		background: var(--brand-700);
 	}
 	.actions {
 		display: flex;
@@ -229,8 +232,8 @@
 		padding-inline: 0.25rem;
 		box-sizing: border-box;
 		border-radius: 999px;
-		background: var(--ui-surface);
-		color: var(--ui-fg);
+		background: var(--accent-700);
+		color: var(--on-dark);
 		font-size: 0.6875rem;
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
@@ -244,8 +247,8 @@
 		cursor: pointer;
 	}
 	.cats {
-		background: var(--ui-surface);
-		box-shadow: 0 1px 0 var(--ui-line);
+		border-block-end: 1px solid var(--border);
+		background: var(--bg-surface);
 	}
 	.cats .row {
 		display: flex;
@@ -264,7 +267,8 @@
 	}
 	.cats a:hover,
 	.cats a[aria-current='page'] {
-		color: var(--ui-accent);
+		color: var(--brand-600);
+		box-shadow: inset 0 -2px 0 currentColor;
 	}
 	.sheet {
 		display: grid;

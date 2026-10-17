@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Colors: one palette, all as tokens in app.css (light only). Blue brand, orange only for the
+  purchase action (Buy now) and the bag count, green for in stock, red only for discounts and
+  errors; dark footer; grey top bar; breadcrumb links underlined; panels with a thin border.
 - Product pages: the photo gallery is sinaui's carousel driven by the thumbnails (no seam
   between photos while sliding, the picked thumbnail's ring no longer cut off). Beside it: brand
   and category, a short summary, key features, and the shop's promises. A sold-out product says

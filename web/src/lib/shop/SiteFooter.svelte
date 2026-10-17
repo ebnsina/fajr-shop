@@ -55,9 +55,11 @@
 <style>
 	.footer {
 		margin-block-start: 4rem;
-		background: var(--ui-surface);
-		color: var(--ui-muted);
+		background: var(--footer-bg);
+		color: var(--footer-text);
 		font-size: 0.875rem;
+		/* Rings on the dark footer are white. */
+		--ui-ring: var(--on-dark);
 	}
 	.cols,
 	.bottom {
@@ -85,7 +87,7 @@
 	}
 	.name {
 		margin: 0;
-		color: var(--ui-fg);
+		color: var(--on-dark);
 		font-size: 1.25rem;
 		font-weight: 700;
 	}
@@ -93,13 +95,13 @@
 		margin: 0.5rem 0 0;
 	}
 	.phone {
-		color: var(--ui-fg);
+		color: var(--on-dark);
 		font-size: 1.25rem;
 		font-weight: 700;
 	}
 	h2 {
 		margin: 0 0 0.25rem;
-		color: var(--ui-fg);
+		color: var(--on-dark);
 		font-size: 0.8125rem;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
@@ -108,11 +110,16 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		color: inherit;
+		color: var(--on-dark);
 		text-decoration: none;
 	}
 	a:hover {
-		color: var(--ui-accent);
+		text-decoration: underline;
+	}
+	a:focus-visible {
+		outline: var(--ui-ring-width) solid var(--ui-ring);
+		outline-offset: var(--ui-ring-offset);
+		border-radius: 2px;
 	}
 	.bottom {
 		display: flex;
@@ -120,7 +127,7 @@
 		justify-content: space-between;
 		gap: 0.5rem 2rem;
 		padding-block: 1.25rem;
-		box-shadow: 0 -1px 0 var(--ui-line);
+		border-block-start: 1px solid var(--footer-line);
 		font-size: 0.8125rem;
 	}
 	.bottom p {

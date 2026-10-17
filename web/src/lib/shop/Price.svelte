@@ -35,7 +35,7 @@
 		font-weight: 700;
 	}
 	s {
-		color: var(--ui-muted);
+		color: var(--text-muted);
 		font-size: 0.875em;
 	}
 	.lg .now {
