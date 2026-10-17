@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Heart from '@lucide/svelte/icons/heart';
 	import Mail from '@lucide/svelte/icons/mail';
 	import Menu from '@lucide/svelte/icons/menu';
 	import Phone from '@lucide/svelte/icons/phone';
@@ -8,7 +9,13 @@
 	import { page } from '$app/state';
 	import { scrollEdges } from '#lib/sinaui/ui/scroll-edges.js';
 	import type { components } from '#lib/api.js';
-	import { account as a, cart as c, storefront as sf, shop as t } from '#lib/copy.js';
+	import {
+		account as a,
+		cart as c,
+		storefront as sf,
+		shop as t,
+		wishlist as w
+	} from '#lib/copy.js';
 	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
 	import RollingNumber from '#lib/sinaui/ui/RollingNumber.svelte';
 	import { bag } from './bag.svelte';
@@ -19,11 +26,14 @@
 		store,
 		nav,
 		count,
+		saved,
 		me
 	}: {
 		store: components['schemas']['Store'];
 		nav: { label: string; href: string }[];
 		count: number;
+		/** How many products the customer has saved. */
+		saved: number;
 		me: components['schemas']['User'] | null;
 	} = $props();
 
@@ -71,6 +81,14 @@
 					>
 				</span>
 			{/if}
+			<a class="action" href="/wishlist" aria-label={w.open(saved)}>
+				<span class="bag-icon">
+					<Heart size={24} />
+					{#if saved}<span class="badge saved" aria-hidden="true"
+							><RollingNumber value={saved} /></span
+						>{/if}
+				</span>
+			</a>
 			<a class="action bag" href="/cart" aria-label={c.open(count)} onclick={openBag}>
 				<span class="bag-icon">
 					<ShoppingBag size={24} />
@@ -237,6 +255,11 @@
 		font-size: 0.6875rem;
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
+	}
+	/* Only the bag's count is orange; the saved count stays in the header's own colors. */
+	.badge.saved {
+		background: var(--bg-surface);
+		color: var(--brand-800);
 	}
 	.icon {
 		display: inline-flex;

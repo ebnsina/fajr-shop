@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { cart as c, shop as t } from '#lib/copy.js';
-	import { Toaster } from '#lib/sinaui/ui/toast/index.js';
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import { cart as c, errorText, shop as t } from '#lib/copy.js';
+	import { toast, Toaster } from '#lib/sinaui/ui/toast/index.js';
 	import BagDrawer from '#lib/shop/BagDrawer.svelte';
 	import BackToTop from '#lib/shop/BackToTop.svelte';
 	import BottomNav from '#lib/shop/BottomNav.svelte';
@@ -30,13 +32,32 @@
 
 <div class="site">
 	<a class="skip" href="#main">{t.skip}</a>
-	<SiteHeader store={data.store} {nav} count={data.cart.item_count} me={data.me} />
+	<SiteHeader
+		store={data.store}
+		{nav}
+		count={data.cart.item_count}
+		saved={data.saved.length}
+		me={data.me}
+	/>
 	<div id="main" class="site-main" role="main" tabindex="-1">{@render children()}</div>
 	<SiteFooter store={data.store} {nav} />
 </div>
 <BackToTop />
 <BottomNav count={data.cart.item_count} signedIn={!!data.me} />
 <BagDrawer cart={data.cart} {vatNote} />
+<!-- Every heart on the page submits this one form (see SaveButton). -->
+<form
+	id="wishlist-form"
+	method="POST"
+	action="/wishlist?/toggle"
+	hidden
+	use:enhance={() =>
+		async ({ result }) => {
+			if (result.type === 'failure')
+				toast.error(String(result.data?.message ?? errorText('internal')));
+			await invalidateAll();
+		}}
+></form>
 <Toaster />
 
 <style>

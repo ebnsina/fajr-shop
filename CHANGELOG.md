@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Wishlist: a heart on every product card and product page, a heart with a count in the header,
+  and a Saved items page. Signed out, the heart leads to sign-in and back.
+- Reviews: customers rate 1–5 stars with optional words, edit or delete their own; product pages
+  show the average, a count per star and the reviews; cards show the rating. The shop can hide a
+  review (Dashboard → Reviews), and hidden reviews stop counting.
+- Questions: customers ask about a product; the shop answers in Dashboard → Questions, and the
+  answer shows on the product page.
+- Customers' wishlists, reviews and questions are protected by Postgres row-level security: each
+  request runs as the caller, so one customer's rows can't be read by another even through a
+  query bug. (`/v1/wishlist`, `/v1/products/{slug}/reviews`, `/v1/products/{slug}/questions`,
+  `/v1/admin/reviews`, `/v1/admin/questions`.)
+- "Buy now" is dark (onyx) instead of orange.
 - Colors: one palette, all as tokens in app.css (light only). Blue brand, orange only for the
   purchase action (Buy now) and the bag count, green for in stock, red only for discounts and
   errors; dark footer; grey top bar; breadcrumb links underlined; panels with a thin border.

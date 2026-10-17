@@ -22,6 +22,7 @@ type productFilter struct {
 	statuses    []string // nil: any status
 	q           string
 	categoryIDs []uuid.UUID // nil: any category
+	ids         []uuid.UUID // nil: any product
 	minPrice    *int64
 	maxPrice    *int64
 	inStock     bool
@@ -90,6 +91,9 @@ func (f productFilter) conditions(skip string, arg func(any) string) []string {
 	}
 	if f.categoryIDs != nil {
 		where = append(where, "p.category_id = ANY("+arg(f.categoryIDs)+")")
+	}
+	if f.ids != nil {
+		where = append(where, "p.id = ANY("+arg(f.ids)+")")
 	}
 	if skip != "price" {
 		if f.minPrice != nil {
@@ -202,7 +206,7 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 	sql := `SELECT p.id, p.slug, p.name, p.status::text, p.brand, p.price_min, p.price_max,
 		(SELECT v.compare_at_price FROM variants v WHERE v.product_id = p.id ORDER BY v.price, v.position LIMIT 1),
 		EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.stock > 0),
-		img.id, img.key, img.alt, img.width, img.height, ` + sort.key + `::text
+		img.id, img.key, img.alt, img.width, img.height, p.rating_count, p.rating_total, ` + sort.key + `::text
 	FROM products p
 	LEFT JOIN LATERAL (
 		SELECT u.id, u.key, pi.alt, u.width, u.height FROM product_images pi JOIN uploads u ON u.id = pi.upload_id
@@ -233,11 +237,13 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 		var imgID uuid.NullUUID
 		var imgKey, imgAlt *string
 		var imgW, imgH *int32
+		var ratings, stars int32
 		if err := rows.Scan(&p.Id, &p.Slug, &p.Name, &status, &p.Brand, &p.PriceMin, &p.PriceMax, &compare, &p.InStock,
-			&imgID, &imgKey, &imgAlt, &imgW, &imgH, &lastKey); err != nil {
+			&imgID, &imgKey, &imgAlt, &imgW, &imgH, &ratings, &stars, &lastKey); err != nil {
 			return apigen.ProductPage{}, fmt.Errorf("list products: scan: %w", err)
 		}
 		p.Status = apigen.ProductStatus(status)
+		p.RatingCount, p.RatingAverage = int(ratings), average(ratings, stars)
 		p.Currency = "BDT"
 		if compare.Valid {
 			p.CompareAtPrice = &compare.Int64

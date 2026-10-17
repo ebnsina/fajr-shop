@@ -5,7 +5,15 @@
 	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import Truck from '@lucide/svelte/icons/truck';
 	import { goto } from '$app/navigation';
-	import { cart as c, delivery as dl, productPage as pt, shop as t } from '#lib/copy.js';
+	import {
+		cart as c,
+		delivery as dl,
+		errorText,
+		productPage as pt,
+		questionCopy as qc,
+		reviewCopy as rc,
+		shop as t
+	} from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
@@ -15,6 +23,10 @@
 	import Price from '#lib/shop/Price.svelte';
 	import Gallery from '#lib/shop/Gallery.svelte';
 	import ProductRow from '#lib/shop/ProductRow.svelte';
+	import Questions from '#lib/shop/Questions.svelte';
+	import Reviews from '#lib/shop/Reviews.svelte';
+	import SaveButton from '#lib/shop/SaveButton.svelte';
+	import Star from '@lucide/svelte/icons/star';
 	import { highlightIcons } from '#lib/shop/highlight-icons.js';
 	import * as Tabs from '#lib/sinaui/ui/tabs/index.js';
 	import type { PageProps } from './$types';
@@ -52,7 +64,22 @@
 					? t.onlyLeft(variant.stock)
 					: t.inStock
 	);
-	let tab = $state('description');
+	// A link to #reviews or #questions (or the next page of reviews) opens that tab.
+	let tab = $state(
+		page.url.searchParams.has('reviews') || page.url.hash === '#reviews'
+			? 'reviews'
+			: page.url.hash === '#questions'
+				? 'questions'
+				: 'description'
+	);
+	const one = new Intl.NumberFormat('en-BD', {
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1
+	});
+	const openTab = (name: string) => () => {
+		tab = name;
+		document.getElementById('sections')?.scrollIntoView({ behavior: 'smooth' });
+	};
 	const inStock = $derived(!!variant && variant.stock > 0);
 	// wa.me takes the number in international form: 01812345678 → 8801812345678.
 	const whatsapp = $derived.by(() => {
@@ -144,7 +171,16 @@
 
 	<div class="buy">
 		<div class="head">
-			<h1 class="site-title">{p.name}</h1>
+			<div class="title">
+				<h1 class="site-title">{p.name}</h1>
+				<SaveButton id={p.id} name={p.name} label />
+			</div>
+			{#if p.rating_count && p.rating_average}
+				<a class="rated" href="#reviews" onclick={openTab('reviews')}>
+					<Star size={16} fill="currentColor" aria-hidden="true" />
+					{one.format(p.rating_average)} · {rc.count(p.rating_count)}
+				</a>
+			{/if}
 			{#if p.brand || p.category}
 				<p class="meta">
 					{#if p.brand}<span>{pt.brand}: <strong>{p.brand}</strong></span>{/if}
@@ -278,11 +314,15 @@
 	</div>
 </section>
 
-<section class="site-container sections" aria-label={pt.sections}>
+<section class="site-container sections" id="sections" aria-label={pt.sections}>
 	<Tabs.Root bind:value={tab}>
 		<Tabs.List label={pt.sections}>
 			<Tabs.Tab value="description">{pt.description}</Tabs.Tab>
 			<Tabs.Tab value="details">{pt.details}</Tabs.Tab>
+			<Tabs.Tab value="reviews">{rc.tab(data.reviews?.summary.count ?? 0)}</Tabs.Tab>
+			<Tabs.Tab value="questions"
+				>{qc.tab((data.questions ?? []).filter((x) => x.answer).length)}</Tabs.Tab
+			>
 		</Tabs.List>
 		<Tabs.Panel value="description">
 			<div class="prose">
@@ -312,6 +352,20 @@
 				{#if variant}<dt>{pt.weight}</dt>
 					<dd>{weight(variant.weight_g)}</dd>{/if}
 			</dl>
+		</Tabs.Panel>
+		<Tabs.Panel value="reviews">
+			<div id="reviews">
+				{#if data.reviews}<Reviews reviews={data.reviews} />{:else}<p class="muted">
+						{errorText('internal')}
+					</p>{/if}
+			</div>
+		</Tabs.Panel>
+		<Tabs.Panel value="questions">
+			<div id="questions">
+				{#if data.questions}<Questions questions={data.questions} />{:else}<p class="muted">
+						{errorText('internal')}
+					</p>{/if}
+			</div>
 		</Tabs.Panel>
 	</Tabs.Root>
 </section>
@@ -373,7 +427,7 @@
 		display: grid;
 	}
 	.cta {
-		--ui-accent: var(--accent-700);
+		--ui-accent: var(--text-primary);
 		--ui-on-accent: var(--on-dark);
 	}
 	.wa {
@@ -390,6 +444,28 @@
 	}
 	.head h1 {
 		margin: 0;
+	}
+	.title {
+		display: flex;
+		align-items: start;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.rated {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		justify-self: start;
+		color: var(--text-secondary);
+		font-size: 0.875rem;
+		text-decoration: none;
+	}
+	.rated :global(svg) {
+		color: var(--star);
+	}
+	.rated:hover {
+		color: var(--brand-600);
+		text-decoration: underline;
 	}
 	.meta {
 		display: flex;

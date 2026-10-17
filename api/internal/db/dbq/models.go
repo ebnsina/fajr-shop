@@ -233,6 +233,8 @@ type Product struct {
 	UpdatedAt   pgtype.Timestamptz
 	Featured    bool
 	Brand       *string
+	RatingCount int32
+	RatingTotal int32
 }
 
 type ProductImage struct {
@@ -240,6 +242,28 @@ type ProductImage struct {
 	UploadID  uuid.UUID
 	Position  int32
 	Alt       string
+}
+
+type Question struct {
+	ID         uuid.UUID
+	ProductID  uuid.UUID
+	UserID     uuid.UUID
+	Body       string
+	Answer     *string
+	AnsweredAt pgtype.Timestamptz
+	Hidden     bool
+	CreatedAt  pgtype.Timestamptz
+}
+
+type Review struct {
+	ID        uuid.UUID
+	ProductID uuid.UUID
+	UserID    uuid.UUID
+	Rating    int16
+	Body      string
+	Hidden    bool
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }
 
 type Session struct {
@@ -327,4 +351,10 @@ type Variant struct {
 	Options        []byte
 	Position       int32
 	WeightG        int32
+}
+
+type WishlistItem struct {
+	UserID    uuid.UUID
+	ProductID uuid.UUID
+	AddedAt   pgtype.Timestamptz
 }

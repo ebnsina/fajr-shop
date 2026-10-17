@@ -581,6 +581,195 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/wishlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in customer's saved products, newest first */
+        get: operations["getWishlist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/wishlist/{product_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Save a product (saving it twice is fine) */
+        put: operations["addToWishlist"];
+        post?: never;
+        /** Unsave a product */
+        delete: operations["removeFromWishlist"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/products/{slug}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * A product's reviews, newest first, with its star counts
+         * @description Signed in, `mine` is the caller's own review (even one the shop has hidden).
+         */
+        get: operations["listReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/products/{slug}/reviews/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Write or change the caller's review of this product
+         * @description One review per customer per product; saving again replaces it.
+         */
+        put: operations["saveMyReview"];
+        post?: never;
+        /** Delete the caller's review of this product */
+        delete: operations["deleteMyReview"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/products/{slug}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        /** Questions the shop has answered, plus the caller's own still waiting */
+        get: operations["listQuestions"];
+        put?: never;
+        /**
+         * Ask the shop about this product
+         * @description Shown to others once the shop answers it.
+         */
+        post: operations["askQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The latest reviews across all products, hidden ones included
+         * @description Needs `catalog:write`.
+         */
+        get: operations["adminListReviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/reviews/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Hide a review from shoppers, or show it again
+         * @description Needs `catalog:write`. Hidden reviews don't count toward the product's rating.
+         */
+        patch: operations["moderateReview"];
+        trace?: never;
+    };
+    "/v1/admin/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The latest questions across all products
+         * @description Needs `catalog:write`.
+         */
+        get: operations["adminListQuestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/questions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Answer a question, or hide it
+         * @description Needs `catalog:write`. A null answer takes an answer back.
+         */
+        put: operations["answerQuestion"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/banners": {
         parameters: {
             query?: never;
@@ -1005,6 +1194,8 @@ export interface components {
             };
         };
         Product: {
+            rating_count: number;
+            rating_average?: number | null;
             /** Format: uuid */
             id: string;
             slug: string;
@@ -1042,6 +1233,9 @@ export interface components {
             image_ids?: string[];
         };
         ProductSummary: {
+            rating_count: number;
+            /** @description Average stars of the visible reviews; null with none. */
+            rating_average?: number | null;
             /** Format: uuid */
             id: string;
             slug: string;
@@ -1117,6 +1311,56 @@ export interface components {
             currency: string;
             /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
             token?: string | null;
+        };
+        ProductRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+        };
+        Review: {
+            /** Format: uuid */
+            id: string;
+            rating: number;
+            body: string;
+            /** @description First name and last initial, e.g. "Fatima R.". */
+            author: string;
+            mine: boolean;
+            /** @description Hidden by the shop; only its author and the shop see it. */
+            hidden: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** @description In the dashboard's lists only. */
+            product?: components["schemas"]["ProductRef"];
+        };
+        RatingSummary: {
+            count: number;
+            average?: number | null;
+            /** @description How many reviews gave 1, 2, 3, 4 and 5 stars, in that order. */
+            stars: number[];
+        };
+        ReviewPage: {
+            summary: components["schemas"]["RatingSummary"];
+            items: components["schemas"]["Review"][];
+            mine?: components["schemas"]["Review"] | null;
+            next_cursor?: string | null;
+        };
+        Question: {
+            /** Format: uuid */
+            id: string;
+            body: string;
+            author: string;
+            answer?: string | null;
+            /** Format: date-time */
+            answered_at?: string | null;
+            mine: boolean;
+            hidden: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** @description In the dashboard's lists only. */
+            product?: components["schemas"]["ProductRef"];
         };
         CartDiscount: {
             code: string;
@@ -2291,6 +2535,310 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getWishlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved products (any no longer for sale are left out) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ProductSummary"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    addToWishlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    removeFromWishlist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                product_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listReviews: {
+        parameters: {
+            query?: {
+                /** @description `next_cursor` from the previous page. */
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reviews */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPage"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    saveMyReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    rating: number;
+                    body?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Review"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteMyReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listQuestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Questions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Question"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    askQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    body: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Asked */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Question"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListReviews: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reviews */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Review"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    moderateReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    hidden: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Review"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListQuestions: {
+        parameters: {
+            query?: {
+                /** @description Only questions not yet answered or hidden. */
+                waiting?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Questions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Question"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    answerQuestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    answer?: string | null;
+                    hidden: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Question"];
+                };
             };
             default: components["responses"]["Error"];
         };

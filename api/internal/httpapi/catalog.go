@@ -560,6 +560,7 @@ func (s *Server) loadProduct(ctx context.Context, q *dbq.Queries, p dbq.Product)
 		Id: p.ID, Slug: p.Slug, Name: p.Name, Description: p.Description, Status: apigen.ProductStatus(p.Status), Featured: p.Featured, Brand: p.Brand,
 		Currency: "BDT", CreatedAt: p.CreatedAt.Time, UpdatedAt: p.UpdatedAt.Time,
 		Options: []apigen.ProductOption{}, Variants: []apigen.Variant{}, Images: []apigen.Image{},
+		RatingCount: int(p.RatingCount), RatingAverage: average(p.RatingCount, p.RatingTotal),
 	}
 	if err := json.Unmarshal(p.Options, &out.Options); err != nil {
 		return out, fmt.Errorf("product options: %w", err)

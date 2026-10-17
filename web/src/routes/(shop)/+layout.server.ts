@@ -18,10 +18,11 @@ export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders }) =>
 	const s = readSession(cookies);
 	const signedIn = !!(s.access || s.refresh);
 	const personal = signedIn || !!readCartToken(cookies);
-	const [cats, cart, me] = await Promise.all([
+	const [cats, cart, me, wishlist] = await Promise.all([
 		locals.api.GET('/v1/categories'),
 		personal ? locals.api.GET('/v1/cart') : null,
-		signedIn ? locals.api.GET('/v1/me') : null
+		signedIn ? locals.api.GET('/v1/me') : null,
+		signedIn ? locals.api.GET('/v1/wishlist') : null
 	]);
 	if (!cats.data) error(cats.response.status, errorText(cats.error?.error.code));
 	setHeaders({
@@ -29,5 +30,11 @@ export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders }) =>
 			? 'private, no-store'
 			: 'public, max-age=60, stale-while-revalidate=300'
 	});
-	return { categories: cats.data.items, cart: cart?.data ?? noCart, me: me?.data ?? null };
+	return {
+		categories: cats.data.items,
+		cart: cart?.data ?? noCart,
+		me: me?.data ?? null,
+		// Ids of the products the customer saved, so every heart on the page shows its state.
+		saved: wishlist?.data?.items.map((p) => p.id) ?? []
+	};
 };

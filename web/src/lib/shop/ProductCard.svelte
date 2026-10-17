@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { components } from '#lib/api.js';
-	import { storefront as sf, shop as t } from '#lib/copy.js';
+	import Star from '@lucide/svelte/icons/star';
+	import { ratings as r, storefront as sf, shop as t } from '#lib/copy.js';
 	import Price from './Price.svelte';
+	import SaveButton from './SaveButton.svelte';
 	import ProductImage from './ProductImage.svelte';
 
 	let {
@@ -10,6 +12,10 @@
 	}: { product: components['schemas']['ProductSummary']; eager?: boolean } = $props();
 
 	// The saving on the cheapest variant, as shoppers here expect to see it: "20% off".
+	const one = new Intl.NumberFormat('en-BD', {
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1
+	});
 	const off = $derived(
 		p.compare_at_price ? Math.round((1 - p.price_min / p.compare_at_price) * 100) : 0
 	);
@@ -20,9 +26,18 @@
 		<ProductImage src={p.image?.url} alt="" ratio="1" loading={eager ? 'eager' : 'lazy'} />
 		{#if !p.in_stock}<span class="flag sold">{t.soldOut}</span>
 		{:else if off > 0}<span class="flag">{sf.off(off)}</span>{/if}
+		<span class="save"><SaveButton id={p.id} name={p.name} /></span>
 	</div>
 	{#if p.brand}<p class="brand">{p.brand}</p>{/if}
-	<h3><a href="/p/{p.slug}">{p.name}</a></h3>
+	<div class="body">
+		<h3><a href="/p/{p.slug}">{p.name}</a></h3>
+		{#if p.rating_count && p.rating_average}
+			<p class="rating" aria-label={r.stars(one.format(p.rating_average), p.rating_count)}>
+				<Star size={14} fill="currentColor" aria-hidden="true" />
+				<span aria-hidden="true">{one.format(p.rating_average)} ({p.rating_count})</span>
+			</p>
+		{/if}
+	</div>
 	<Price amount={p.price_min} was={p.compare_at_price} from={p.price_min !== p.price_max} />
 </article>
 
@@ -73,6 +88,28 @@
 	.sold {
 		background: var(--badge-out-bg);
 		color: var(--badge-out-text);
+	}
+	.body {
+		display: grid;
+		align-content: start;
+		gap: 0.25rem;
+	}
+	.save {
+		position: absolute;
+		inset-block-start: 0.375rem;
+		inset-inline-start: 0.375rem;
+	}
+	.rating {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		margin: 0;
+		color: var(--text-secondary);
+		font-size: 0.75rem;
+		font-variant-numeric: tabular-nums;
+	}
+	.rating :global(svg) {
+		color: var(--star);
 	}
 	.brand {
 		margin: 0;

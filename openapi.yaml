@@ -21,6 +21,7 @@ tags:
   - name: cart
   - name: shipping
   - name: discounts
+  - name: reviews
   - name: admin
 
 paths:
@@ -846,6 +847,316 @@ paths:
       responses:
         "204":
           description: Removed
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/wishlist:
+    get:
+      operationId: getWishlist
+      tags: [reviews]
+      summary: The signed-in customer's saved products, newest first
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Saved products (any no longer for sale are left out)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProductSummary"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/wishlist/{product_id}:
+    parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: addToWishlist
+      tags: [reviews]
+      summary: Save a product (saving it twice is fine)
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Saved
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: removeFromWishlist
+      tags: [reviews]
+      summary: Unsave a product
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/products/{slug}/reviews:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 100
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: A product's reviews, newest first, with its star counts
+      description: Signed in, `mine` is the caller's own review (even one the shop has hidden).
+      security:
+        - {}
+        - bearer: []
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewPage"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/products/{slug}/reviews/mine:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 100
+    put:
+      operationId: saveMyReview
+      tags: [reviews]
+      summary: Write or change the caller's review of this product
+      description: One review per customer per product; saving again replaces it.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                body:
+                  type: string
+                  maxLength: 2000
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteMyReview
+      tags: [reviews]
+      summary: Delete the caller's review of this product
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/products/{slug}/questions:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+          maxLength: 100
+    get:
+      operationId: listQuestions
+      tags: [reviews]
+      summary: Questions the shop has answered, plus the caller's own still waiting
+      security:
+        - {}
+        - bearer: []
+      responses:
+        "200":
+          description: Questions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Question"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: askQuestion
+      tags: [reviews]
+      summary: Ask the shop about this product
+      description: Shown to others once the shop answers it.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+      responses:
+        "201":
+          description: Asked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/reviews:
+    get:
+      operationId: adminListReviews
+      tags: [admin, reviews]
+      summary: The latest reviews across all products, hidden ones included
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Review"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/reviews/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      operationId: moderateReview
+      tags: [admin, reviews]
+      summary: Hide a review from shoppers, or show it again
+      description: Needs `catalog:write`. Hidden reviews don't count toward the product's rating.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hidden]
+              properties:
+                hidden:
+                  type: boolean
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/questions:
+    get:
+      operationId: adminListQuestions
+      tags: [admin, reviews]
+      summary: The latest questions across all products
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      parameters:
+        - name: waiting
+          in: query
+          description: Only questions not yet answered or hidden.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Questions
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Question"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/questions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      operationId: answerQuestion
+      tags: [admin, reviews]
+      summary: Answer a question, or hide it
+      description: Needs `catalog:write`. A null answer takes an answer back.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hidden]
+              properties:
+                answer:
+                  type: [string, "null"]
+                  minLength: 1
+                  maxLength: 2000
+                hidden:
+                  type: boolean
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
         default:
           $ref: "#/components/responses/Error"
 
@@ -1722,8 +2033,12 @@ components:
 
     Product:
       type: object
-      required: [id, slug, name, description, status, featured, currency, options, variants, images, created_at, updated_at]
+      required: [id, slug, name, description, status, featured, currency, options, variants, images, created_at, updated_at, rating_count]
       properties:
+        rating_count:
+          type: integer
+        rating_average:
+          type: [number, "null"]
         id:
           type: string
           format: uuid
@@ -1815,8 +2130,13 @@ components:
 
     ProductSummary:
       type: object
-      required: [id, slug, name, status, price_min, price_max, currency, in_stock]
+      required: [id, slug, name, status, price_min, price_max, currency, in_stock, rating_count]
       properties:
+        rating_count:
+          type: integer
+        rating_average:
+          description: Average stars of the visible reviews; null with none.
+          type: [number, "null"]
         id:
           type: string
           format: uuid
@@ -1945,6 +2265,107 @@ components:
         token:
           description: Only when this response created a guest cart. Send it back as X-Cart-Token.
           type: [string, "null"]
+
+    ProductRef:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    Review:
+      type: object
+      required: [id, rating, body, author, mine, hidden, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+        body:
+          type: string
+        author:
+          description: First name and last initial, e.g. "Fatima R.".
+          type: string
+        mine:
+          type: boolean
+        hidden:
+          description: Hidden by the shop; only its author and the shop see it.
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        product:
+          description: In the dashboard's lists only.
+          $ref: "#/components/schemas/ProductRef"
+
+    RatingSummary:
+      type: object
+      required: [count, stars]
+      properties:
+        count:
+          type: integer
+        average:
+          type: [number, "null"]
+        stars:
+          description: How many reviews gave 1, 2, 3, 4 and 5 stars, in that order.
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: integer
+
+    ReviewPage:
+      type: object
+      required: [summary, items]
+      properties:
+        summary:
+          $ref: "#/components/schemas/RatingSummary"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        mine:
+          oneOf:
+            - $ref: "#/components/schemas/Review"
+            - type: "null"
+        next_cursor:
+          type: [string, "null"]
+
+    Question:
+      type: object
+      required: [id, body, author, mine, hidden, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        body:
+          type: string
+        author:
+          type: string
+        answer:
+          type: [string, "null"]
+        answered_at:
+          type: [string, "null"]
+          format: date-time
+        mine:
+          type: boolean
+        hidden:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        product:
+          description: In the dashboard's lists only.
+          $ref: "#/components/schemas/ProductRef"
 
     CartDiscount:
       type: object

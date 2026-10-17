@@ -3,6 +3,8 @@
 	import { page } from '$app/state';
 	import {
 		Activity01Icon,
+		BubbleChatQuestionIcon,
+		StarIcon,
 		DashboardSquare01Icon,
 		DeliveryTruck01Icon,
 		DiscountTag01Icon,
@@ -27,7 +29,9 @@
 			items: [
 				{ label: nav.products, href: '/admin/products', icon: PackageIcon },
 				{ label: nav.categories, href: '/admin/categories', icon: Folder01Icon },
-				{ label: nav.banners, href: '/admin/banners', icon: Image01Icon }
+				{ label: nav.banners, href: '/admin/banners', icon: Image01Icon },
+				{ label: nav.reviews, href: '/admin/reviews', icon: StarIcon },
+				{ label: nav.questions, href: '/admin/questions', icon: BubbleChatQuestionIcon }
 			]
 		},
 		{

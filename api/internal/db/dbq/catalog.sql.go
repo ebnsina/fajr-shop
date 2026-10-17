@@ -173,7 +173,7 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured, brand)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand
+RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand, rating_count, rating_total
 `
 
 type CreateProductParams struct {
@@ -217,6 +217,8 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.UpdatedAt,
 		&i.Featured,
 		&i.Brand,
+		&i.RatingCount,
+		&i.RatingTotal,
 	)
 	return i, err
 }
@@ -317,7 +319,7 @@ func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) (Category, e
 }
 
 const deleteProduct = `-- name: DeleteProduct :one
-DELETE FROM products WHERE id = $1 RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand
+DELETE FROM products WHERE id = $1 RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand, rating_count, rating_total
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -337,6 +339,8 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, err
 		&i.UpdatedAt,
 		&i.Featured,
 		&i.Brand,
+		&i.RatingCount,
+		&i.RatingTotal,
 	)
 	return i, err
 }
@@ -606,7 +610,7 @@ func (q *Queries) OverviewCounts(ctx context.Context) (OverviewCountsRow, error)
 }
 
 const productByID = `-- name: ProductByID :one
-SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand FROM products WHERE id = $1
+SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand, rating_count, rating_total FROM products WHERE id = $1
 `
 
 func (q *Queries) ProductByID(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -626,12 +630,14 @@ func (q *Queries) ProductByID(ctx context.Context, id uuid.UUID) (Product, error
 		&i.UpdatedAt,
 		&i.Featured,
 		&i.Brand,
+		&i.RatingCount,
+		&i.RatingTotal,
 	)
 	return i, err
 }
 
 const productBySlug = `-- name: ProductBySlug :one
-SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand FROM products WHERE slug = $1 AND status = 'active'
+SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand, rating_count, rating_total FROM products WHERE slug = $1 AND status = 'active'
 `
 
 func (q *Queries) ProductBySlug(ctx context.Context, slug string) (Product, error) {
@@ -651,6 +657,8 @@ func (q *Queries) ProductBySlug(ctx context.Context, slug string) (Product, erro
 		&i.UpdatedAt,
 		&i.Featured,
 		&i.Brand,
+		&i.RatingCount,
+		&i.RatingTotal,
 	)
 	return i, err
 }
@@ -726,7 +734,7 @@ const updateProduct = `-- name: UpdateProduct :one
 UPDATE products SET slug = $2, name = $3, description = $4, status = $5, category_id = $6, options = $7,
     price_min = $8, price_max = $9, featured = $10, brand = $11, updated_at = now()
 WHERE id = $1
-RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand
+RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand, rating_count, rating_total
 `
 
 type UpdateProductParams struct {
@@ -772,6 +780,8 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.UpdatedAt,
 		&i.Featured,
 		&i.Brand,
+		&i.RatingCount,
+		&i.RatingTotal,
 	)
 	return i, err
 }

@@ -84,6 +84,8 @@ export const nav = {
 	banners: 'Banners',
 	shipping: 'Delivery',
 	discounts: 'Discounts',
+	reviews: 'Reviews',
+	questions: 'Questions',
 	storeSettings: 'Store settings',
 	activity: 'Activity',
 	developers: 'Developers',
@@ -361,6 +363,63 @@ export const shop = {
 	vatAdded: (rate: string) => `VAT (${rate}) is added at checkout.`
 };
 
+export const wishlist = {
+	title: 'Saved items',
+	open: (n: number) => (n ? `Saved items, ${n}` : 'Saved items'),
+	save: (name: string) => `Save ${name}`,
+	unsave: (name: string) => `Remove ${name} from saved items`,
+	saved: 'Saved',
+	saveLabel: 'Save',
+	signIn: 'Sign in to save items',
+	emptyTitle: 'Nothing saved yet',
+	emptyBody: 'Tap the heart on any product to keep it here for later.',
+	browse: 'Browse the shop'
+};
+
+export const ratings = {
+	stars: (avg: string, n: number) =>
+		`Rated ${avg} out of 5 from ${n} ${n === 1 ? 'review' : 'reviews'}`
+};
+
+export const reviewCopy = {
+	tab: (n: number) => (n ? `Reviews (${n})` : 'Reviews'),
+	outOf: (avg: string) => `${avg} out of 5`,
+	count: (n: number) => `${n} ${n === 1 ? 'review' : 'reviews'}`,
+	starsLabel: (n: number) => `${n} ${n === 1 ? 'star' : 'stars'}`,
+	none: 'No reviews yet. Bought it? Tell others what you think.',
+	write: 'Write a review',
+	yours: 'Your review',
+	edit: 'Edit your review',
+	rating: 'Your rating',
+	body: 'What did you think? (optional)',
+	bodyPlaceholder: 'How was the quality, the fit, the delivery…',
+	save: 'Post review',
+	update: 'Save changes',
+	delete: 'Delete',
+	deleteConfirm: 'Delete it?',
+	saved: 'Thanks, your review is posted.',
+	deleted: 'Your review is deleted.',
+	hidden: 'The shop has hidden this review from others.',
+	signIn: 'Sign in to write a review',
+	more: 'More reviews',
+	cancel: 'Cancel',
+	edited: 'edited'
+};
+
+export const questionCopy = {
+	tab: (n: number) => (n ? `Questions (${n})` : 'Questions'),
+	none: 'No questions yet. Ask the shop anything about this product.',
+	ask: 'Ask a question',
+	label: 'Your question',
+	placeholder: 'Does it come in a bigger size? Is it original?',
+	send: 'Send question',
+	sent: 'Question sent. The answer will appear here.',
+	waiting: 'Waiting for the shop to answer',
+	answer: 'Answer from the shop',
+	signIn: 'Sign in to ask a question',
+	asked: (name: string, date: string) => `${name} · ${date}`
+};
+
 export const productPage = {
 	soldOut: 'Sold out',
 	notOffered: 'Not available in this combination',
@@ -618,6 +677,39 @@ export const discountAdmin = {
 		limit ? `Used ${n} of ${limit}` : `Used ${n} ${n === 1 ? 'time' : 'times'}`,
 	emptyTitle: 'No discount codes yet',
 	emptyBody: 'Add one, like EID10 for 10% off, and share it with your customers.'
+};
+
+export const reviewAdmin = {
+	title: 'Reviews',
+	description:
+		'What customers wrote about your products. Hide a review that breaks your rules; it stops counting toward the rating.',
+	hide: 'Hide',
+	show: 'Show again',
+	hidden: 'Hidden',
+	hiddenToast: 'Review hidden',
+	shownToast: 'Review shown again',
+	noText: 'No words, just stars.',
+	emptyTitle: 'No reviews yet',
+	emptyBody: 'Reviews appear here as customers write them.'
+};
+
+export const questionAdmin = {
+	title: 'Questions',
+	description: 'Customers’ questions about products. Answered ones show on the product page.',
+	waiting: 'Waiting',
+	all: 'All',
+	answer: 'Your answer',
+	answerPlaceholder: 'Yes, it is 100% cotton and comes in sizes M to XXL.',
+	post: 'Post answer',
+	update: 'Update answer',
+	hide: 'Hide',
+	show: 'Show again',
+	hidden: 'Hidden',
+	answered: 'Answered',
+	saved: 'Saved',
+	emptyWaiting: 'No questions waiting',
+	emptyAll: 'No questions yet',
+	emptyBody: 'Questions appear here as customers ask them.'
 };
 
 export const delivery = {

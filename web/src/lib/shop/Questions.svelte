@@ -1,0 +1,132 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
+	import type { components } from '#lib/api.js';
+	import { questionCopy as q } from '#lib/copy.js';
+	import Alert from '#lib/sinaui/ui/Alert.svelte';
+	import Badge from '#lib/sinaui/ui/Badge.svelte';
+	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
+	import { toast } from '#lib/sinaui/ui/toast/index.js';
+
+	let { questions }: { questions: components['schemas']['Question'][] } = $props();
+
+	const day = new Intl.DateTimeFormat('en-BD', { dateStyle: 'medium', timeZone: 'Asia/Dhaka' });
+	const form = $derived(
+		page.form as { action?: string; fields?: Record<string, string>; message?: string } | null
+	);
+	const next = $derived(encodeURIComponent(`${page.url.pathname}#questions`));
+</script>
+
+<div class="questions">
+	{#if page.data.me}
+		<form
+			method="POST"
+			action="?/ask"
+			class="ask"
+			use:enhance={() =>
+				async ({ result, update }) => {
+					await update();
+					if (result.type === 'success') toast.success(q.sent);
+				}}
+		>
+			{#if form?.action === 'ask' && form.message}<Alert
+					tone="danger"
+					title={form.message}
+					live
+				/>{/if}
+			<Textarea
+				label={q.label}
+				name="body"
+				placeholder={q.placeholder}
+				maxlength={500}
+				required
+				error={form?.action === 'ask' ? form.fields?.body : undefined}
+			/>
+			<div><Button type="submit">{q.send}</Button></div>
+		</form>
+	{:else}
+		<div><Button variant="secondary" href="/account/login?next={next}">{q.signIn}</Button></div>
+	{/if}
+
+	{#if questions.length}
+		<ul>
+			{#each questions as x (x.id)}
+				<li>
+					<p class="q"><span class="mark" aria-hidden="true">Q</span> {x.body}</p>
+					<p class="meta">{q.asked(x.author, day.format(new Date(x.created_at)))}</p>
+					{#if x.answer}
+						<div class="a">
+							<p class="label">{q.answer}</p>
+							<p>{x.answer}</p>
+						</div>
+					{:else}
+						<Badge tone="warning">{q.waiting}</Badge>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+	{:else}
+		<p class="meta">{q.none}</p>
+	{/if}
+</div>
+
+<style>
+	.questions {
+		display: grid;
+		gap: 1.25rem;
+		max-inline-size: 48rem;
+		padding-block: 1.25rem 0;
+	}
+	.ask {
+		display: grid;
+		gap: 0.75rem;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--ui-radius);
+		background: var(--bg-surface);
+	}
+	ul {
+		display: grid;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	li {
+		display: grid;
+		justify-items: start;
+		gap: 0.375rem;
+		padding-block: 1rem;
+		border-block-start: 1px solid var(--border);
+	}
+	p {
+		margin: 0;
+	}
+	.q {
+		display: flex;
+		gap: 0.5rem;
+		font-weight: 600;
+	}
+	.mark {
+		color: var(--brand-600);
+	}
+	.meta {
+		color: var(--text-secondary);
+		font-size: 0.8125rem;
+	}
+	.a {
+		display: grid;
+		gap: 0.25rem;
+		justify-self: stretch;
+		padding: 0.75rem 1rem;
+		border-inline-start: 3px solid var(--brand-600);
+		border-radius: 0 var(--ui-radius) var(--ui-radius) 0;
+		background: var(--brand-50);
+		line-height: 1.6;
+	}
+	.label {
+		color: var(--brand-700);
+		font-size: 0.8125rem;
+		font-weight: 600;
+	}
+</style>
