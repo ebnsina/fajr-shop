@@ -2,6 +2,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/netip"
 	"os"
@@ -18,6 +19,8 @@ type Config struct {
 	MediaURL string
 	// TrustedProxies may set X-Forwarded-For: Caddy and the web app's server. May be empty.
 	TrustedProxies []netip.Prefix
+	// SecretKey seals provider credentials in the database: 32 random bytes, base64.
+	SecretKey []byte
 }
 
 func Load() (Config, error) {
@@ -57,6 +60,13 @@ func Load() (Config, error) {
 			return Config{}, fmt.Errorf("config: FAJR_TRUSTED_PROXIES: %w", err)
 		}
 		c.TrustedProxies = append(c.TrustedProxies, prefix)
+	}
+	if key := need("FAJR_SECRET_KEY"); key != "" {
+		b, err := base64.StdEncoding.DecodeString(key)
+		if err != nil || len(b) != 32 {
+			return Config{}, fmt.Errorf("config: FAJR_SECRET_KEY must be 32 bytes in base64 (openssl rand -base64 32)")
+		}
+		c.SecretKey = b
 	}
 	if len(missing) > 0 {
 		return Config{}, fmt.Errorf("config: missing environment variables: %s", strings.Join(missing, ", "))

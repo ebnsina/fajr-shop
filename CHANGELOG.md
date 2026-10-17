@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Dashboard → Integrations: connect the shop's own Steadfast, Pathao or RedX; bKash, Nagad,
+  SSLCommerz, aamarPay or ShurjoPay; and BulkSMSBD or SSL Wireless accounts. Keys are pasted in a
+  two-step dialog (keys, then test or live), stored encrypted, and never shown again; leaving a
+  key empty keeps the saved one. One SMS gateway is on at a time. (`/v1/admin/providers`, admins
+  signed in only.) **New required setting `FAJR_SECRET_KEY`** (`openssl rand -base64 32`); run
+  `fajr migrate` for `00013_providers`.
 - Product editor: price, old price, weight and stock boxes no longer squeeze into each other on
   narrower screens; they wrap to the next line instead.
 - Dashboard: review stars are Hugeicons stars, not text characters, and the product editor

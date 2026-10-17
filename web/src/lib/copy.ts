@@ -94,6 +94,7 @@ export const nav = {
 	activity: 'Activity',
 	developers: 'Developers',
 	apiKeys: 'API keys',
+	integrations: 'Integrations',
 	signOut: 'Sign out'
 };
 
@@ -144,6 +145,53 @@ export const storeSettings = {
 		phone: 'Headset',
 		gift: 'Gift'
 	}
+};
+
+export const integrations = {
+	title: 'Integrations',
+	description:
+		'Connect your own courier, payment and SMS accounts. Paste the keys each one gives you; they are stored locked and never shown again.',
+	kinds: {
+		courier: {
+			title: 'Couriers',
+			body: 'Book deliveries without retyping addresses, and see how a customer’s past parcels went.'
+		},
+		payment: {
+			title: 'Online payments',
+			body: 'Let customers pay by bKash, Nagad or card. Cash on delivery always stays on.'
+		},
+		sms: {
+			title: 'Text messages',
+			body: 'Send order updates by SMS. One gateway sends at a time.'
+		}
+	},
+	columns: { name: 'Provider', status: 'Status', mode: 'Mode', updated: 'Last changed' },
+	on: 'On',
+	off: 'Off',
+	notSetUp: 'Not set up',
+	live: 'Live',
+	test: 'Test',
+	setUp: 'Set up',
+	edit: 'Change keys',
+	switchOn: 'Switch on',
+	switchOff: 'Switch off',
+	switchedOn: (name: string) => `${name} is on.`,
+	switchedOff: (name: string) => `${name} is off.`,
+	saved: (name: string) => `${name} saved.`,
+	stepKeys: 'Keys',
+	stepMode: 'Mode',
+	dialogTitle: (name: string) => `Set up ${name}`,
+	keysHint: (name: string) => `Find these in your ${name} merchant panel.`,
+	secretKept: 'Saved. Leave empty to keep it.',
+	secretNew: (name: string) => `Paste from ${name}`,
+	mode: 'Which account are these keys for?',
+	modeTest: 'Test',
+	modeTestBody: 'Sandbox keys. Nothing real is charged or shipped.',
+	modeLive: 'Live',
+	modeLiveBody: 'Real payments and parcels.',
+	use: (name: string) => `Use ${name} now`,
+	useHint: 'You can switch it off any time without losing the keys.',
+	save: 'Save'
 };
 
 export const apiKeys = {

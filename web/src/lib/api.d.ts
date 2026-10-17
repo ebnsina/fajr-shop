@@ -1151,6 +1151,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Couriers, payment gateways and SMS gateways the shop can connect
+         * @description Admins signed in only. Saved keys and passwords are never sent back; `set` says whether one is saved.
+         */
+        get: operations["adminListProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/providers/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set up a provider, change its keys, or switch it on or off
+         * @description Admins signed in only. A secret left out or empty keeps the saved one. Switching on needs every required field. Switching an SMS gateway on switches the other SMS gateways off.
+         */
+        put: operations["updateProvider"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/shipping-zones": {
         parameters: {
             query?: never;
@@ -1217,6 +1259,36 @@ export interface components {
         };
         /** @enum {string} */
         ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "not_deliverable" | "cart_empty" | "cart_changed" | "status_changed" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
+        Provider: {
+            code: string;
+            /** @enum {string} */
+            kind: "courier" | "payment" | "sms";
+            name: string;
+            enabled: boolean;
+            /** @description Real money and parcels; false is the provider's test (sandbox) mode. */
+            live: boolean;
+            /** @description Every required field is saved. */
+            configured: boolean;
+            /** Format: date-time */
+            updated_at?: string | null;
+            fields: components["schemas"]["ProviderField"][];
+        };
+        ProviderField: {
+            key: string;
+            label: string;
+            secret: boolean;
+            optional: boolean;
+            set: boolean;
+            /** @description The saved value, for fields that aren't secret. */
+            value?: string;
+        };
+        ProviderInput: {
+            enabled: boolean;
+            live: boolean;
+            values?: {
+                [key: string]: string;
+            };
+        };
         Health: {
             /** @enum {string} */
             status: "ok";
@@ -3761,6 +3833,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShippingQuote"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Every provider, set up or not */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Provider"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Provider"];
                 };
             };
             default: components["responses"]["Error"];

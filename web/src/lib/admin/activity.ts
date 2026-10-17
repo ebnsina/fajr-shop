@@ -37,6 +37,16 @@ export function describe(e: Entry): { text: string; href?: string } {
 			return { text: `${did} category ${name}`.trim(), href: '/admin/categories' };
 		case 'banner':
 			return { text: `${did} a banner`, href: '/admin/banners' };
+		case 'provider': {
+			const on = now?.enabled === true;
+			const flipped = was ? was.enabled !== now?.enabled : false;
+			const text = !was
+				? `Set up ${name}`
+				: flipped
+					? `Switched ${name} ${on ? 'on' : 'off'}`
+					: `Changed ${name}’s keys`;
+			return { text, href: '/admin/settings/integrations' };
+		}
 		case 'shipping_zone':
 			return { text: `${did} delivery zone ${name}`.trim(), href: '/admin/shipping' };
 		case 'discount': {

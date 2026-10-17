@@ -11,6 +11,7 @@
 		Folder01Icon,
 		Image01Icon,
 		Key01Icon,
+		PlugSocketIcon,
 		PackageIcon,
 		ShoppingBag01Icon,
 		UserGroupIcon,
@@ -49,6 +50,7 @@
 				{ label: nav.storeSettings, href: '/admin/settings/store', icon: Store01Icon },
 				{ label: nav.shipping, href: '/admin/shipping', icon: DeliveryTruck01Icon },
 				{ label: nav.discounts, href: '/admin/discounts', icon: DiscountTag01Icon },
+				{ label: nav.integrations, href: '/admin/settings/integrations', icon: PlugSocketIcon },
 				{ label: nav.team, href: '/admin/settings/team', icon: UserMultiple02Icon },
 				{ label: nav.activity, href: '/admin/activity', icon: Activity01Icon }
 			]

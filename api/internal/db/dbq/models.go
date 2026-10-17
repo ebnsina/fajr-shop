@@ -342,6 +342,15 @@ type ProductImage struct {
 	Alt       string
 }
 
+type Provider struct {
+	Code      string
+	Enabled   bool
+	Live      bool
+	Settings  []byte
+	Secrets   []byte
+	UpdatedAt pgtype.Timestamptz
+}
+
 type Question struct {
 	ID         uuid.UUID
 	ProductID  uuid.UUID

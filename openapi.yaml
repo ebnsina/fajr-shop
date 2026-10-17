@@ -1773,6 +1773,64 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/admin/providers:
+    get:
+      operationId: adminListProviders
+      tags: [admin]
+      summary: Couriers, payment gateways and SMS gateways the shop can connect
+      description: "Admins signed in only. Saved keys and passwords are never sent back; `set` says whether one is saved."
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Every provider, set up or not
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Provider"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/providers/{code}:
+    parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: "^[a-z]+$"
+          maxLength: 32
+    put:
+      operationId: updateProvider
+      tags: [admin]
+      summary: Set up a provider, change its keys, or switch it on or off
+      description: >-
+        Admins signed in only. A secret left out or empty keeps the saved one. Switching on needs every
+        required field. Switching an SMS gateway on switches the other SMS gateways off.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Provider"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/admin/shipping-zones:
     get:
       operationId: adminListShippingZones
@@ -2016,6 +2074,66 @@ components:
         - unsupported_type
         - rate_limited
         - internal
+
+    Provider:
+      type: object
+      required: [code, kind, name, enabled, live, configured, fields]
+      properties:
+        code:
+          type: string
+        kind:
+          type: string
+          enum: [courier, payment, sms]
+        name:
+          type: string
+        enabled:
+          type: boolean
+        live:
+          type: boolean
+          description: Real money and parcels; false is the provider's test (sandbox) mode.
+        configured:
+          type: boolean
+          description: Every required field is saved.
+        updated_at:
+          type: [string, "null"]
+          format: date-time
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderField"
+
+    ProviderField:
+      type: object
+      required: [key, label, secret, optional, set]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        secret:
+          type: boolean
+        optional:
+          type: boolean
+        set:
+          type: boolean
+        value:
+          type: string
+          description: The saved value, for fields that aren't secret.
+
+    ProviderInput:
+      type: object
+      additionalProperties: false
+      required: [enabled, live]
+      properties:
+        enabled:
+          type: boolean
+        live:
+          type: boolean
+        values:
+          type: object
+          additionalProperties:
+            type: string
+            maxLength: 4000
 
     Health:
       type: object

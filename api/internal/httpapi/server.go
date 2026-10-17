@@ -17,6 +17,7 @@ import (
 	"github.com/ebnsina/fajr-shop/api/internal/config"
 	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
 	"github.com/ebnsina/fajr-shop/api/internal/media"
+	"github.com/ebnsina/fajr-shop/api/internal/secret"
 )
 
 // Server implements every operation in the spec.
@@ -27,6 +28,7 @@ type Server struct {
 	limits         *limiter
 	mediaDir       string
 	mediaURL       string
+	box            *secret.Box
 }
 
 var _ apigen.StrictServerInterface = (*Server)(nil)
@@ -36,9 +38,13 @@ func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("httpapi: load spec: %w", err)
 	}
+	box, err := secret.New(cfg.SecretKey)
+	if err != nil {
+		return nil, fmt.Errorf("httpapi: %w", err)
+	}
 	s := &Server{
 		pool: pool, q: dbq.New(pool), trustedProxies: cfg.TrustedProxies, limits: &limiter{},
-		mediaDir: cfg.MediaDir, mediaURL: cfg.MediaURL,
+		mediaDir: cfg.MediaDir, mediaURL: cfg.MediaURL, box: box,
 	}
 
 	r := chi.NewRouter()
