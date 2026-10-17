@@ -19,6 +19,7 @@ tags:
   - name: auth
   - name: catalog
   - name: cart
+  - name: shipping
   - name: admin
 
 paths:
@@ -911,6 +912,176 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/districts:
+    get:
+      operationId: listDistricts
+      tags: [shipping]
+      summary: Bangladesh's 64 districts, by division
+      responses:
+        "200":
+          description: Districts
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/District"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/shipping/zones:
+    get:
+      operationId: listShippingZones
+      tags: [shipping]
+      summary: Where the shop delivers, and what it charges
+      responses:
+        "200":
+          description: Active zones in display order
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ShippingZone"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/cart/shipping-quote:
+    post:
+      operationId: quoteCartShipping
+      tags: [cart]
+      summary: The delivery charge for this cart to a district
+      description: |
+        Uses the cart's weight and subtotal, so it changes as the cart does. `not_deliverable`
+        when no zone covers the district.
+      security:
+        - {}
+        - bearer: []
+      parameters:
+        - $ref: "#/components/parameters/CartToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [district]
+              properties:
+                district:
+                  type: string
+                  maxLength: 40
+      responses:
+        "200":
+          description: The quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingQuote"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/shipping-zones:
+    get:
+      operationId: adminListShippingZones
+      tags: [admin]
+      summary: Every delivery zone, inactive ones included
+      description: Needs `store:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Zones
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ShippingZone"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createShippingZone
+      tags: [admin]
+      summary: Add a delivery zone
+      description: "Needs `store:write`. A district may be in only one active zone."
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShippingZoneInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingZone"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/shipping-zones/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      operationId: updateShippingZone
+      tags: [admin]
+      summary: Change a delivery zone
+      description: Needs `store:write`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShippingZoneInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingZone"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteShippingZone
+      tags: [admin]
+      summary: Remove a delivery zone
+      description: Needs `store:write`.
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   securitySchemes:
     bearer:
@@ -990,6 +1161,7 @@ components:
         - invalid_credentials
         - account_exists
         - in_use
+        - not_deliverable
         - insufficient_stock
         - too_large
         - unsupported_type
@@ -1322,7 +1494,7 @@ components:
 
     Variant:
       type: object
-      required: [id, price, stock, options]
+      required: [id, price, stock, weight_g, options]
       properties:
         id:
           type: string
@@ -1337,6 +1509,9 @@ components:
           type: [integer, "null"]
           format: int64
         stock:
+          type: integer
+        weight_g:
+          description: Packed weight in grams, for the delivery charge.
           type: integer
         options:
           description: 'This variant''s value for each of the product''s options, e.g. {"Size": "M"}.'
@@ -1367,6 +1542,11 @@ components:
           description: Starting stock for a new variant. Ignored for an existing one.
           type: integer
           minimum: 0
+        weight_g:
+          description: Packed weight in grams. 500 when left out.
+          type: integer
+          minimum: 0
+          maximum: 1000000
         options:
           type: object
           additionalProperties:
@@ -1711,3 +1891,117 @@ components:
             type: string
         stock:
           type: integer
+
+    District:
+      type: object
+      required: [name, division]
+      properties:
+        name:
+          type: string
+        division:
+          type: string
+
+    ShippingZone:
+      type: object
+      required: [id, name, districts, base_charge, base_weight_g, extra_per_kg, delivery_days, position, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          description: E.g. "Inside Dhaka".
+          type: string
+        districts:
+          type: array
+          items:
+            type: string
+        base_charge:
+          description: Covers a parcel up to base_weight_g, in poisha.
+          type: integer
+          format: int64
+        base_weight_g:
+          type: integer
+        extra_per_kg:
+          description: Added for each kilogram (or part) over the base weight, in poisha.
+          type: integer
+          format: int64
+        free_over:
+          description: Orders with a subtotal at least this much deliver free, in poisha.
+          type: [integer, "null"]
+          format: int64
+        delivery_days:
+          description: How long delivery takes, as shown to shoppers, e.g. "1–2 days".
+          type: string
+        position:
+          type: integer
+        active:
+          type: boolean
+
+    ShippingZoneInput:
+      type: object
+      required: [name, districts, base_charge, delivery_days]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        districts:
+          type: array
+          minItems: 1
+          maxItems: 64
+          uniqueItems: true
+          items:
+            type: string
+        base_charge:
+          type: integer
+          format: int64
+          minimum: 0
+        base_weight_g:
+          description: 1000 when left out.
+          type: integer
+          minimum: 0
+          maximum: 1000000
+        extra_per_kg:
+          type: integer
+          format: int64
+          minimum: 0
+        free_over:
+          type: [integer, "null"]
+          format: int64
+          minimum: 0
+        delivery_days:
+          type: string
+          minLength: 1
+          maxLength: 40
+        position:
+          type: integer
+          minimum: 0
+        active:
+          type: boolean
+
+    ShippingQuote:
+      type: object
+      required: [district, zone_id, zone_name, charge, free, delivery_days, weight_g, subtotal]
+      properties:
+        district:
+          type: string
+        zone_id:
+          type: string
+          format: uuid
+        zone_name:
+          type: string
+        charge:
+          description: What delivery costs, in poisha; 0 when free.
+          type: integer
+          format: int64
+        free:
+          description: True when the subtotal reached the zone's free-delivery amount.
+          type: boolean
+        delivery_days:
+          type: string
+        weight_g:
+          description: The cart's total weight.
+          type: integer
+        subtotal:
+          type: integer
+          format: int64

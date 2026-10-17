@@ -242,6 +242,20 @@ type Session struct {
 	RevokedAt           pgtype.Timestamptz
 }
 
+type ShippingZone struct {
+	ID           uuid.UUID
+	Name         string
+	Districts    []string
+	BaseCharge   int64
+	BaseWeightG  int32
+	ExtraPerKg   int64
+	FreeOver     pgtype.Int8
+	DeliveryDays string
+	Position     int32
+	Active       bool
+	CreatedAt    pgtype.Timestamptz
+}
+
 type StockMovement struct {
 	ID            int64
 	VariantID     uuid.UUID
@@ -299,4 +313,5 @@ type Variant struct {
 	Stock          int32
 	Options        []byte
 	Position       int32
+	WeightG        int32
 }

@@ -78,6 +78,7 @@ const (
 	Internal           ErrorCode = "internal"
 	InvalidCredentials ErrorCode = "invalid_credentials"
 	MethodNotAllowed   ErrorCode = "method_not_allowed"
+	NotDeliverable     ErrorCode = "not_deliverable"
 	NotFound           ErrorCode = "not_found"
 	RateLimited        ErrorCode = "rate_limited"
 	SessionExpired     ErrorCode = "session_expired"
@@ -103,6 +104,8 @@ func (e ErrorCode) Valid() bool {
 	case InvalidCredentials:
 		return true
 	case MethodNotAllowed:
+		return true
+	case NotDeliverable:
 		return true
 	case NotFound:
 		return true
@@ -439,6 +442,12 @@ type CategoryInput struct {
 	Slug *string `json:"slug,omitempty"`
 }
 
+// District defines model for District.
+type District struct {
+	Division string `json:"division"`
+	Name     string `json:"name"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Error struct {
@@ -626,6 +635,62 @@ type Session struct {
 	User             User      `json:"user"`
 }
 
+// ShippingQuote defines model for ShippingQuote.
+type ShippingQuote struct {
+	// Charge What delivery costs, in poisha; 0 when free.
+	Charge       int64  `json:"charge"`
+	DeliveryDays string `json:"delivery_days"`
+	District     string `json:"district"`
+
+	// Free True when the subtotal reached the zone's free-delivery amount.
+	Free     bool  `json:"free"`
+	Subtotal int64 `json:"subtotal"`
+
+	// WeightG The cart's total weight.
+	WeightG  int                `json:"weight_g"`
+	ZoneId   openapi_types.UUID `json:"zone_id"`
+	ZoneName string             `json:"zone_name"`
+}
+
+// ShippingZone defines model for ShippingZone.
+type ShippingZone struct {
+	Active bool `json:"active"`
+
+	// BaseCharge Covers a parcel up to base_weight_g, in poisha.
+	BaseCharge  int64 `json:"base_charge"`
+	BaseWeightG int   `json:"base_weight_g"`
+
+	// DeliveryDays How long delivery takes, as shown to shoppers, e.g. "1–2 days".
+	DeliveryDays string   `json:"delivery_days"`
+	Districts    []string `json:"districts"`
+
+	// ExtraPerKg Added for each kilogram (or part) over the base weight, in poisha.
+	ExtraPerKg int64 `json:"extra_per_kg"`
+
+	// FreeOver Orders with a subtotal at least this much deliver free, in poisha.
+	FreeOver *int64             `json:"free_over,omitempty"`
+	Id       openapi_types.UUID `json:"id"`
+
+	// Name E.g. "Inside Dhaka".
+	Name     string `json:"name"`
+	Position int    `json:"position"`
+}
+
+// ShippingZoneInput defines model for ShippingZoneInput.
+type ShippingZoneInput struct {
+	Active     *bool `json:"active,omitempty"`
+	BaseCharge int64 `json:"base_charge"`
+
+	// BaseWeightG 1000 when left out.
+	BaseWeightG  *int     `json:"base_weight_g,omitempty"`
+	DeliveryDays string   `json:"delivery_days"`
+	Districts    []string `json:"districts"`
+	ExtraPerKg   *int64   `json:"extra_per_kg,omitempty"`
+	FreeOver     *int64   `json:"free_over,omitempty"`
+	Name         string   `json:"name"`
+	Position     *int     `json:"position,omitempty"`
+}
+
 // StockAdjustment defines model for StockAdjustment.
 type StockAdjustment struct {
 	// Delta Positive adds, negative takes away. Not zero.
@@ -678,6 +743,9 @@ type Variant struct {
 	Price   int64             `json:"price"`
 	Sku     *string           `json:"sku,omitempty"`
 	Stock   int               `json:"stock"`
+
+	// WeightG Packed weight in grams, for the delivery charge.
+	WeightG int `json:"weight_g"`
 }
 
 // VariantInput defines model for VariantInput.
@@ -692,6 +760,9 @@ type VariantInput struct {
 
 	// Stock Starting stock for a new variant. Ignored for an existing one.
 	Stock *int `json:"stock,omitempty"`
+
+	// WeightG Packed weight in grams. 500 when left out.
+	WeightG *int `json:"weight_g,omitempty"`
 }
 
 // Vat defines model for Vat.
@@ -761,6 +832,17 @@ type MergeCartJSONBody struct {
 	CartToken string `json:"cart_token"`
 }
 
+// QuoteCartShippingJSONBody defines parameters for QuoteCartShipping.
+type QuoteCartShippingJSONBody struct {
+	District string `json:"district"`
+}
+
+// QuoteCartShippingParams defines parameters for QuoteCartShipping.
+type QuoteCartShippingParams struct {
+	// XCartToken A guest's cart, from an earlier `token`.
+	XCartToken *CartToken `json:"X-Cart-Token,omitempty"`
+}
+
 // SubscribeNewsletterJSONBody defines parameters for SubscribeNewsletter.
 type SubscribeNewsletterJSONBody struct {
 	Email openapi_types.Email `json:"email"`
@@ -824,6 +906,12 @@ type CreateProductJSONRequestBody = ProductInput
 // UpdateProductJSONRequestBody defines body for UpdateProduct for application/json ContentType.
 type UpdateProductJSONRequestBody = ProductInput
 
+// CreateShippingZoneJSONRequestBody defines body for CreateShippingZone for application/json ContentType.
+type CreateShippingZoneJSONRequestBody = ShippingZoneInput
+
+// UpdateShippingZoneJSONRequestBody defines body for UpdateShippingZone for application/json ContentType.
+type UpdateShippingZoneJSONRequestBody = ShippingZoneInput
+
 // UpdateStoreJSONRequestBody defines body for UpdateStore for application/json ContentType.
 type UpdateStoreJSONRequestBody = Store
 
@@ -847,6 +935,9 @@ type SetCartItemJSONRequestBody SetCartItemJSONBody
 
 // MergeCartJSONRequestBody defines body for MergeCart for application/json ContentType.
 type MergeCartJSONRequestBody MergeCartJSONBody
+
+// QuoteCartShippingJSONRequestBody defines body for QuoteCartShipping for application/json ContentType.
+type QuoteCartShippingJSONRequestBody QuoteCartShippingJSONBody
 
 // SubscribeNewsletterJSONRequestBody defines body for SubscribeNewsletter for application/json ContentType.
 type SubscribeNewsletterJSONRequestBody SubscribeNewsletterJSONBody
@@ -904,6 +995,18 @@ type ServerInterface interface {
 	// UpdateProduct Replace a product's details, options, variants and images
 	// (PUT /v1/admin/products/{id})
 	UpdateProduct(w http.ResponseWriter, r *http.Request, id Id)
+	// AdminListShippingZones Every delivery zone, inactive ones included
+	// (GET /v1/admin/shipping-zones)
+	AdminListShippingZones(w http.ResponseWriter, r *http.Request)
+	// CreateShippingZone Add a delivery zone
+	// (POST /v1/admin/shipping-zones)
+	CreateShippingZone(w http.ResponseWriter, r *http.Request)
+	// DeleteShippingZone Remove a delivery zone
+	// (DELETE /v1/admin/shipping-zones/{id})
+	DeleteShippingZone(w http.ResponseWriter, r *http.Request, id Id)
+	// UpdateShippingZone Change a delivery zone
+	// (PUT /v1/admin/shipping-zones/{id})
+	UpdateShippingZone(w http.ResponseWriter, r *http.Request, id Id)
 	// UpdateStore Change the shop's settings
 	// (PUT /v1/admin/store)
 	UpdateStore(w http.ResponseWriter, r *http.Request)
@@ -940,9 +1043,15 @@ type ServerInterface interface {
 	// MergeCart Move a guest cart into the signed-in customer's cart
 	// (POST /v1/cart/merge)
 	MergeCart(w http.ResponseWriter, r *http.Request)
+	// QuoteCartShipping The delivery charge for this cart to a district
+	// (POST /v1/cart/shipping-quote)
+	QuoteCartShipping(w http.ResponseWriter, r *http.Request, params QuoteCartShippingParams)
 	// ListCategories Every category, in display order
 	// (GET /v1/categories)
 	ListCategories(w http.ResponseWriter, r *http.Request)
+	// ListDistricts Bangladesh's 64 districts, by division
+	// (GET /v1/districts)
+	ListDistricts(w http.ResponseWriter, r *http.Request)
 	// GetHealth Is the API up and can it reach its database
 	// (GET /v1/health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
@@ -958,6 +1067,9 @@ type ServerInterface interface {
 	// GetProduct One product for sale, with its variants and images
 	// (GET /v1/products/{slug})
 	GetProduct(w http.ResponseWriter, r *http.Request, slug string)
+	// ListShippingZones Where the shop delivers, and what it charges
+	// (GET /v1/shipping/zones)
+	ListShippingZones(w http.ResponseWriter, r *http.Request)
 	// GetStore The shop's public settings
 	// (GET /v1/store)
 	GetStore(w http.ResponseWriter, r *http.Request, params GetStoreParams)
@@ -1069,6 +1181,30 @@ func (_ Unimplemented) UpdateProduct(w http.ResponseWriter, r *http.Request, id 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// AdminListShippingZones Every delivery zone, inactive ones included
+// (GET /v1/admin/shipping-zones)
+func (_ Unimplemented) AdminListShippingZones(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateShippingZone Add a delivery zone
+// (POST /v1/admin/shipping-zones)
+func (_ Unimplemented) CreateShippingZone(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteShippingZone Remove a delivery zone
+// (DELETE /v1/admin/shipping-zones/{id})
+func (_ Unimplemented) DeleteShippingZone(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateShippingZone Change a delivery zone
+// (PUT /v1/admin/shipping-zones/{id})
+func (_ Unimplemented) UpdateShippingZone(w http.ResponseWriter, r *http.Request, id Id) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // UpdateStore Change the shop's settings
 // (PUT /v1/admin/store)
 func (_ Unimplemented) UpdateStore(w http.ResponseWriter, r *http.Request) {
@@ -1141,9 +1277,21 @@ func (_ Unimplemented) MergeCart(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// QuoteCartShipping The delivery charge for this cart to a district
+// (POST /v1/cart/shipping-quote)
+func (_ Unimplemented) QuoteCartShipping(w http.ResponseWriter, r *http.Request, params QuoteCartShippingParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // ListCategories Every category, in display order
 // (GET /v1/categories)
 func (_ Unimplemented) ListCategories(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListDistricts Bangladesh's 64 districts, by division
+// (GET /v1/districts)
+func (_ Unimplemented) ListDistricts(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1174,6 +1322,12 @@ func (_ Unimplemented) ListProducts(w http.ResponseWriter, r *http.Request, para
 // GetProduct One product for sale, with its variants and images
 // (GET /v1/products/{slug})
 func (_ Unimplemented) GetProduct(w http.ResponseWriter, r *http.Request, slug string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListShippingZones Where the shop delivers, and what it charges
+// (GET /v1/shipping/zones)
+func (_ Unimplemented) ListShippingZones(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1616,6 +1770,86 @@ func (siw *ServerInterfaceWrapper) UpdateProduct(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// AdminListShippingZones operation middleware
+func (siw *ServerInterfaceWrapper) AdminListShippingZones(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminListShippingZones(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateShippingZone operation middleware
+func (siw *ServerInterfaceWrapper) CreateShippingZone(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateShippingZone(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteShippingZone operation middleware
+func (siw *ServerInterfaceWrapper) DeleteShippingZone(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteShippingZone(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateShippingZone operation middleware
+func (siw *ServerInterfaceWrapper) UpdateShippingZone(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateShippingZone(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UpdateStore operation middleware
 func (siw *ServerInterfaceWrapper) UpdateStore(w http.ResponseWriter, r *http.Request) {
 
@@ -1859,11 +2093,66 @@ func (siw *ServerInterfaceWrapper) MergeCart(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
+// QuoteCartShipping operation middleware
+func (siw *ServerInterfaceWrapper) QuoteCartShipping(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params QuoteCartShippingParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-Cart-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cart-Token")]; found {
+		var XCartToken CartToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Cart-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cart-Token", valueList[0], &XCartToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Cart-Token", Err: err})
+			return
+		}
+
+		params.XCartToken = &XCartToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.QuoteCartShipping(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListCategories operation middleware
 func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListCategories(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListDistricts operation middleware
+func (siw *ServerInterfaceWrapper) ListDistricts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDistricts(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2108,6 +2397,20 @@ func (siw *ServerInterfaceWrapper) GetProduct(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetProduct(w, r, slug)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListShippingZones operation middleware
+func (siw *ServerInterfaceWrapper) ListShippingZones(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListShippingZones(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2378,6 +2681,27 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/admin/overview", wrapper.AdminOverview)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/districts", wrapper.ListDistricts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/shipping/zones", wrapper.ListShippingZones)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/cart/shipping-quote", wrapper.QuoteCartShipping)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/admin/shipping-zones", wrapper.AdminListShippingZones)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/admin/shipping-zones", wrapper.CreateShippingZone)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/admin/shipping-zones/{id}", wrapper.DeleteShippingZone)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/admin/shipping-zones/{id}", wrapper.UpdateShippingZone)
 	})
 
 	return r
@@ -3028,6 +3352,158 @@ func (response UpdateProductdefaultJSONResponse) VisitUpdateProductResponse(w ht
 	return err
 }
 
+type AdminListShippingZonesRequestObject struct {
+}
+
+type AdminListShippingZonesResponseObject interface {
+	VisitAdminListShippingZonesResponse(w http.ResponseWriter) error
+}
+
+type AdminListShippingZones200JSONResponse struct {
+	Items []ShippingZone `json:"items"`
+}
+
+func (response AdminListShippingZones200JSONResponse) VisitAdminListShippingZonesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminListShippingZonesdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response AdminListShippingZonesdefaultJSONResponse) VisitAdminListShippingZonesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShippingZoneRequestObject struct {
+	Body *CreateShippingZoneJSONRequestBody
+}
+
+type CreateShippingZoneResponseObject interface {
+	VisitCreateShippingZoneResponse(w http.ResponseWriter) error
+}
+
+type CreateShippingZone201JSONResponse ShippingZone
+
+func (response CreateShippingZone201JSONResponse) VisitCreateShippingZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShippingZonedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response CreateShippingZonedefaultJSONResponse) VisitCreateShippingZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteShippingZoneRequestObject struct {
+	Id Id `json:"id"`
+}
+
+type DeleteShippingZoneResponseObject interface {
+	VisitDeleteShippingZoneResponse(w http.ResponseWriter) error
+}
+
+type DeleteShippingZone204Response struct {
+}
+
+func (response DeleteShippingZone204Response) VisitDeleteShippingZoneResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteShippingZonedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response DeleteShippingZonedefaultJSONResponse) VisitDeleteShippingZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateShippingZoneRequestObject struct {
+	Id   Id `json:"id"`
+	Body *UpdateShippingZoneJSONRequestBody
+}
+
+type UpdateShippingZoneResponseObject interface {
+	VisitUpdateShippingZoneResponse(w http.ResponseWriter) error
+}
+
+type UpdateShippingZone200JSONResponse ShippingZone
+
+func (response UpdateShippingZone200JSONResponse) VisitUpdateShippingZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateShippingZonedefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response UpdateShippingZonedefaultJSONResponse) VisitUpdateShippingZoneResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type UpdateStoreRequestObject struct {
 	Body *UpdateStoreJSONRequestBody
 }
@@ -3510,6 +3986,46 @@ func (response MergeCartdefaultJSONResponse) VisitMergeCartResponse(w http.Respo
 	return err
 }
 
+type QuoteCartShippingRequestObject struct {
+	Params QuoteCartShippingParams
+	Body   *QuoteCartShippingJSONRequestBody
+}
+
+type QuoteCartShippingResponseObject interface {
+	VisitQuoteCartShippingResponse(w http.ResponseWriter) error
+}
+
+type QuoteCartShipping200JSONResponse ShippingQuote
+
+func (response QuoteCartShipping200JSONResponse) VisitQuoteCartShippingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type QuoteCartShippingdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response QuoteCartShippingdefaultJSONResponse) VisitQuoteCartShippingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListCategoriesRequestObject struct {
 }
 
@@ -3547,6 +4063,54 @@ type ListCategoriesdefaultJSONResponse struct {
 }
 
 func (response ListCategoriesdefaultJSONResponse) VisitListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDistrictsRequestObject struct {
+}
+
+type ListDistrictsResponseObject interface {
+	VisitListDistrictsResponse(w http.ResponseWriter) error
+}
+
+type ListDistricts200ResponseHeaders struct {
+	CacheControl string
+}
+
+type ListDistricts200JSONResponse struct {
+	Body struct {
+		Items []District `json:"items"`
+	}
+	Headers ListDistricts200ResponseHeaders
+}
+
+func (response ListDistricts200JSONResponse) VisitListDistrictsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", fmt.Sprint(response.Headers.CacheControl))
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDistrictsdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListDistrictsdefaultJSONResponse) VisitListDistrictsResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3745,6 +4309,54 @@ func (response GetProductdefaultJSONResponse) VisitGetProductResponse(w http.Res
 	return err
 }
 
+type ListShippingZonesRequestObject struct {
+}
+
+type ListShippingZonesResponseObject interface {
+	VisitListShippingZonesResponse(w http.ResponseWriter) error
+}
+
+type ListShippingZones200ResponseHeaders struct {
+	CacheControl string
+}
+
+type ListShippingZones200JSONResponse struct {
+	Body struct {
+		Items []ShippingZone `json:"items"`
+	}
+	Headers ListShippingZones200ResponseHeaders
+}
+
+func (response ListShippingZones200JSONResponse) VisitListShippingZonesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", fmt.Sprint(response.Headers.CacheControl))
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListShippingZonesdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response ListShippingZonesdefaultJSONResponse) VisitListShippingZonesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetStoreRequestObject struct {
 	Params GetStoreParams
 }
@@ -3855,6 +4467,18 @@ type StrictServerInterface interface {
 	// UpdateProduct Replace a product's details, options, variants and images
 	// (PUT /v1/admin/products/{id})
 	UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error)
+	// AdminListShippingZones Every delivery zone, inactive ones included
+	// (GET /v1/admin/shipping-zones)
+	AdminListShippingZones(ctx context.Context, request AdminListShippingZonesRequestObject) (AdminListShippingZonesResponseObject, error)
+	// CreateShippingZone Add a delivery zone
+	// (POST /v1/admin/shipping-zones)
+	CreateShippingZone(ctx context.Context, request CreateShippingZoneRequestObject) (CreateShippingZoneResponseObject, error)
+	// DeleteShippingZone Remove a delivery zone
+	// (DELETE /v1/admin/shipping-zones/{id})
+	DeleteShippingZone(ctx context.Context, request DeleteShippingZoneRequestObject) (DeleteShippingZoneResponseObject, error)
+	// UpdateShippingZone Change a delivery zone
+	// (PUT /v1/admin/shipping-zones/{id})
+	UpdateShippingZone(ctx context.Context, request UpdateShippingZoneRequestObject) (UpdateShippingZoneResponseObject, error)
 	// UpdateStore Change the shop's settings
 	// (PUT /v1/admin/store)
 	UpdateStore(ctx context.Context, request UpdateStoreRequestObject) (UpdateStoreResponseObject, error)
@@ -3891,9 +4515,15 @@ type StrictServerInterface interface {
 	// MergeCart Move a guest cart into the signed-in customer's cart
 	// (POST /v1/cart/merge)
 	MergeCart(ctx context.Context, request MergeCartRequestObject) (MergeCartResponseObject, error)
+	// QuoteCartShipping The delivery charge for this cart to a district
+	// (POST /v1/cart/shipping-quote)
+	QuoteCartShipping(ctx context.Context, request QuoteCartShippingRequestObject) (QuoteCartShippingResponseObject, error)
 	// ListCategories Every category, in display order
 	// (GET /v1/categories)
 	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
+	// ListDistricts Bangladesh's 64 districts, by division
+	// (GET /v1/districts)
+	ListDistricts(ctx context.Context, request ListDistrictsRequestObject) (ListDistrictsResponseObject, error)
 	// GetHealth Is the API up and can it reach its database
 	// (GET /v1/health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
@@ -3909,6 +4539,9 @@ type StrictServerInterface interface {
 	// GetProduct One product for sale, with its variants and images
 	// (GET /v1/products/{slug})
 	GetProduct(ctx context.Context, request GetProductRequestObject) (GetProductResponseObject, error)
+	// ListShippingZones Where the shop delivers, and what it charges
+	// (GET /v1/shipping/zones)
+	ListShippingZones(ctx context.Context, request ListShippingZonesRequestObject) (ListShippingZonesResponseObject, error)
 	// GetStore The shop's public settings
 	// (GET /v1/store)
 	GetStore(ctx context.Context, request GetStoreRequestObject) (GetStoreResponseObject, error)
@@ -4430,6 +5063,120 @@ func (sh *strictHandler) UpdateProduct(w http.ResponseWriter, r *http.Request, i
 	}
 }
 
+// AdminListShippingZones operation middleware
+func (sh *strictHandler) AdminListShippingZones(w http.ResponseWriter, r *http.Request) {
+	var request AdminListShippingZonesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminListShippingZones(ctx, request.(AdminListShippingZonesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminListShippingZones")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminListShippingZonesResponseObject); ok {
+		if err := validResponse.VisitAdminListShippingZonesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateShippingZone operation middleware
+func (sh *strictHandler) CreateShippingZone(w http.ResponseWriter, r *http.Request) {
+	var request CreateShippingZoneRequestObject
+
+	var body CreateShippingZoneJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateShippingZone(ctx, request.(CreateShippingZoneRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateShippingZone")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateShippingZoneResponseObject); ok {
+		if err := validResponse.VisitCreateShippingZoneResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteShippingZone operation middleware
+func (sh *strictHandler) DeleteShippingZone(w http.ResponseWriter, r *http.Request, id Id) {
+	var request DeleteShippingZoneRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteShippingZone(ctx, request.(DeleteShippingZoneRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteShippingZone")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteShippingZoneResponseObject); ok {
+		if err := validResponse.VisitDeleteShippingZoneResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateShippingZone operation middleware
+func (sh *strictHandler) UpdateShippingZone(w http.ResponseWriter, r *http.Request, id Id) {
+	var request UpdateShippingZoneRequestObject
+
+	request.Id = id
+
+	var body UpdateShippingZoneJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateShippingZone(ctx, request.(UpdateShippingZoneRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateShippingZone")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateShippingZoneResponseObject); ok {
+		if err := validResponse.VisitUpdateShippingZoneResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // UpdateStore operation middleware
 func (sh *strictHandler) UpdateStore(w http.ResponseWriter, r *http.Request) {
 	var request UpdateStoreRequestObject
@@ -4781,6 +5528,39 @@ func (sh *strictHandler) MergeCart(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// QuoteCartShipping operation middleware
+func (sh *strictHandler) QuoteCartShipping(w http.ResponseWriter, r *http.Request, params QuoteCartShippingParams) {
+	var request QuoteCartShippingRequestObject
+
+	request.Params = params
+
+	var body QuoteCartShippingJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.QuoteCartShipping(ctx, request.(QuoteCartShippingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "QuoteCartShipping")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(QuoteCartShippingResponseObject); ok {
+		if err := validResponse.VisitQuoteCartShippingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListCategories operation middleware
 func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
 	var request ListCategoriesRequestObject
@@ -4798,6 +5578,30 @@ func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request) 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListCategoriesResponseObject); ok {
 		if err := validResponse.VisitListCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListDistricts operation middleware
+func (sh *strictHandler) ListDistricts(w http.ResponseWriter, r *http.Request) {
+	var request ListDistrictsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListDistricts(ctx, request.(ListDistrictsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListDistricts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListDistrictsResponseObject); ok {
+		if err := validResponse.VisitListDistrictsResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -4936,6 +5740,30 @@ func (sh *strictHandler) GetProduct(w http.ResponseWriter, r *http.Request, slug
 	}
 }
 
+// ListShippingZones operation middleware
+func (sh *strictHandler) ListShippingZones(w http.ResponseWriter, r *http.Request) {
+	var request ListShippingZonesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListShippingZones(ctx, request.(ListShippingZonesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListShippingZones")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListShippingZonesResponseObject); ok {
+		if err := validResponse.VisitListShippingZonesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetStore operation middleware
 func (sh *strictHandler) GetStore(w http.ResponseWriter, r *http.Request, params GetStoreParams) {
 	var request GetStoreRequestObject
@@ -4967,121 +5795,135 @@ func (sh *strictHandler) GetStore(w http.ResponseWriter, r *http.Request, params
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"qH8w5lnj/5K+Wz9J3fzfpn2trlb/PQA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

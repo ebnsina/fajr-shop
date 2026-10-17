@@ -416,6 +416,10 @@ func (s *Server) saveVariants(ctx context.Context, q *dbq.Queries, p *principal,
 		if checked[i].SKU != "" {
 			sku = &checked[i].SKU
 		}
+		weight := int32(500)
+		if v.WeightG != nil {
+			weight = int32(*v.WeightG)
+		}
 		compare := pgtype.Int8{}
 		if v.CompareAtPrice != nil {
 			compare = pgtype.Int8{Int64: *v.CompareAtPrice, Valid: true}
@@ -423,6 +427,7 @@ func (s *Server) saveVariants(ctx context.Context, q *dbq.Queries, p *principal,
 		if v.Id != nil {
 			if _, err := q.UpdateVariant(ctx, dbq.UpdateVariantParams{
 				ID: *v.Id, ProductID: productID, Sku: sku, Price: v.Price, CompareAtPrice: compare, Options: opts, Position: int32(i),
+				WeightG: weight,
 			}); err != nil {
 				return err
 			}
@@ -434,6 +439,7 @@ func (s *Server) saveVariants(ctx context.Context, q *dbq.Queries, p *principal,
 		}
 		created, err := q.CreateVariant(ctx, dbq.CreateVariantParams{
 			ProductID: productID, Sku: sku, Price: v.Price, CompareAtPrice: compare, Stock: stock, Options: opts, Position: int32(i),
+			WeightG: weight,
 		})
 		if err != nil {
 			return err
@@ -596,7 +602,7 @@ func (s *Server) toImage(id uuid.UUID, key, alt string, w, h int32) apigen.Image
 }
 
 func toVariant(v dbq.Variant) (apigen.Variant, error) {
-	out := apigen.Variant{Id: v.ID, Sku: v.Sku, Price: v.Price, Stock: int(v.Stock), Options: map[string]string{}}
+	out := apigen.Variant{Id: v.ID, Sku: v.Sku, Price: v.Price, Stock: int(v.Stock), WeightG: int(v.WeightG), Options: map[string]string{}}
 	if v.CompareAtPrice.Valid {
 		out.CompareAtPrice = &v.CompareAtPrice.Int64
 	}

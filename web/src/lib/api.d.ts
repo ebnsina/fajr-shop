@@ -615,6 +615,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/districts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bangladesh's 64 districts, by division */
+        get: operations["listDistricts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/shipping/zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where the shop delivers, and what it charges */
+        get: operations["listShippingZones"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cart/shipping-quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The delivery charge for this cart to a district
+         * @description Uses the cart's weight and subtotal, so it changes as the cart does. `not_deliverable`
+         *     when no zone covers the district.
+         */
+        post: operations["quoteCartShipping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/shipping-zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every delivery zone, inactive ones included
+         * @description Needs `store:write`.
+         */
+        get: operations["adminListShippingZones"];
+        put?: never;
+        /**
+         * Add a delivery zone
+         * @description Needs `store:write`. A district may be in only one active zone.
+         */
+        post: operations["createShippingZone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/shipping-zones/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change a delivery zone
+         * @description Needs `store:write`.
+         */
+        put: operations["updateShippingZone"];
+        post?: never;
+        /**
+         * Remove a delivery zone
+         * @description Needs `store:write`.
+         */
+        delete: operations["deleteShippingZone"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -630,7 +735,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
+        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "not_deliverable" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
         Health: {
             /** @enum {string} */
             status: "ok";
@@ -795,6 +900,8 @@ export interface components {
              */
             compare_at_price?: number | null;
             stock: number;
+            /** @description Packed weight in grams, for the delivery charge. */
+            weight_g: number;
             /** @description This variant's value for each of the product's options, e.g. {"Size": "M"}. */
             options: {
                 [key: string]: string;
@@ -813,6 +920,8 @@ export interface components {
             compare_at_price?: number | null;
             /** @description Starting stock for a new variant. Ignored for an existing one. */
             stock?: number;
+            /** @description Packed weight in grams. 500 when left out. */
+            weight_g?: number;
             options: {
                 [key: string]: string;
             };
@@ -982,6 +1091,70 @@ export interface components {
                 [key: string]: string;
             };
             stock: number;
+        };
+        District: {
+            name: string;
+            division: string;
+        };
+        ShippingZone: {
+            /** Format: uuid */
+            id: string;
+            /** @description E.g. "Inside Dhaka". */
+            name: string;
+            districts: string[];
+            /**
+             * Format: int64
+             * @description Covers a parcel up to base_weight_g, in poisha.
+             */
+            base_charge: number;
+            base_weight_g: number;
+            /**
+             * Format: int64
+             * @description Added for each kilogram (or part) over the base weight, in poisha.
+             */
+            extra_per_kg: number;
+            /**
+             * Format: int64
+             * @description Orders with a subtotal at least this much deliver free, in poisha.
+             */
+            free_over?: number | null;
+            /** @description How long delivery takes, as shown to shoppers, e.g. "1–2 days". */
+            delivery_days: string;
+            position: number;
+            active: boolean;
+        };
+        ShippingZoneInput: {
+            name: string;
+            districts: string[];
+            /** Format: int64 */
+            base_charge: number;
+            /** @description 1000 when left out. */
+            base_weight_g?: number;
+            /** Format: int64 */
+            extra_per_kg?: number;
+            /** Format: int64 */
+            free_over?: number | null;
+            delivery_days: string;
+            position?: number;
+            active?: boolean;
+        };
+        ShippingQuote: {
+            district: string;
+            /** Format: uuid */
+            zone_id: string;
+            zone_name: string;
+            /**
+             * Format: int64
+             * @description What delivery costs, in poisha; 0 when free.
+             */
+            charge: number;
+            /** @description True when the subtotal reached the zone's free-delivery amount. */
+            free: boolean;
+            delivery_days: string;
+            /** @description The cart's total weight. */
+            weight_g: number;
+            /** Format: int64 */
+            subtotal: number;
         };
     };
     responses: {
@@ -1905,6 +2078,180 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Overview"];
                 };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listDistricts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Districts */
+            200: {
+                headers: {
+                    "Cache-Control": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["District"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listShippingZones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active zones in display order */
+            200: {
+                headers: {
+                    "Cache-Control": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShippingZone"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    quoteCartShipping: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    district: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The quote */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingQuote"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListShippingZones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Zones */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShippingZone"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createShippingZone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShippingZoneInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingZone"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateShippingZone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShippingZoneInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShippingZone"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteShippingZone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Error"];
         };
