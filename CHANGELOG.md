@@ -8,7 +8,7 @@
   footer, and a bottom bar on phones.
 - Banners (big slides, beside the slides, across the page), category pictures and a "featured"
   switch, all managed from the dashboard.
-- Typefaces: Familjen Grotesk for headings (self-hosted), Synonym for body text.
+- Typeface: Sora for headings and text, self-hosted.
 - Cart: guests and signed-in customers each have a bag that always shows today's prices; a line
   that can't be bought (sold out, not enough stock, no longer for sale) is marked and left out of
   the subtotal. A guest's bag joins the customer's on sign-in (`POST /v1/cart/merge`).

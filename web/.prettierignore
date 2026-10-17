@@ -2,3 +2,4 @@ src/lib/sinaui
 src/lib/api.d.ts
 .svelte-kit
 build
+pnpm-lock.yaml

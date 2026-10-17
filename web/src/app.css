@@ -1,9 +1,9 @@
-@import '@fontsource-variable/familjen-grotesk';
+@import '@fontsource-variable/sora';
 @import '@fontsource-variable/geist-mono';
 
 :root {
-	--ui-font: 'Synonym', ui-sans-serif, system-ui, sans-serif;
-	--font-heading: 'Familjen Grotesk Variable', var(--ui-font);
+	--ui-font: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-heading: var(--ui-font);
 	--ui-font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
