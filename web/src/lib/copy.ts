@@ -18,6 +18,7 @@ export const errors: Record<ErrorCode, string> = {
 	in_use: 'This is still in use. Move what’s in it first.',
 	already_booked: 'This order is already booked with a courier.',
 	courier_error: 'The courier couldn’t take this parcel. Try again in a minute.',
+	payment_error: 'We couldn’t start the payment. Try again, or pay on delivery instead.',
 	not_deliverable: 'We don’t deliver to that district yet.',
 	cart_empty: 'Your bag is empty.',
 	cart_changed: 'Something in your bag changed. Check your bag and try again.',
@@ -836,6 +837,26 @@ export const historyCopy = {
 	addCourier:
 		'Switch on Steadfast or Pathao in Integrations to see this customer’s record with them too.',
 	failed: 'Couldn’t load the delivery history. Refresh to try again.'
+};
+
+export const payCopy = {
+	online: 'Pay online',
+	onlineHint: (names: string) => `bKash, Nagad, cards or your bank, through ${names}.`,
+	agreeOnline: 'After placing the order you’ll go to the payment page to pay.',
+	cod: 'Cash on delivery',
+	paidWith: (name: string) => `Paid online with ${name}`,
+	unpaid: 'Paying online: not paid yet',
+	waitingTitle: 'Waiting for your payment',
+	failedTitle: 'The payment didn’t go through',
+	cancelledTitle: 'You cancelled the payment',
+	waitingBody: (amount: string) =>
+		`Pay ${amount} online to confirm this order, or pay on delivery instead.`,
+	payNow: (amount: string) => `Pay ${amount} now`,
+	payOnDelivery: 'Pay on delivery instead',
+	paidTitle: 'Payment received',
+	paidBody: 'Thank you! We’ll confirm your order soon.',
+	switched: 'This order is now cash on delivery.',
+	collectsNothing: 'Paid online: the rider collects nothing.'
 };
 
 export const parcelCopy = {

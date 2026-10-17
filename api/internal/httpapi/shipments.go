@@ -55,6 +55,7 @@ func (s *Server) BookShipment(ctx context.Context, req apigen.BookShipmentReques
 
 	// Claim the order first, so a second click finds it taken instead of booking twice.
 	var order dbq.Order
+	var cod int64
 	err = s.scoped(ctx, func(q *dbq.Queries) error {
 		if order, err = q.OrderByNumber(ctx, req.Number); err != nil {
 			return err
@@ -62,7 +63,12 @@ func (s *Server) BookShipment(ctx context.Context, req apigen.BookShipmentReques
 		if order.Status != dbq.OrderStatusConfirmed && order.Status != dbq.OrderStatusPacked {
 			return &apiError{http.StatusConflict, apigen.StatusChanged, "Only confirmed or packed orders can be sent with a courier.", nil}
 		}
-		_, err := q.ReserveShipment(ctx, dbq.ReserveShipmentParams{OrderID: order.ID, Provider: prov.Code, CodAmount: order.Total})
+		if order.PaidAt.Valid {
+			cod = 0 // paid online: the rider collects nothing
+		} else {
+			cod = order.Total
+		}
+		_, err := q.ReserveShipment(ctx, dbq.ReserveShipmentParams{OrderID: order.ID, Provider: prov.Code, CodAmount: cod})
 		if errors.Is(err, pgx.ErrNoRows) {
 			return &apiError{http.StatusConflict, apigen.AlreadyBooked, "This order is already booked with a courier.", nil}
 		}
@@ -81,7 +87,7 @@ func (s *Server) BookShipment(ctx context.Context, req apigen.BookShipmentReques
 		Phone:   strings.TrimPrefix(order.Phone, "+88"),
 		Address: order.Address + ", " + order.Area + ", " + order.District,
 		Note:    ptrOr(order.Note),
-		COD:     order.Total,
+		COD:     cod,
 	})
 	if err != nil {
 		if dropErr := s.scoped(ctx, func(q *dbq.Queries) error { return q.DropShipment(ctx, order.ID) }); dropErr != nil {

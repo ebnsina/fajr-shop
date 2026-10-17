@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { Money03Icon } from '@hugeicons/core-free-icons';
+	import { CreditCardIcon, Money03Icon } from '@hugeicons/core-free-icons';
 	import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { cart as c, checkoutCopy as t, delivery as d } from '#lib/copy.js';
+	import { cart as c, checkoutCopy as t, delivery as d, payCopy as pc } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -18,6 +18,7 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+	let method = $state('cod');
 	const cart = $derived(data.cart);
 	const fields = $derived((form?.fields ?? {}) as Record<string, string>);
 	// What was typed survives a failed attempt; a signed-in customer starts from their account.
@@ -178,7 +179,7 @@
 				<RadioCards
 					legend={t.payment}
 					name="payment_method"
-					value="cod"
+					bind:value={method}
 					layout="list"
 					options={[
 						{
@@ -187,7 +188,18 @@
 							description: t.codHint,
 							icon: Money03Icon,
 							detail: data.quote ? t.due(formatMoney(total)) : undefined
-						}
+						},
+						...(data.payMethods.length
+							? [
+									{
+										value: 'online',
+										label: pc.online,
+										description: pc.onlineHint(data.payMethods.map((m) => m.name).join(', ')),
+										icon: CreditCardIcon,
+										detail: data.quote ? formatMoney(total) : undefined
+									}
+								]
+							: [])
 					]}
 				/>
 			</Card>
@@ -243,7 +255,7 @@
 							>{t.place}</Button
 						></span
 					>
-					<p class="muted">{t.agree}</p>
+					<p class="muted">{method === 'online' ? pc.agreeOnline : t.agree}</p>
 				</div>
 			</Card>
 		</aside>

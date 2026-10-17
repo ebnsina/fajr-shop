@@ -1266,6 +1266,170 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/payment-methods:
+    get:
+      operationId: listPaymentMethods
+      tags: [orders]
+      summary: Gateways customers can pay online through
+      description: Empty when only cash on delivery is on.
+      security:
+        - {}
+      responses:
+        "200":
+          description: Gateways that are on
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [code, name]
+                      properties:
+                        code:
+                          type: string
+                        name:
+                          type: string
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/orders/{number}/payments:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    post:
+      operationId: startPayment
+      tags: [orders]
+      summary: Start paying an online order; send the customer to `url`
+      description: |
+        For the order's customer or whoever holds its link (`token`). Only an unpaid online order
+        that isn't cancelled (`status_changed` otherwise). A gateway's refusal is `payment_error`.
+      security:
+        - {}
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [provider]
+              properties:
+                provider:
+                  type: string
+                  maxLength: 32
+                token:
+                  type: string
+                  maxLength: 200
+      responses:
+        "200":
+          description: Where to pay
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url:
+                    type: string
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/orders/{number}/cash-on-delivery:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    post:
+      operationId: switchToCashOnDelivery
+      tags: [orders]
+      summary: Pay an unpaid online order on delivery instead
+      description: For the order's customer or whoever holds its link, while the order is still placed and unpaid.
+      security:
+        - {}
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                token:
+                  type: string
+                  maxLength: 200
+      responses:
+        "200":
+          description: The order, now cash on delivery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/payments/{provider}/confirm:
+    parameters:
+      - name: provider
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: "^[a-z]+$"
+          maxLength: 32
+    post:
+      operationId: confirmPayment
+      tags: [orders]
+      summary: Check a payment the gateway reported, and mark the order paid
+      description: |
+        Called by the storefront when the gateway sends the customer (or its own server-to-server
+        notice) back. Nothing in the request is trusted: the API asks the gateway about `val_id`
+        itself and marks the order paid only if the gateway says it was, for the order's full
+        amount. Safe to call more than once.
+      security:
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [val_id]
+              properties:
+                val_id:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+      responses:
+        "200":
+          description: The order that was paid
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [number]
+                properties:
+                  number:
+                    type: integer
+                    format: int64
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/admin/orders:
     get:
       operationId: adminListOrders
@@ -2196,6 +2360,7 @@ components:
         - in_use
         - already_booked
         - courier_error
+        - payment_error
         - not_deliverable
         - cart_empty
         - cart_changed
@@ -2966,9 +3131,14 @@ components:
       enum: [pending, confirmed, packed, shipped, delivered, cancelled]
 
     PaymentMethod:
-      description: "`cod`: cash on delivery. Online payments come later."
+      description: "`cod`: cash on delivery. `online`: paid through the shop's payment gateway after placing."
       type: string
-      enum: [cod]
+      enum: [cod, online]
+
+    PaymentStatus:
+      description: "`cod`: paid to the rider. `unpaid`: an online order not paid yet. `paid`: paid online."
+      type: string
+      enum: [cod, unpaid, paid]
 
     CheckoutInput:
       type: object
@@ -3110,8 +3280,13 @@ components:
       allOf:
         - $ref: "#/components/schemas/OrderSummary"
         - type: object
-          required: [area, address, subtotal, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, items, events, next_statuses]
+          required: [area, address, subtotal, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, items, events, next_statuses, payment_status]
           properties:
+            payment_status:
+              $ref: "#/components/schemas/PaymentStatus"
+            paid_with:
+              type: [string, "null"]
+              description: The gateway an online order was paid through.
             shipment:
               oneOf:
                 - $ref: "#/components/schemas/Shipment"

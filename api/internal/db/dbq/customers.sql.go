@@ -129,7 +129,7 @@ func (q *Queries) AdminCustomers(ctx context.Context, arg AdminCustomersParams) 
 }
 
 const customerOrders = `-- name: CustomerOrders :many
-SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.customer_name, o.phone, o.email, o.district, o.area, o.address, o.note, o.subtotal, o.discount_code, o.discount_total, o.zone_name, o.delivery_days, o.delivery_charge, o.vat_rate_bp, o.vat_included, o.vat_total, o.total, o.currency, o.created_at, o.updated_at, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.order_id = o.id)::int AS item_count
+SELECT o.id, o.number, o.user_id, o.token_hash, o.status, o.payment_method, o.customer_name, o.phone, o.email, o.district, o.area, o.address, o.note, o.subtotal, o.discount_code, o.discount_total, o.zone_name, o.delivery_days, o.delivery_charge, o.vat_rate_bp, o.vat_included, o.vat_total, o.total, o.currency, o.created_at, o.updated_at, o.paid_at, (SELECT coalesce(sum(i.quantity), 0) FROM order_items i WHERE i.order_id = o.id)::int AS item_count
 FROM orders o WHERE o.user_id = $1
 ORDER BY o.created_at DESC LIMIT 100
 `
@@ -161,6 +161,7 @@ type CustomerOrdersRow struct {
 	Currency       string
 	CreatedAt      pgtype.Timestamptz
 	UpdatedAt      pgtype.Timestamptz
+	PaidAt         pgtype.Timestamptz
 	ItemCount      int32
 }
 
@@ -200,6 +201,7 @@ func (q *Queries) CustomerOrders(ctx context.Context, userID uuid.NullUUID) ([]C
 			&i.Currency,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.PaidAt,
 			&i.ItemCount,
 		); err != nil {
 			return nil, err

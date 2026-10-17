@@ -130,3 +130,26 @@ SELECT * FROM phone_checks WHERE phone = $1 AND checked_at > now() - interval '1
 -- name: SavePhoneCheck :exec
 INSERT INTO phone_checks (phone, provider, delivered, cancelled) VALUES ($1, $2, $3, $4)
 ON CONFLICT (phone, provider) DO UPDATE SET delivered = EXCLUDED.delivered, cancelled = EXCLUDED.cancelled, checked_at = now();
+
+-- name: CreatePayment :one
+INSERT INTO payments (order_id, provider, tran_id, amount) VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: PaymentByTranID :one
+SELECT * FROM payments WHERE tran_id = $1 FOR UPDATE;
+
+-- name: MarkPaymentPaid :exec
+UPDATE payments SET status = 'paid', gateway_ref = $2, updated_at = now() WHERE id = $1;
+
+-- name: MarkOrderPaid :one
+UPDATE orders SET paid_at = now(), updated_at = now() WHERE id = $1 AND paid_at IS NULL RETURNING *;
+
+-- name: OrderByID :one
+SELECT * FROM orders WHERE id = $1;
+
+-- name: PaidPayment :one
+SELECT * FROM payments WHERE order_id = $1 AND status = 'paid' ORDER BY updated_at DESC LIMIT 1;
+
+-- name: SwitchToCOD :one
+UPDATE orders SET payment_method = 'cod', updated_at = now()
+WHERE id = $1 AND payment_method = 'online' AND paid_at IS NULL AND status = 'pending'
+RETURNING *;

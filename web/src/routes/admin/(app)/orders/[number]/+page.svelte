@@ -3,7 +3,7 @@
 	import RowMenu from '#lib/admin/RowMenu.svelte';
 	import StepForm from '#lib/admin/StepForm.svelte';
 	import { runAction } from '#lib/admin/actions.js';
-	import { admin as a, orderAdmin as t, orderCopy as o } from '#lib/copy.js';
+	import { admin as a, orderAdmin as t, orderCopy as o, payCopy as pc } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import OrderView from '#lib/orders/OrderView.svelte';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
@@ -118,7 +118,9 @@
 		value={data.couriers.length === 1 ? data.couriers[0].code : undefined}
 		options={data.couriers.map((c) => ({ value: c.code, label: c.name }))}
 	/>
-	<p class="muted">{t.collects(formatMoney(order.total))}</p>
+	<p class="muted">
+		{order.payment_status === 'paid' ? pc.collectsNothing : t.collects(formatMoney(order.total))}
+	</p>
 {/snippet}
 
 {#snippet note()}

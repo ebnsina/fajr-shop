@@ -19,6 +19,8 @@ type Config struct {
 	MediaURL string
 	// TrustedProxies may set X-Forwarded-For: Caddy and the web app's server. May be empty.
 	TrustedProxies []netip.Prefix
+	// ShopURL is the storefront's address, where payment gateways send customers back.
+	ShopURL string
 	// SecretKey seals provider credentials in the database: 32 random bytes, base64.
 	SecretKey []byte
 }
@@ -37,6 +39,7 @@ func Load() (Config, error) {
 		HTTPAddr:    need("FAJR_HTTP_ADDR"),
 		MediaDir:    need("FAJR_MEDIA_DIR"),
 		MediaURL:    strings.TrimRight(need("FAJR_MEDIA_URL"), "/"),
+		ShopURL:     strings.TrimRight(need("FAJR_SHOP_URL"), "/"),
 	}
 	origins, ok := os.LookupEnv("FAJR_CORS_ORIGINS")
 	if !ok {

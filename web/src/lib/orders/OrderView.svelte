@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { components } from '#lib/api.js';
-	import { orderCopy as t, parcelCopy as pc } from '#lib/copy.js';
+	import { orderCopy as t, parcelCopy as pc, payCopy } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
@@ -74,7 +74,11 @@
 				<p class="muted">{o.delivery_days}</p>
 				{#if o.note}<Alert tone="info" title={t.customerNote}>{o.note}</Alert>{/if}
 				<h3>{t.payment}</h3>
-				<p>{t.cod}</p>
+				<p>
+					{#if o.payment_status === 'paid'}{payCopy.paidWith(o.paid_with ?? '')}
+					{:else if o.payment_status === 'unpaid'}{payCopy.unpaid}
+					{:else}{t.cod}{/if}
+				</p>
 			</div>
 		</Card>
 
