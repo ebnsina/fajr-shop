@@ -7,13 +7,13 @@
 /* The shop's palette. Light only for now. Blue is the brand; orange is only for the purchase
    action; green means available; red is only for discounts, errors and destructive actions. */
 :root {
-	/* Svelte's orange. #ff3e00 fills large areas (the header) and draws borders, icons and rings;
-	   it is too light for small text, so text and buttons use the darker 700 (5.2:1 with white). */
-	--brand-50: #fff4ef;
-	--brand-100: #ffe1d4;
-	--brand-600: #ff3e00;
-	--brand-700: #cc3300;
-	--brand-800: #a32700;
+	/* Tailwind sky. sky-600 fills the header and draws icons and rings; it is 4.1:1 with white,
+	   too light for small text, so buttons and links use sky-700 (5.9:1). */
+	--brand-50: #f0f9ff;
+	--brand-100: #e0f2fe;
+	--brand-600: #0284c7;
+	--brand-700: #0369a1;
+	--brand-800: #075985;
 
 	--accent-700: #c2410c;
 	--accent-800: #9a3412;

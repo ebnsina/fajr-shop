@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Brand color experiment: Tailwind sky (sky-600 header, sky-700 buttons and links).
 - Brand color is Svelte's orange (#ff3e00) for the header, borders and icons, with a darker
   orange (#cc3300) for buttons and links so text stays readable. Footer: the muted page tone
   with rounded top corners.
