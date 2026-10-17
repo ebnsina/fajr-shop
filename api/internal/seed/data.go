@@ -157,3 +157,64 @@ var banners = []struct {
 	{"wide", "Free delivery inside Dhaka", "On orders over 2,000 taka", "", 160},
 	{"wide", "Attar & Perfume", "Alcohol-free, long-lasting", "Health & Beauty", 300},
 }
+
+// grams looks up a subcategory's packed weight; anything unlisted ships as half a kilo.
+func gramsFor(name string) int {
+	if g, ok := weights[name]; ok {
+		return g
+	}
+	return 500
+}
+
+var weights = map[string]int{
+	"Smartphones":          400,
+	"Feature Phones":       250,
+	"Power Banks":          400,
+	"Earbuds & Headphones": 200,
+	"Smart Watches":        200,
+	"Televisions":          12000,
+	"Refrigerators":        55000,
+	"Air Conditioners":     45000,
+	"Fans":                 6000,
+	"Kitchen Appliances":   3500,
+	"Panjabi":              500,
+	"Shirts":               400,
+	"T-Shirts & Polos":     300,
+	"Lungi & Gamcha":       400,
+	"Men's Footwear":       1000,
+	"Saree":                800,
+	"Salwar Kameez":        600,
+	"Hijab & Abaya":        400,
+	"Women's Footwear":     800,
+	"Rice":                 1000,
+	"Oil & Ghee":           1000,
+	"Spices":               200,
+	"Lentils & Flour":      1000,
+	"Snacks & Biscuits":    300,
+	"Tea & Beverages":      400,
+	"Diapers":              1500,
+	"Baby Food":            500,
+	"Toys":                 1500,
+	"Skin Care":            250,
+	"Hair Care":            400,
+	"Attar & Perfume":      150,
+	"Bedsheets":            1500,
+	"Kitchenware":          2500,
+	"Home Decor":           1200,
+	"Islamic Books":        700,
+	"Bangla Books":         500,
+	"Stationery":           400,
+	"Cricket":              1500,
+	"Football":             800,
+	"Fitness":              5000,
+}
+
+var zones = []struct {
+	name, days            string
+	districts             []string // nil: every district not in an earlier zone
+	base, perKg, freeOver int64    // taka; freeOver 0 means never free
+}{
+	{"Inside Dhaka", "1–2 days", []string{"Dhaka"}, 70, 20, 3000},
+	{"Dhaka suburbs", "2–3 days", []string{"Gazipur", "Narayanganj", "Narsingdi", "Munshiganj", "Manikganj"}, 100, 25, 0},
+	{"Outside Dhaka", "3–5 days", nil, 130, 30, 0},
+}

@@ -2,7 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import { cart as c, productPage as pt, shop as t } from '#lib/copy.js';
+	import Truck from '@lucide/svelte/icons/truck';
+	import { cart as c, delivery as dl, productPage as pt, shop as t } from '#lib/copy.js';
+	import { formatMoney } from '#lib/money.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
@@ -203,6 +205,19 @@
 			{#if addError}<p class="add-error" role="alert">{addError}</p>{/if}
 		{/if}
 
+		{#if data.zones.length}
+			<div class="delivery">
+				<p class="dtitle"><Truck size={18} /> {dl.zones}</p>
+				<ul>
+					{#each data.zones as z (z.id)}
+						<li>
+							<span>{z.name}</span><span>{formatMoney(z.base_charge)} · {z.delivery_days}</span>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+
 		{#if p.description}
 			<div class="about">
 				<h2>{pt.description}</h2>
@@ -295,6 +310,32 @@
 	.add-error {
 		margin: 0;
 		color: var(--ui-danger);
+	}
+	.delivery {
+		padding: 0.875rem 1rem;
+		border-radius: var(--ui-radius);
+		background: var(--ui-surface);
+		font-size: 0.875rem;
+	}
+	.dtitle {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0 0 0.5rem;
+		font-weight: 600;
+	}
+	.delivery ul {
+		display: grid;
+		gap: 0.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.delivery li {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		color: var(--ui-muted);
 	}
 	.about h2 {
 		margin: 0.5rem 0 0.5rem;

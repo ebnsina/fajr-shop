@@ -1,9 +1,24 @@
 import { fail } from '@sveltejs/kit';
 import { cart as t, errorText } from '#lib/copy.js';
 import { saveCartToken } from '#lib/server/session.js';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 type Api = App.Locals['api'];
+
+// The delivery estimate is a GET form (?district=), so it works without scripts and can be shared.
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const district = url.searchParams.get('district') ?? '';
+	const [districts, quote] = await Promise.all([
+		locals.api.GET('/v1/districts'),
+		district ? locals.api.POST('/v1/cart/shipping-quote', { body: { district } }) : null
+	]);
+	return {
+		districts: districts.data?.items ?? [],
+		district,
+		quote: quote?.data ?? null,
+		quoteError: quote && !quote.data ? errorText(quote.error?.error.code) : null
+	};
+};
 
 async function setQuantity(
 	api: Api,

@@ -15,7 +15,7 @@ import (
 const adjustStock = `-- name: AdjustStock :one
 UPDATE variants SET stock = stock + $1
 WHERE id = $2 AND stock + $1 >= 0
-RETURNING id, product_id, sku, price, compare_at_price, stock, options, position
+RETURNING id, product_id, sku, price, compare_at_price, stock, options, position, weight_g
 `
 
 type AdjustStockParams struct {
@@ -35,6 +35,7 @@ func (q *Queries) AdjustStock(ctx context.Context, arg AdjustStockParams) (Varia
 		&i.Stock,
 		&i.Options,
 		&i.Position,
+		&i.WeightG,
 	)
 	return i, err
 }
@@ -254,9 +255,9 @@ func (q *Queries) CreateUpload(ctx context.Context, arg CreateUploadParams) (Upl
 }
 
 const createVariant = `-- name: CreateVariant :one
-INSERT INTO variants (product_id, sku, price, compare_at_price, stock, options, position)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, product_id, sku, price, compare_at_price, stock, options, position
+INSERT INTO variants (product_id, sku, price, compare_at_price, stock, options, position, weight_g)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, product_id, sku, price, compare_at_price, stock, options, position, weight_g
 `
 
 type CreateVariantParams struct {
@@ -267,6 +268,7 @@ type CreateVariantParams struct {
 	Stock          int32
 	Options        []byte
 	Position       int32
+	WeightG        int32
 }
 
 func (q *Queries) CreateVariant(ctx context.Context, arg CreateVariantParams) (Variant, error) {
@@ -278,6 +280,7 @@ func (q *Queries) CreateVariant(ctx context.Context, arg CreateVariantParams) (V
 		arg.Stock,
 		arg.Options,
 		arg.Position,
+		arg.WeightG,
 	)
 	var i Variant
 	err := row.Scan(
@@ -289,6 +292,7 @@ func (q *Queries) CreateVariant(ctx context.Context, arg CreateVariantParams) (V
 		&i.Stock,
 		&i.Options,
 		&i.Position,
+		&i.WeightG,
 	)
 	return i, err
 }
@@ -785,9 +789,9 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 }
 
 const updateVariant = `-- name: UpdateVariant :one
-UPDATE variants SET sku = $3, price = $4, compare_at_price = $5, options = $6, position = $7
+UPDATE variants SET sku = $3, price = $4, compare_at_price = $5, options = $6, position = $7, weight_g = $8
 WHERE id = $1 AND product_id = $2
-RETURNING id, product_id, sku, price, compare_at_price, stock, options, position
+RETURNING id, product_id, sku, price, compare_at_price, stock, options, position, weight_g
 `
 
 type UpdateVariantParams struct {
@@ -798,6 +802,7 @@ type UpdateVariantParams struct {
 	CompareAtPrice pgtype.Int8
 	Options        []byte
 	Position       int32
+	WeightG        int32
 }
 
 func (q *Queries) UpdateVariant(ctx context.Context, arg UpdateVariantParams) (Variant, error) {
@@ -809,6 +814,7 @@ func (q *Queries) UpdateVariant(ctx context.Context, arg UpdateVariantParams) (V
 		arg.CompareAtPrice,
 		arg.Options,
 		arg.Position,
+		arg.WeightG,
 	)
 	var i Variant
 	err := row.Scan(
@@ -820,6 +826,7 @@ func (q *Queries) UpdateVariant(ctx context.Context, arg UpdateVariantParams) (V
 		&i.Stock,
 		&i.Options,
 		&i.Position,
+		&i.WeightG,
 	)
 	return i, err
 }
@@ -868,7 +875,7 @@ func (q *Queries) VariantExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 const variantsByProduct = `-- name: VariantsByProduct :many
-SELECT id, product_id, sku, price, compare_at_price, stock, options, position FROM variants WHERE product_id = $1 ORDER BY position
+SELECT id, product_id, sku, price, compare_at_price, stock, options, position, weight_g FROM variants WHERE product_id = $1 ORDER BY position
 `
 
 func (q *Queries) VariantsByProduct(ctx context.Context, productID uuid.UUID) ([]Variant, error) {
@@ -889,6 +896,7 @@ func (q *Queries) VariantsByProduct(ctx context.Context, productID uuid.UUID) ([
 			&i.Stock,
 			&i.Options,
 			&i.Position,
+			&i.WeightG,
 		); err != nil {
 			return nil, err
 		}

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Delivery zones: group districts, set a charge for a base weight plus each extra kilo, an
+  optional free-delivery amount and a delivery time. Shoppers see the charge for their district
+  on the bag page and the zones on every product page. Variants have a weight.
 - `fajr seed` fills an empty shop with a Bangladeshi demo catalog: 10 departments, 45
   categories, about 3,400 products and 15,000 variants from familiar brands, with drawn pictures,
   banners and home-page highlights.

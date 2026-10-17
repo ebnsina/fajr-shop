@@ -28,6 +28,7 @@ import (
 	"github.com/ebnsina/fajr-shop/api/internal/catalog"
 	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
 	"github.com/ebnsina/fajr-shop/api/internal/media"
+	"github.com/ebnsina/fajr-shop/api/internal/shipping"
 )
 
 var editions = []string{"", "Classic", "Premium", "Plus"}
@@ -91,6 +92,7 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 				if err != nil {
 					return fmt.Errorf("category %s: %w", s.name, err)
 				}
+				grams := gramsFor(s.name)
 				for bi, brand := range s.brands {
 					photo, err := upload(640, 640, t.hue+float64(si)*12+float64(bi)*7, brand, s.name)
 					if err != nil {
@@ -98,7 +100,7 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 					}
 					for mi, model := range s.models {
 						for ei, ed := range editions {
-							_, v := addProduct(batch, rng, now, child.ID, photo, s, brand, model, ed, fmt.Sprintf("%d-%d-%d-%d-%d", ti, si, bi, mi, ei))
+							_, v := addProduct(batch, rng, now, child.ID, photo, s, grams, brand, model, ed, fmt.Sprintf("%d-%d-%d-%d-%d", ti, si, bi, mi, ei))
 							products++
 							variants += v
 						}
@@ -134,6 +136,30 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 			}
 		}
 
+		taken := map[string]bool{}
+		for i, z := range zones {
+			districts := z.districts
+			if districts == nil {
+				for _, d := range shipping.Districts {
+					if !taken[d.Name] {
+						districts = append(districts, d.Name)
+					}
+				}
+			}
+			for _, d := range districts {
+				taken[d] = true
+			}
+			var freeOver *int64
+			if z.freeOver > 0 {
+				v := z.freeOver * 100
+				freeOver = &v
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO shipping_zones (name, districts, base_charge, base_weight_g, extra_per_kg, free_over, delivery_days, position)
+				VALUES ($1, $2, $3, 1000, $4, $5, $6, $7)`, z.name, districts, z.base*100, z.perKg*100, freeOver, z.days, i); err != nil {
+				return fmt.Errorf("zone %s: %w", z.name, err)
+			}
+		}
+
 		hl := make([]map[string]string, len(highlights))
 		for i, h := range highlights {
 			hl[i] = map[string]string{"icon": h.icon, "title": h.title, "text": h.text}
@@ -157,7 +183,7 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 
 // addProduct queues one product with its variants, photo and starting stock. It returns the
 // product's name and how many variants it has.
-func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category, photo uuid.UUID, s sub, brand, model, edition, key string) (string, int) {
+func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category, photo uuid.UUID, s sub, grams int, brand, model, edition, key string) (string, int) {
 	name := brand + " " + model
 	if edition != "" {
 		name += " " + edition
@@ -223,8 +249,10 @@ func addProduct(b *pgx.Batch, rng *rand.Rand, now time.Time, category, photo uui
 		}
 		cj, _ := json.Marshal(c) // a map of strings always marshals
 		vid := uuid.New()
-		b.Queue(`INSERT INTO variants (id, product_id, sku, price, compare_at_price, stock, options, position) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-			vid, id, fmt.Sprintf("SKU-%s-%d", key, i), price, compare, stock, cj, i)
+		// Bigger options (larger packs, screens, capacities) weigh more, in step with the price.
+		weight := grams + grams*(prices[i]-prices[0])/max(prices[0], 1)/2
+		b.Queue(`INSERT INTO variants (id, product_id, sku, price, compare_at_price, stock, options, position, weight_g) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			vid, id, fmt.Sprintf("SKU-%s-%d", key, i), price, compare, stock, cj, i, weight)
 		if stock > 0 {
 			b.Queue(`INSERT INTO stock_movements (variant_id, delta, reason, note) VALUES ($1, $2, 'initial', 'Demo data')`, vid, stock)
 		}

@@ -68,12 +68,12 @@ DELETE FROM products WHERE id = $1 RETURNING *;
 SELECT * FROM variants WHERE product_id = $1 ORDER BY position;
 
 -- name: CreateVariant :one
-INSERT INTO variants (product_id, sku, price, compare_at_price, stock, options, position)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO variants (product_id, sku, price, compare_at_price, stock, options, position, weight_g)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING *;
 
 -- name: UpdateVariant :one
-UPDATE variants SET sku = $3, price = $4, compare_at_price = $5, options = $6, position = $7
+UPDATE variants SET sku = $3, price = $4, compare_at_price = $5, options = $6, position = $7, weight_g = $8
 WHERE id = $1 AND product_id = $2
 RETURNING *;
 
