@@ -18,6 +18,7 @@
 	import Segmented from '#lib/sinaui/ui/Segmented.svelte';
 	import Select from '#lib/sinaui/ui/Select.svelte';
 	import Sortable from '#lib/sinaui/ui/Sortable.svelte';
+	import Switch from '#lib/sinaui/ui/Switch.svelte';
 	import TagInput from '#lib/sinaui/ui/TagInput.svelte';
 	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
@@ -49,6 +50,7 @@
 			name: p?.name ?? '',
 			description: p?.description ?? '',
 			status: (p?.status ?? 'draft') as Status,
+			featured: p?.featured ?? false,
 			categoryId: p?.category?.id ?? '',
 			options,
 			rows,
@@ -87,6 +89,7 @@
 			name: f.name,
 			description: f.description,
 			status: f.status,
+			featured: f.featured,
 			category_id: f.categoryId || null,
 			options: active.map((o) => ({ name: o.name.trim(), values: o.values })),
 			variants: combos.map((c) => {
@@ -201,6 +204,7 @@
 				error={fields.description}
 			/>
 			<Segmented label={t.status} options={statuses} bind:value={f.status} />
+			<Switch bind:checked={f.featured}>{t.featured}</Switch>
 			<Select label={t.category} bind:value={f.categoryId} error={fields.category_id}>
 				<option value="">{t.noCategory}</option>
 				{#each categoryOptions as c (c.id)}<option value={c.id}>{c.label}</option>{/each}

@@ -28,6 +28,10 @@ make web                 # dashboard on http://localhost:5173/admin
 make check               # everything CI runs; needs the fajr_shop_test database
 ```
 
+Fonts: Familjen Grotesk (headings, SIL OFL) is bundled from npm. Synonym (body) loads from
+Fontshare's API: its licence allows self-hosting only for your own site, not bundling it into
+software installed for other businesses, so each shop fetches it from Fontshare.
+
 The web app reads `FAJR_API_URL` (where it reaches the API). In production also set
 `BODY_SIZE_LIMIT=11M`, or photo uploads through the dashboard stop at the adapter's 512 KB default.
 

@@ -2,6 +2,7 @@
 	import { cart as c, shop as t } from '#lib/copy.js';
 	import { Toaster } from '#lib/sinaui/ui/toast/index.js';
 	import BagDrawer from '#lib/shop/BagDrawer.svelte';
+	import BottomNav from '#lib/shop/BottomNav.svelte';
 	import SiteFooter from '#lib/shop/SiteFooter.svelte';
 	import SiteHeader from '#lib/shop/SiteHeader.svelte';
 	import type { LayoutProps } from './$types';
@@ -32,12 +33,19 @@
 	<div id="main" class="site-main" role="main" tabindex="-1">{@render children()}</div>
 	<SiteFooter store={data.store} {nav} />
 </div>
+<BottomNav count={data.cart.item_count} />
 <BagDrawer cart={data.cart} {vatNote} />
 <Toaster />
 
 <style>
 	.site {
 		min-block-size: 100dvb;
+		background: color-mix(in srgb, var(--ui-subtle) 70%, var(--ui-bg));
+	}
+	@media (width < 48rem) {
+		.site {
+			padding-block-end: 4rem; /* room for the bottom bar */
+		}
 	}
 	.site-main:focus {
 		outline: none;
@@ -59,7 +67,7 @@
 	/* Shared by every shop page. Prefixed, so they never restyle a component's insides. */
 	.site :global(.site-container) {
 		box-sizing: border-box;
-		inline-size: min(76rem, 100%);
+		inline-size: min(80rem, 100%);
 		margin-inline: auto;
 		padding-inline: 1rem;
 	}
@@ -81,8 +89,8 @@
 	}
 	.site :global(.site-grid) {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
-		gap: 2rem 1.25rem;
+		grid-template-columns: repeat(auto-fill, minmax(min(11.5rem, 100%), 1fr));
+		gap: 1rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -97,7 +105,7 @@
 	@media (width < 40rem) {
 		.site :global(.site-grid) {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 1.5rem 0.75rem;
+			gap: 0.625rem;
 		}
 	}
 </style>
