@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Product pages: the photo gallery is sinaui's carousel driven by the thumbnails (no seam
+  between photos while sliding, the picked thumbnail's ring no longer cut off). Beside it: brand
+  and category, a short summary, key features, and the shop's promises. A sold-out product says
+  so on its button and offers "Ask about restock on WhatsApp".
 - Product pages: "Buy now" (adds to the bag and goes there; checkout comes next) and "Order on
   WhatsApp", which opens a chat with the product and its link when the shop sets a WhatsApp
   number in store settings.

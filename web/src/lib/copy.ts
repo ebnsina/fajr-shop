@@ -374,6 +374,9 @@ export const productPage = {
 	noDescription: 'The shop hasn’t written a description yet.',
 	similar: 'Similar products',
 	buyNow: 'Buy now',
+	keyFeatures: 'Key features',
+	whatsappAsk: 'Ask about restock on WhatsApp',
+	whatsappAskText: (name: string, url: string) => `Hi, when will ${name} be back in stock? ${url}`,
 	whatsapp: 'Order on WhatsApp',
 	whatsappText: (name: string, url: string) => `Hi, I'd like to order ${name}. ${url}`
 };

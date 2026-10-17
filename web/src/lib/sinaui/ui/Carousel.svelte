@@ -19,16 +19,26 @@
 		perView?: number;
 		/** ms between slides when playing on its own; off by default. */
 		autoplay?: number;
+		/** The first slide in view, to follow along (bind:current). To move it, call go(i) via bind:this. */
+		current?: number;
 		class?: string;
 	}
 
-	let { label, slides, slide, perView = 1, autoplay, class: className }: Props = $props();
+	let {
+		label,
+		slides,
+		slide,
+		perView = 1,
+		autoplay,
+		current = $bindable(0),
+		class: className
+	}: Props = $props();
 
 	const id = $props.id();
 	let track: HTMLDivElement;
 	let dots = $state<HTMLDivElement>();
 	let marker = $state<HTMLSpanElement>();
-	let current = $state(0);
+
 	// svelte-ignore state_referenced_locally
 	let playing = $state(!!autoplay);
 	let hovered = $state(false);
@@ -38,7 +48,7 @@
 	const last = $derived(Math.max(0, slides.length - perView));
 
 	/** Scrolls the slide into place; scrollIntoView handles right-to-left for us. */
-	function go(i: number) {
+	export function go(i: number) {
 		const to = Math.max(0, Math.min(last, i));
 		track.children[to]?.scrollIntoView({
 			behavior: reduced() ? 'instant' : 'smooth',

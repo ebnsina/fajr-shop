@@ -15,6 +15,7 @@
 	import Price from '#lib/shop/Price.svelte';
 	import Gallery from '#lib/shop/Gallery.svelte';
 	import ProductRow from '#lib/shop/ProductRow.svelte';
+	import { highlightIcons } from '#lib/shop/highlight-icons.js';
 	import * as Tabs from '#lib/sinaui/ui/tabs/index.js';
 	import type { PageProps } from './$types';
 
@@ -52,13 +53,15 @@
 					: t.inStock
 	);
 	let tab = $state('description');
+	const inStock = $derived(!!variant && variant.stock > 0);
 	// wa.me takes the number in international form: 01812345678 → 8801812345678.
 	const whatsapp = $derived.by(() => {
 		const n = data.store.whatsapp;
 		if (!n) return null;
 		const opts = variant ? Object.values(variant.options).join(', ') : '';
 		const name = opts ? `${p.name} (${opts})` : p.name;
-		const text = pt.whatsappText(name, `${page.url.origin}/p/${p.slug}`);
+		const url = `${page.url.origin}/p/${p.slug}`;
+		const text = inStock ? pt.whatsappText(name, url) : pt.whatsappAskText(name, url);
 		return `https://wa.me/88${n}?text=${encodeURIComponent(text)}`;
 	});
 	// Paragraphs split by a blank line; a paragraph whose lines all start with "- " is a list.
@@ -77,6 +80,9 @@
 				return { list, lines: list ? lines.map((l) => l.replace(/^[-•]\s+/, '')) : lines };
 			})
 	);
+	// The first paragraph as a short summary, and the first list as key features.
+	const intro = $derived(blocks.find((b) => !b.list)?.lines.join(' ') ?? '');
+	const features = $derived(blocks.find((b) => b.list)?.lines.slice(0, 5) ?? []);
 	const grams = new Intl.NumberFormat('en-BD', { style: 'unit', unit: 'gram' });
 	const kilos = new Intl.NumberFormat('en-BD', {
 		style: 'unit',
@@ -137,7 +143,15 @@
 	<div class="gallery"><Gallery images={p.images} name={p.name} /></div>
 
 	<div class="buy">
-		<h1 class="site-title">{p.name}</h1>
+		<div class="head">
+			<h1 class="site-title">{p.name}</h1>
+			{#if p.brand || p.category}
+				<p class="meta">
+					{#if p.brand}<span>{pt.brand}: <strong>{p.brand}</strong></span>{/if}
+					{#if p.category}<a href="/c/{p.category.slug}">{p.category.name}</a>{/if}
+				</p>
+			{/if}
+		</div>
 		<Price
 			amount={variant?.price ?? p.variants[0].price}
 			was={variant?.compare_at_price}
@@ -148,6 +162,7 @@
 				{data.store.vat.prices_include_vat ? t.vatIncluded : t.vatAdded(vatRate)}
 			</p>
 		{/if}
+		{#if intro}<p class="intro">{intro}</p>{/if}
 
 		{#each p.options as o (o.name)}
 			<OptionChips
@@ -216,14 +231,25 @@
 					<Button type="submit" formaction="/cart?/buy" disabled={adding}>{pt.buyNow}</Button>
 				</span>
 			</form>
-			{#if whatsapp}
-				<span class="wa">
-					<Button href={whatsapp} target="_blank" rel="noopener"
-						><MessageCircle size={18} /> {pt.whatsapp}</Button
-					>
-				</span>
-			{/if}
 			{#if addError}<p class="add-error" role="alert">{addError}</p>{/if}
+		{:else}
+			<Button disabled>{pt.soldOut}</Button>
+		{/if}
+		{#if whatsapp}
+			<span class="wa">
+				<Button href={whatsapp} target="_blank" rel="noopener"
+					><MessageCircle size={18} /> {inStock ? pt.whatsapp : pt.whatsappAsk}</Button
+				>
+			</span>
+		{/if}
+
+		{#if features.length}
+			<div class="panel">
+				<p class="ptitle">{pt.keyFeatures}</p>
+				<ul class="features">
+					{#each features as f, i (i)}<li>{f}</li>{/each}
+				</ul>
+			</div>
 		{/if}
 
 		{#if data.zones.length}
@@ -237,6 +263,15 @@
 					{/each}
 				</ul>
 			</div>
+		{/if}
+
+		{#if data.store.highlights?.length}
+			<ul class="promises">
+				{#each data.store.highlights as h (h.title)}
+					{@const Icon = highlightIcons[h.icon]}
+					<li><Icon size={18} /> <span>{h.title}</span></li>
+				{/each}
+			</ul>
 		{/if}
 	</div>
 </section>
@@ -347,11 +382,69 @@
 		margin: 0;
 		color: var(--ui-danger);
 	}
-	.delivery {
+	.head {
+		display: grid;
+		gap: 0.375rem;
+	}
+	.head h1 {
+		margin: 0;
+	}
+	.meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 1rem;
+		margin: 0;
+		color: var(--ui-muted);
+		font-size: 0.875rem;
+	}
+	.meta strong {
+		color: var(--ui-fg);
+		font-weight: 600;
+	}
+	.meta a {
+		color: var(--ui-accent);
+	}
+	.intro {
+		margin: 0;
+		color: var(--ui-muted);
+		line-height: 1.6;
+	}
+	.delivery,
+	.panel {
 		padding: 0.875rem 1rem;
 		border-radius: var(--ui-radius);
 		background: var(--ui-surface);
 		font-size: 0.875rem;
+	}
+	.ptitle {
+		margin: 0 0 0.5rem;
+		font-weight: 600;
+	}
+	.features {
+		display: grid;
+		gap: 0.375rem;
+		margin: 0;
+		padding-inline-start: 1.125rem;
+		line-height: 1.5;
+	}
+	.promises {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.625rem 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.875rem;
+	}
+	.promises li {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--ui-muted);
+	}
+	.promises :global(svg) {
+		flex: none;
+		color: var(--ui-accent);
 	}
 	.dtitle {
 		display: flex;

@@ -1,22 +1,9 @@
 <script lang="ts">
-	import Banknote from '@lucide/svelte/icons/banknote';
-	import Gift from '@lucide/svelte/icons/gift';
-	import Headset from '@lucide/svelte/icons/headset';
-	import ShieldCheck from '@lucide/svelte/icons/shield-check';
-	import Truck from '@lucide/svelte/icons/truck';
-	import Undo2 from '@lucide/svelte/icons/undo-2';
+	import { highlightIcons as icons } from './highlight-icons.js';
 	import type { components } from '#lib/api.js';
 
 	// The shop's promises, as the owner wrote them in store settings.
 	let { items }: { items: components['schemas']['Highlight'][] } = $props();
-	const icons = {
-		truck: Truck,
-		cash: Banknote,
-		return: Undo2,
-		shield: ShieldCheck,
-		phone: Headset,
-		gift: Gift
-	};
 </script>
 
 <div class="site-container wrap">
