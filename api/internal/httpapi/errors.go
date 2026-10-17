@@ -29,6 +29,28 @@ func writeError(w http.ResponseWriter, status int, code apigen.ErrorCode, messag
 	_ = json.NewEncoder(w).Encode(body) // the status is already sent; a failed write has no one left to tell
 }
 
+// apiError is a refusal a handler means to give; anything else a handler returns is a 500.
+type apiError struct {
+	status  int
+	code    apigen.ErrorCode
+	message string
+	fields  map[string]string
+}
+
+func (e *apiError) Error() string { return string(e.code) }
+
+func invalid(fields map[string]string) error {
+	return &apiError{http.StatusBadRequest, apigen.Validation, "Please check the highlighted fields.", fields}
+}
+
+func handlerError(w http.ResponseWriter, r *http.Request, err error) {
+	if e, ok := errors.AsType[*apiError](err); ok {
+		writeError(w, e.status, e.code, e.message, e.fields)
+		return
+	}
+	internalError(w, r, err)
+}
+
 // internalError logs the real cause and gives the client only the request id to quote.
 func internalError(w http.ResponseWriter, r *http.Request, err error) {
 	id := middleware.GetReqID(r.Context())

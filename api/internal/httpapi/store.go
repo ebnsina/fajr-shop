@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
+	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
 )
 
 func (s *Server) GetHealth(ctx context.Context, _ apigen.GetHealthRequestObject) (apigen.GetHealthResponseObject, error) {
@@ -24,20 +25,7 @@ func (s *Server) GetStore(ctx context.Context, req apigen.GetStoreRequestObject)
 	if err != nil {
 		return nil, fmt.Errorf("store: load settings: %w", err)
 	}
-	body := apigen.Store{
-		Name:         row.Name,
-		LogoUrl:      text(row.LogoUrl),
-		AccentColor:  text(row.AccentColor),
-		Currency:     row.Currency,
-		ContactPhone: text(row.ContactPhone),
-		ContactEmail: text(row.ContactEmail),
-		Vat: apigen.Vat{
-			Enabled:          row.VatEnabled,
-			RateBp:           int(row.VatRateBp),
-			PricesIncludeVat: row.PricesIncludeVat,
-			Bin:              text(row.VatBin),
-		},
-	}
+	body := toStore(row)
 	tag, err := etag(body)
 	if err != nil {
 		return nil, err
@@ -51,11 +39,19 @@ func (s *Server) GetStore(ctx context.Context, req apigen.GetStoreRequestObject)
 	}, nil
 }
 
-func text(t pgtype.Text) *string {
-	if !t.Valid {
-		return nil
+func toStore(row dbq.StoreSetting) apigen.Store {
+	st := apigen.Store{
+		Name: row.Name, LogoUrl: row.LogoUrl, AccentColor: row.AccentColor, Currency: row.Currency,
+		ContactPhone: row.ContactPhone,
+		Vat: apigen.Vat{
+			Enabled: row.VatEnabled, RateBp: int(row.VatRateBp), PricesIncludeVat: row.PricesIncludeVat, Bin: row.VatBin,
+		},
 	}
-	return &t.String
+	if row.ContactEmail != nil {
+		e := openapi_types.Email(*row.ContactEmail)
+		st.ContactEmail = &e
+	}
+	return st
 }
 
 func etag(v any) (string, error) {

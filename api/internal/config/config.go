@@ -3,6 +3,7 @@ package config
 
 import (
 	"fmt"
+	"net/netip"
 	"os"
 	"strings"
 )
@@ -12,6 +13,8 @@ type Config struct {
 	HTTPAddr    string
 	// CORSOrigins may be empty: the web storefront calls the API server-side and needs none.
 	CORSOrigins []string
+	// TrustedProxies may set X-Forwarded-For: Caddy and the web app's server. May be empty.
+	TrustedProxies []netip.Prefix
 }
 
 func Load() (Config, error) {
@@ -35,6 +38,20 @@ func Load() (Config, error) {
 		if o = strings.TrimSpace(o); o != "" {
 			c.CORSOrigins = append(c.CORSOrigins, o)
 		}
+	}
+	proxies, ok := os.LookupEnv("FAJR_TRUSTED_PROXIES")
+	if !ok {
+		missing = append(missing, "FAJR_TRUSTED_PROXIES")
+	}
+	for p := range strings.SplitSeq(proxies, ",") {
+		if p = strings.TrimSpace(p); p == "" {
+			continue
+		}
+		prefix, err := netip.ParsePrefix(p)
+		if err != nil {
+			return Config{}, fmt.Errorf("config: FAJR_TRUSTED_PROXIES: %w", err)
+		}
+		c.TrustedProxies = append(c.TrustedProxies, prefix)
 	}
 	if len(missing) > 0 {
 		return Config{}, fmt.Errorf("config: missing environment variables: %s", strings.Join(missing, ", "))

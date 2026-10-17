@@ -5,20 +5,115 @@
 package dbq
 
 import (
+	"database/sql/driver"
+	"fmt"
+	"net/netip"
+
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type UserRole string
+
+const (
+	UserRoleCustomer UserRole = "customer"
+	UserRoleStaff    UserRole = "staff"
+	UserRoleAdmin    UserRole = "admin"
+)
+
+func (e *UserRole) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserRole(s)
+	case string:
+		*e = UserRole(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserRole: %T", src)
+	}
+	return nil
+}
+
+type NullUserRole struct {
+	UserRole UserRole
+	Valid    bool // Valid is true if UserRole is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserRole) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserRole, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserRole.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserRole) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserRole), nil
+}
+
+type ApiKey struct {
+	ID        uuid.UUID
+	Name      string
+	KeyHash   []byte
+	Hint      string
+	Scopes    []string
+	CreatedBy uuid.UUID
+	CreatedAt pgtype.Timestamptz
+	RevokedAt pgtype.Timestamptz
+}
+
+type AuditLog struct {
+	ID            int64
+	ActorUserID   uuid.NullUUID
+	ActorApiKeyID uuid.NullUUID
+	Action        string
+	Entity        string
+	EntityID      *string
+	Before        []byte
+	After         []byte
+	Ip            *netip.Addr
+	CreatedAt     pgtype.Timestamptz
+}
+
+type Session struct {
+	ID                  uuid.UUID
+	UserID              uuid.UUID
+	AccessHash          []byte
+	AccessExpiresAt     pgtype.Timestamptz
+	RefreshHash         []byte
+	PreviousRefreshHash []byte
+	RefreshExpiresAt    pgtype.Timestamptz
+	CreatedAt           pgtype.Timestamptz
+	RevokedAt           pgtype.Timestamptz
+}
 
 type StoreSetting struct {
 	ID               int16
 	Name             string
-	LogoUrl          pgtype.Text
-	AccentColor      pgtype.Text
+	LogoUrl          *string
+	AccentColor      *string
 	Currency         string
-	ContactPhone     pgtype.Text
-	ContactEmail     pgtype.Text
+	ContactPhone     *string
+	ContactEmail     *string
 	VatEnabled       bool
 	VatRateBp        int32
 	PricesIncludeVat bool
-	VatBin           pgtype.Text
+	VatBin           *string
 	UpdatedAt        pgtype.Timestamptz
+}
+
+type User struct {
+	ID           uuid.UUID
+	Role         UserRole
+	Name         string
+	Email        *string
+	Phone        *string
+	PasswordHash string
+	CreatedAt    pgtype.Timestamptz
+	DisabledAt   pgtype.Timestamptz
 }
