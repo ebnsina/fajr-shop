@@ -2,6 +2,7 @@
 package httpapi
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/netip"
@@ -10,8 +11,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	nethttpmiddleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
 	"github.com/ebnsina/fajr-shop/api/internal/config"
@@ -29,11 +33,21 @@ type Server struct {
 	mediaDir       string
 	mediaURL       string
 	box            *secret.Box
+	jobs           *river.Client[pgx.Tx]
 }
+
+// App is the API with its background jobs, which run once Start is called.
+type App struct {
+	http.Handler
+	jobs *river.Client[pgx.Tx]
+}
+
+func (a *App) Start(ctx context.Context) error { return a.jobs.Start(ctx) }
+func (a *App) Stop(ctx context.Context) error  { return a.jobs.Stop(ctx) }
 
 var _ apigen.StrictServerInterface = (*Server)(nil)
 
-func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
+func New(pool *pgxpool.Pool, cfg config.Config) (*App, error) {
 	spec, err := apigen.GetSpec()
 	if err != nil {
 		return nil, fmt.Errorf("httpapi: load spec: %w", err)
@@ -45,6 +59,14 @@ func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
 	s := &Server{
 		pool: pool, q: dbq.New(pool), trustedProxies: cfg.TrustedProxies, limits: &limiter{},
 		mediaDir: cfg.MediaDir, mediaURL: cfg.MediaURL, box: box,
+	}
+	workers := river.NewWorkers()
+	river.AddWorker(workers, &smsWorker{s: s})
+	if s.jobs, err = river.NewClient(riverpgxv5.New(pool), &river.Config{
+		Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
+		Workers: workers,
+	}); err != nil {
+		return nil, fmt.Errorf("httpapi: jobs: %w", err)
 	}
 
 	r := chi.NewRouter()
@@ -79,7 +101,7 @@ func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
 	mux := http.NewServeMux()
 	mux.Handle("GET /media/", http.StripPrefix("/media/", media.Handler(cfg.MediaDir)))
 	mux.Handle("/", api)
-	return mux, nil
+	return &App{Handler: mux, jobs: s.jobs}, nil
 }
 
 // limitBody caps request bodies: room for one image on uploads, 1 MB everywhere else.

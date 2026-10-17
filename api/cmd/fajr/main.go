@@ -55,13 +55,16 @@ func run() error {
 		return seed.Run(ctx, pool, cfg.MediaDir)
 	}
 
-	handler, err := httpapi.New(pool, cfg)
+	app, err := httpapi.New(pool, cfg)
 	if err != nil {
 		return err
 	}
+	if err := app.Start(ctx); err != nil {
+		return fmt.Errorf("jobs: %w", err)
+	}
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,
-		Handler:           handler,
+		Handler:           app,
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,
@@ -78,7 +81,8 @@ func run() error {
 	}
 	shutdown, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	return srv.Shutdown(shutdown)
+	// Stop taking requests first, then let jobs that are running finish.
+	return errors.Join(srv.Shutdown(shutdown), app.Stop(shutdown))
 }
 
 // createAdmin makes the shop owner's account from FAJR_ADMIN_* variables, so the password never sits in shell history.

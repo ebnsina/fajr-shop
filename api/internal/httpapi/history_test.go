@@ -63,7 +63,7 @@ func TestDeliveryHistory(t *testing.T) {
 	courier.SteadfastPanelURL, courier.PathaoPanelURL = sf.URL, pathao.URL
 	defer func() { courier.SteadfastPanelURL, courier.PathaoPanelURL = was[0], was[1] }()
 
-	if _, err := h.pool.Exec(t.Context(), "DELETE FROM shipping_zones; DELETE FROM providers; DELETE FROM phone_checks"); err != nil {
+	if _, err := h.pool.Exec(t.Context(), "BEGIN; SET LOCAL app.orders = 'on'; DELETE FROM shipping_zones; DELETE FROM providers; DELETE FROM phone_checks; COMMIT"); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, h.call("POST", "/v1/admin/shipping-zones", admin.AccessToken, map[string]any{

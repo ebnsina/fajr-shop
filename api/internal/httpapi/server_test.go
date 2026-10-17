@@ -25,6 +25,7 @@ import (
 )
 
 type harness struct {
+	app     *httpapi.App
 	t       *testing.T
 	pool    *pgxpool.Pool
 	handler http.Handler
@@ -58,7 +59,7 @@ func newHarness(t *testing.T) *harness {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return &harness{t: t, pool: pool, handler: h, router: router}
+	return &harness{app: h, t: t, pool: pool, handler: h, router: router}
 }
 
 // call sends a request and fails the test if the response breaks the spec.

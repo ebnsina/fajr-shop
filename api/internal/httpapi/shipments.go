@@ -105,6 +105,7 @@ func (s *Server) BookShipment(ctx context.Context, req apigen.BookShipmentReques
 		if err != nil {
 			return err
 		}
+		order = o
 		if out, err = loadOrder(ctx, q, o); err != nil {
 			return err
 		}
@@ -113,6 +114,7 @@ func (s *Server) BookShipment(ctx context.Context, req apigen.BookShipmentReques
 	if err != nil {
 		return nil, fmt.Errorf("book: save: %w", err)
 	}
+	s.textCustomer(ctx, order, prov.Name, &booking.TrackingCode)
 	return apigen.BookShipment200JSONResponse(out), nil
 }
 
@@ -149,6 +151,7 @@ func (s *Server) RefreshShipment(ctx context.Context, req apigen.RefreshShipment
 	}
 
 	var out apigen.Order
+	var delivered *dbq.Order
 	err = s.scoped(ctx, func(q *dbq.Queries) error {
 		if _, err := q.SetShipmentStatus(ctx, dbq.SetShipmentStatusParams{OrderID: order.ID, CourierStatus: status}); err != nil {
 			return err
@@ -161,12 +164,16 @@ func (s *Server) RefreshShipment(ctx context.Context, req apigen.RefreshShipment
 			if o, err = s.moveOrder(ctx, q, p, o, dbq.OrderStatusDelivered, prov.Name+" delivered it"); err != nil {
 				return err
 			}
+			delivered = &o
 		}
 		out, err = loadOrder(ctx, q, o)
 		return err
 	})
 	if err != nil {
 		return nil, fmt.Errorf("refresh: save: %w", err)
+	}
+	if delivered != nil {
+		s.textCustomer(ctx, *delivered, prov.Name, nil)
 	}
 	return apigen.RefreshShipment200JSONResponse(out), nil
 }

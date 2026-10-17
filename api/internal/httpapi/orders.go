@@ -77,6 +77,7 @@ func (s *Server) PlaceOrder(ctx context.Context, req apigen.PlaceOrderRequestObj
 	}
 	token, digest := auth.NewToken(auth.PrefixOrder)
 	var out apigen.Order
+	var placed dbq.Order
 	err = s.scopedAs(ctx, digest, func(q *dbq.Queries) error {
 		priced, err := s.loadCart(ctx, q, cart.ID)
 		if err != nil {
@@ -200,12 +201,14 @@ func (s *Server) PlaceOrder(ctx context.Context, req apigen.PlaceOrderRequestObj
 		if err := q.EmptyCart(ctx, cart.ID); err != nil {
 			return err
 		}
+		placed = order
 		out, err = loadOrder(ctx, q, order)
 		return err
 	})
 	if err != nil {
 		return nil, fmt.Errorf("place order: %w", err)
 	}
+	s.textCustomer(ctx, placed, "", nil)
 	return apigen.PlaceOrder201JSONResponse{Order: out, Token: token}, nil
 }
 
@@ -334,6 +337,7 @@ func (s *Server) SetOrderStatus(ctx context.Context, req apigen.SetOrderStatusRe
 		actor = uuid.NullUUID{UUID: p.userID, Valid: true}
 	}
 	var out apigen.Order
+	var moved dbq.Order
 	err = s.scoped(ctx, func(q *dbq.Queries) error {
 		o, err := q.OrderByNumber(ctx, req.Number)
 		if err != nil {
@@ -371,6 +375,7 @@ func (s *Server) SetOrderStatus(ctx context.Context, req apigen.SetOrderStatusRe
 		if out, err = loadOrder(ctx, q, o); err != nil {
 			return err
 		}
+		moved = o
 		return s.audit(ctx, q, p, "order."+string(to), "order", strconv.FormatInt(o.Number, 10), map[string]any{"status": from}, map[string]any{"status": to})
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -378,6 +383,9 @@ func (s *Server) SetOrderStatus(ctx context.Context, req apigen.SetOrderStatusRe
 	}
 	if err != nil {
 		return nil, fmt.Errorf("set order status: %w", err)
+	}
+	if to != dbq.OrderStatusPacked {
+		s.textCustomer(ctx, moved, "", nil)
 	}
 	return apigen.SetOrderStatus200JSONResponse(out), nil
 }

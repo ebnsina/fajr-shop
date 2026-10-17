@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Customers get a text when they order, and when the order is confirmed, sent with a courier
+  (with its tracking code), delivered or cancelled, through the SMS gateway switched on in
+  Integrations (BulkSMSBD or SSL Wireless). Texts go out in the background, so a slow gateway
+  never slows checkout; a gateway that refuses (wrong key, unapproved sender id) isn't retried.
+  Background jobs run on River; `fajr migrate` now also sets up River's tables.
 - Orders: a "Delivery history" card before sending cash on delivery. It shows how many of the
   phone number's past parcels were delivered or returned at this shop, at Steadfast (with the
   merchant panel sign-in added in Integrations) and at Pathao, and sums it up as new customer,
