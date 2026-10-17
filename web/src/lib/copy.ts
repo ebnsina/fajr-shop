@@ -93,6 +93,7 @@ export const nav = {
 	banners: 'Banners',
 	shipping: 'Delivery',
 	discounts: 'Discounts',
+	team: 'Team',
 	reviews: 'Reviews',
 	questions: 'Questions',
 	storeSettings: 'Store settings',
@@ -816,6 +817,36 @@ export const customerAdmin = {
 	noMatch: (q: string) => `No customers match “${q}”.`,
 	emptyTitle: 'No customers yet',
 	emptyBody: 'Customers appear here when they create an account.'
+};
+
+export const teamAdmin = {
+	title: 'Team',
+	description:
+		'Who can work in this dashboard. Staff handle products, stock and orders; admins can also change settings and the team.',
+	add: 'Add someone',
+	name: 'Name',
+	namePlaceholder: 'Nusrat Jahan',
+	email: 'Email',
+	emailHint: 'They sign in to the dashboard with this.',
+	phone: 'Mobile number (optional)',
+	role: 'Role',
+	roles: [
+		{ value: 'staff', label: 'Staff', description: 'Products, stock and orders' },
+		{ value: 'admin', label: 'Admin', description: 'Everything, including settings and the team' }
+	],
+	password: 'Password',
+	passwordHint: 'At least 12 characters. Give it to them yourself; they can’t reset it yet.',
+	passwordPlaceholder: 'At least 12 characters',
+	added: 'Added to the team',
+	saved: 'Saved',
+	you: 'You',
+	off: 'Switched off',
+	switchOff: 'Switch off',
+	switchOffConfirm: 'Switch off?',
+	switchOn: 'Switch back on',
+	makeAdmin: 'Make admin',
+	makeStaff: 'Make staff',
+	roleLabel: { staff: 'Staff', admin: 'Admin' } as Record<string, string>
 };
 
 export const checkoutCopy = {

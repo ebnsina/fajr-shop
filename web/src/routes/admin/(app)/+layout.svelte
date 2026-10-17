@@ -14,6 +14,7 @@
 		PackageIcon,
 		ShoppingBag01Icon,
 		UserGroupIcon,
+		UserMultiple02Icon,
 		Store01Icon
 	} from '@hugeicons/core-free-icons';
 	import { nav } from '#lib/copy.js';
@@ -48,6 +49,7 @@
 				{ label: nav.storeSettings, href: '/admin/settings/store', icon: Store01Icon },
 				{ label: nav.shipping, href: '/admin/shipping', icon: DeliveryTruck01Icon },
 				{ label: nav.discounts, href: '/admin/discounts', icon: DiscountTag01Icon },
+				{ label: nav.team, href: '/admin/settings/team', icon: UserMultiple02Icon },
 				{ label: nav.activity, href: '/admin/activity', icon: Activity01Icon }
 			]
 		},

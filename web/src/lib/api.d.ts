@@ -938,6 +938,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The shop's team, admins and staff
+         * @description Needs `store:write`, signed in (not an API key).
+         */
+        get: operations["adminListStaff"];
+        put?: never;
+        /**
+         * Add someone to the team
+         * @description Needs `store:write`, signed in. They sign in to the dashboard with this email and password;
+         *     share the password with them yourself. `account_exists` if the email or phone is taken.
+         */
+        post: operations["addStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change someone's role, or switch their access off or on
+         * @description Needs `store:write`, signed in. Not your own account, and never so that no admin is left.
+         *     Switched off, they can't sign in and any session they have stops working at once.
+         */
+        put: operations["updateStaff"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/banners": {
         parameters: {
             query?: never;
@@ -1484,6 +1532,24 @@ export interface components {
             currency: string;
             /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
             token?: string | null;
+        };
+        /**
+         * @description `admin`: everything. `staff`: catalog, stock and orders.
+         * @enum {string}
+         */
+        StaffRole: "staff" | "admin";
+        StaffMember: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            email: string;
+            phone?: string | null;
+            role: components["schemas"]["StaffRole"];
+            disabled: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** @description This is the caller's own account. */
+            you: boolean;
         };
         CustomerSummary: {
             /** Format: uuid */
@@ -3359,6 +3425,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Customer"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The team */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StaffMember"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    addStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    phone?: string | null;
+                    role: components["schemas"]["StaffRole"];
+                    password: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Added */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMember"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    role: components["schemas"]["StaffRole"];
+                    disabled: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMember"];
                 };
             };
             default: components["responses"]["Error"];

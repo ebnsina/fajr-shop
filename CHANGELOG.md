@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dashboard → Team: admins add staff or admins (with a password they hand over), change roles,
+  and switch someone off, which stops their session at once. Nobody changes their own access,
+  and the last admin can't be removed. (`/v1/admin/staff`, admins signed in only.)
 - Dashboard → Customers: every account with its orders, spending and last order, searchable by
   name, email or phone; a customer's page lists their orders. (`/v1/admin/customers`, needs
   `orders:write`.)

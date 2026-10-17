@@ -1430,6 +1430,107 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/admin/staff:
+    get:
+      operationId: adminListStaff
+      tags: [admin]
+      summary: The shop's team, admins and staff
+      description: Needs `store:write`, signed in (not an API key).
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: The team
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StaffMember"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: addStaff
+      tags: [admin]
+      summary: Add someone to the team
+      description: |
+        Needs `store:write`, signed in. They sign in to the dashboard with this email and password;
+        share the password with them yourself. `account_exists` if the email or phone is taken.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, role, password]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+                phone:
+                  type: [string, "null"]
+                  maxLength: 20
+                role:
+                  $ref: "#/components/schemas/StaffRole"
+                password:
+                  type: string
+                  minLength: 12
+                  maxLength: 200
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/staff/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      operationId: updateStaff
+      tags: [admin]
+      summary: Change someone's role, or switch their access off or on
+      description: |
+        Needs `store:write`, signed in. Not your own account, and never so that no admin is left.
+        Switched off, they can't sign in and any session they have stops working at once.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, disabled]
+              properties:
+                role:
+                  $ref: "#/components/schemas/StaffRole"
+                disabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMember"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/banners:
     get:
       operationId: listBanners
@@ -2542,6 +2643,35 @@ components:
         token:
           description: Only when this response created a guest cart. Send it back as X-Cart-Token.
           type: [string, "null"]
+
+    StaffRole:
+      description: "`admin`: everything. `staff`: catalog, stock and orders."
+      type: string
+      enum: [staff, admin]
+
+    StaffMember:
+      type: object
+      required: [id, name, email, role, disabled, created_at, you]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: [string, "null"]
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        disabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        you:
+          description: This is the caller's own account.
+          type: boolean
 
     CustomerSummary:
       type: object
