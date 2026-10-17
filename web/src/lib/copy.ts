@@ -316,3 +316,26 @@ export const productPage = {
 	notOffered: 'Not available in this combination',
 	description: 'About this product'
 };
+
+export const cart = {
+	bag: 'Your bag',
+	open: (n: number) => (n ? `Bag, ${n} ${n === 1 ? 'item' : 'items'}` : 'Bag, empty'),
+	add: 'Add to bag',
+	added: (name: string) => `${name} added to your bag`,
+	quantity: 'Quantity',
+	viewBag: 'View bag',
+	empty: 'Your bag is empty.',
+	browse: 'Browse the shop',
+	subtotal: (n: number) => `Subtotal · ${n} ${n === 1 ? 'item' : 'items'}`,
+	note: 'Delivery is worked out at checkout, before you pay.',
+	vatNote: (rate: string) => `VAT (${rate}) is added at checkout.`,
+	fewer: 'One fewer',
+	more: 'One more',
+	quantityOf: (name: string) => `Quantity of ${name}`,
+	remove: (name: string) => `Remove ${name}`,
+	allWeHave: 'That’s all we have.',
+	unavailable: 'No longer for sale',
+	soldOut: 'Sold out',
+	onlyLeft: (n: number) => `Only ${n} left. Lower the quantity to buy it.`,
+	title: 'Your bag'
+};

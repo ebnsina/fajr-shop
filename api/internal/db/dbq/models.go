@@ -123,6 +123,21 @@ type AuditLog struct {
 	CreatedAt     pgtype.Timestamptz
 }
 
+type Cart struct {
+	ID        uuid.UUID
+	UserID    uuid.NullUUID
+	TokenHash []byte
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+}
+
+type CartItem struct {
+	CartID    uuid.UUID
+	VariantID uuid.UUID
+	Quantity  int32
+	AddedAt   pgtype.Timestamptz
+}
+
 type Category struct {
 	ID        uuid.UUID
 	ParentID  uuid.NullUUID

@@ -2,7 +2,7 @@ import { FAJR_API_URL } from '$app/env/private';
 import type { Handle } from '@sveltejs/kit/hooks';
 import createClient from 'openapi-fetch';
 import type { components, paths } from '#lib/api.js';
-import { clearSession, readSession, saveSession } from '#lib/server/session.js';
+import { clearSession, readCartToken, readSession, saveSession } from '#lib/server/session.js';
 
 type Session = components['schemas']['Session'];
 
@@ -45,6 +45,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		headers: {
 			'X-Forwarded-For': ip,
 			...(access && { Authorization: `Bearer ${access}` })
+		}
+	});
+	// Read per call: an action that just created a guest cart must find it in the same request.
+	event.locals.api.use({
+		onRequest({ request }) {
+			const cart = readCartToken(event.cookies);
+			if (cart) request.headers.set('X-Cart-Token', cart);
+			return request;
 		}
 	});
 	return resolve(event);

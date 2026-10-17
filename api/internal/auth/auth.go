@@ -69,6 +69,7 @@ const (
 	PrefixAccess  = "fsa_"
 	PrefixRefresh = "fsr_"
 	PrefixAPIKey  = "fsk_"
+	PrefixCart    = "fsc_"
 )
 
 // NewToken returns a random 256-bit token and the digest to store in its place.

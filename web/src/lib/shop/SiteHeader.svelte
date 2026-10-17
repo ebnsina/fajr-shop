@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { Menu01Icon, Search01Icon } from '@hugeicons/core-free-icons';
+	import { Menu01Icon, Search01Icon, ShoppingBag01Icon } from '@hugeicons/core-free-icons';
 	import { onMount } from 'svelte';
 	import type { components } from '#lib/api.js';
-	import { shop as t } from '#lib/copy.js';
+	import { cart as c, shop as t } from '#lib/copy.js';
+	import RollingNumber from '#lib/sinaui/ui/RollingNumber.svelte';
+	import { bag } from './bag.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
 	import { glide } from '#lib/sinaui/ui/glide.js';
@@ -10,10 +12,12 @@
 
 	let {
 		store,
-		nav
+		nav,
+		count
 	}: {
 		store: components['schemas']['Store'];
 		nav: { label: string; href: string }[];
+		count: number;
 	} = $props();
 
 	let menu = $state(false);
@@ -55,6 +59,20 @@
 		<div class="end">
 			<Button variant="ghost" size="sm" square aria-label={t.search} href="/search">
 				<Icon icon={Search01Icon} size={18} />
+			</Button>
+			<!-- A link to the bag page until scripts load; then it opens the drawer in place. -->
+			<Button
+				variant="secondary"
+				size="sm"
+				href="/cart"
+				aria-label={c.open(count)}
+				onclick={(e: MouseEvent) => {
+					e.preventDefault();
+					bag.open = true;
+				}}
+			>
+				<Icon icon={ShoppingBag01Icon} size={18} />
+				<span class="count" aria-hidden="true"><RollingNumber value={count} /></span>
 			</Button>
 		</div>
 	</div>
@@ -145,6 +163,11 @@
 		align-items: center;
 		gap: 0.125rem;
 		margin-inline-start: auto;
+	}
+	.count {
+		display: inline-flex;
+		min-inline-size: 1ch;
+		font-variant-numeric: tabular-nums;
 	}
 	.sheet {
 		display: grid;

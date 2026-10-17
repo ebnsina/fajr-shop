@@ -58,6 +58,12 @@ tokens in httpOnly cookies and refreshes them itself.
 - `GET /v1/products/{slug}` has the options, each variant's price and stock, and the photos.
 - Stock is changed only with `POST /v1/admin/variants/{id}/stock-adjustments`, which records why.
 
+### Cart
+
+- `PUT /v1/cart/items/{variant_id}` with `{"quantity": n}` sets a line (`0` removes it).
+- Signed in: the cart follows the access token. Guest: the first `PUT` returns `token`; send it as
+  `X-Cart-Token` from then on. After sign-in, `POST /v1/cart/merge` with that token.
+
 `401` with `unauthenticated` means sign in; `session_expired` means the token you sent is no
 longer valid; `403 forbidden` means the account or key may not do this.
 

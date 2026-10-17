@@ -1,6 +1,12 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import { productPage as pt, shop as t } from '#lib/copy.js';
+	import { cart as c, productPage as pt, shop as t } from '#lib/copy.js';
+	import Button from '#lib/sinaui/ui/Button.svelte';
+	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
+	import { toast } from '#lib/sinaui/ui/toast/index.js';
+	import { bag } from '#lib/shop/bag.svelte.js';
 	import RadioCards from '#lib/sinaui/ui/RadioCards.svelte';
 	import Price from '#lib/shop/Price.svelte';
 	import ProductImage from '#lib/shop/ProductImage.svelte';
@@ -13,10 +19,14 @@
 	const start = () => (p.variants.find((v) => v.stock > 0) ?? p.variants[0]).options;
 	let chosen = $state<Record<string, string>>({});
 	let view = $state(0);
+	let quantity = $state(1);
+	let adding = $state(false);
+	let addError = $state('');
 	$effect.pre(() => {
 		p.id; // a new product (via a link on this page) starts fresh
 		chosen = { ...start() };
 		view = 0;
+		quantity = 1;
 	});
 
 	const variant = $derived(
@@ -155,6 +165,44 @@
 			{stockText}
 		</p>
 
+		{#if variant && variant.stock > 0}
+			<form
+				method="POST"
+				action="/cart?/add"
+				class="add"
+				use:enhance={() => {
+					adding = true;
+					addError = '';
+					// The action lives on /cart; refresh the data here rather than going there.
+					return async ({ result }) => {
+						adding = false;
+						if (result.type === 'failure') {
+							addError = String(result.data?.message ?? '');
+							return;
+						}
+						await invalidateAll();
+						if (result.type === 'success') {
+							toast.success(String(result.data?.added ?? ''));
+							bag.open = true;
+						}
+					};
+				}}
+			>
+				<input type="hidden" name="variant" value={variant.id} />
+				<div class="qty">
+					<NumberField
+						label={c.quantity}
+						name="quantity"
+						bind:value={quantity}
+						min={1}
+						max={Math.min(99, variant.stock)}
+					/>
+				</div>
+				<Button type="submit" size="lg" loading={adding}>{c.add}</Button>
+			</form>
+			{#if addError}<p class="add-error" role="alert">{addError}</p>{/if}
+		{/if}
+
 		{#if p.description}
 			<div class="about">
 				<h2>{pt.description}</h2>
@@ -231,6 +279,22 @@
 	}
 	.out {
 		color: var(--ui-muted);
+	}
+	.add {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		gap: 0.75rem;
+	}
+	.qty {
+		inline-size: 8rem;
+	}
+	.add > :global(.btn) {
+		flex: 1;
+	}
+	.add-error {
+		margin: 0;
+		color: var(--ui-danger);
 	}
 	.about h2 {
 		margin: 0.5rem 0 0.5rem;

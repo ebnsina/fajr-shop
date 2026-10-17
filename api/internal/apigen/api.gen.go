@@ -289,6 +289,39 @@ type AuditPage struct {
 	NextCursor *string      `json:"next_cursor,omitempty"`
 }
 
+// Cart defines model for Cart.
+type Cart struct {
+	Currency  string     `json:"currency"`
+	ItemCount int        `json:"item_count"`
+	Items     []CartItem `json:"items"`
+
+	// Subtotal Sum of the purchasable lines, before shipping, discounts and any VAT added on top.
+	Subtotal int64 `json:"subtotal"`
+
+	// Token Only when this response created a guest cart. Send it back as X-Cart-Token.
+	Token *string `json:"token,omitempty"`
+}
+
+// CartItem defines model for CartItem.
+type CartItem struct {
+	CompareAtPrice *int64             `json:"compare_at_price,omitempty"`
+	Image          *Image             `json:"image,omitempty"`
+	LineTotal      int64              `json:"line_total"`
+	Name           string             `json:"name"`
+	Options        map[string]string  `json:"options"`
+	ProductId      openapi_types.UUID `json:"product_id"`
+
+	// Purchasable False when the product is no longer for sale or there isn't enough stock for this quantity.
+	Purchasable bool   `json:"purchasable"`
+	Quantity    int    `json:"quantity"`
+	Slug        string `json:"slug"`
+
+	// Stock How many are in stock now.
+	Stock     int                `json:"stock"`
+	UnitPrice int64              `json:"unit_price"`
+	VariantId openapi_types.UUID `json:"variant_id"`
+}
+
 // Category defines model for Category.
 type Category struct {
 	Id       openapi_types.UUID  `json:"id"`
@@ -527,6 +560,9 @@ type Vat struct {
 	RateBp int `json:"rate_bp"`
 }
 
+// CartToken defines model for CartToken.
+type CartToken = string
+
 // Cursor defines model for Cursor.
 type Cursor = string
 
@@ -556,6 +592,28 @@ type AdminListProductsParams struct {
 // UploadImageMultipartBody defines parameters for UploadImage.
 type UploadImageMultipartBody struct {
 	File openapi_types.File `json:"file"`
+}
+
+// GetCartParams defines parameters for GetCart.
+type GetCartParams struct {
+	// XCartToken A guest's cart, from an earlier `token`.
+	XCartToken *CartToken `json:"X-Cart-Token,omitempty"`
+}
+
+// SetCartItemJSONBody defines parameters for SetCartItem.
+type SetCartItemJSONBody struct {
+	Quantity int `json:"quantity"`
+}
+
+// SetCartItemParams defines parameters for SetCartItem.
+type SetCartItemParams struct {
+	// XCartToken A guest's cart, from an earlier `token`.
+	XCartToken *CartToken `json:"X-Cart-Token,omitempty"`
+}
+
+// MergeCartJSONBody defines parameters for MergeCart.
+type MergeCartJSONBody struct {
+	CartToken string `json:"cart_token"`
 }
 
 // ListProductsParams defines parameters for ListProducts.
@@ -619,6 +677,12 @@ type RefreshJSONRequestBody = RefreshRequest
 // RegisterJSONRequestBody defines body for Register for application/json ContentType.
 type RegisterJSONRequestBody = RegisterRequest
 
+// SetCartItemJSONRequestBody defines body for SetCartItem for application/json ContentType.
+type SetCartItemJSONRequestBody SetCartItemJSONBody
+
+// MergeCartJSONRequestBody defines body for MergeCart for application/json ContentType.
+type MergeCartJSONRequestBody MergeCartJSONBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// ListApiKeys Active API keys
@@ -678,6 +742,15 @@ type ServerInterface interface {
 	// Register Create a customer account and sign in
 	// (POST /v1/auth/register)
 	Register(w http.ResponseWriter, r *http.Request)
+	// GetCart The shopper's cart
+	// (GET /v1/cart)
+	GetCart(w http.ResponseWriter, r *http.Request, params GetCartParams)
+	// SetCartItem Set how many of a variant are in the cart
+	// (PUT /v1/cart/items/{variant_id})
+	SetCartItem(w http.ResponseWriter, r *http.Request, variantId openapi_types.UUID, params SetCartItemParams)
+	// MergeCart Move a guest cart into the signed-in customer's cart
+	// (POST /v1/cart/merge)
+	MergeCart(w http.ResponseWriter, r *http.Request)
 	// ListCategories Every category, in display order
 	// (GET /v1/categories)
 	ListCategories(w http.ResponseWriter, r *http.Request)
@@ -813,6 +886,24 @@ func (_ Unimplemented) Refresh(w http.ResponseWriter, r *http.Request) {
 // Register Create a customer account and sign in
 // (POST /v1/auth/register)
 func (_ Unimplemented) Register(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetCart The shopper's cart
+// (GET /v1/cart)
+func (_ Unimplemented) GetCart(w http.ResponseWriter, r *http.Request, params GetCartParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// SetCartItem Set how many of a variant are in the cart
+// (PUT /v1/cart/items/{variant_id})
+func (_ Unimplemented) SetCartItem(w http.ResponseWriter, r *http.Request, variantId openapi_types.UUID, params SetCartItemParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// MergeCart Move a guest cart into the signed-in customer's cart
+// (POST /v1/cart/merge)
+func (_ Unimplemented) MergeCart(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1301,6 +1392,111 @@ func (siw *ServerInterfaceWrapper) Register(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
+// GetCart operation middleware
+func (siw *ServerInterfaceWrapper) GetCart(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCartParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-Cart-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cart-Token")]; found {
+		var XCartToken CartToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Cart-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cart-Token", valueList[0], &XCartToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Cart-Token", Err: err})
+			return
+		}
+
+		params.XCartToken = &XCartToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCart(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetCartItem operation middleware
+func (siw *ServerInterfaceWrapper) SetCartItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "variant_id" -------------
+	var variantId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "variant_id", chi.URLParam(r, "variant_id"), &variantId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "variant_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SetCartItemParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "X-Cart-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cart-Token")]; found {
+		var XCartToken CartToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-Cart-Token", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cart-Token", valueList[0], &XCartToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-Cart-Token", Err: err})
+			return
+		}
+
+		params.XCartToken = &XCartToken
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetCartItem(w, r, variantId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MergeCart operation middleware
+func (siw *ServerInterfaceWrapper) MergeCart(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MergeCart(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListCategories operation middleware
 func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http.Request) {
 
@@ -1734,6 +1930,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/admin/uploads", wrapper.UploadImage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/cart", wrapper.GetCart)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/cart/items/{variant_id}", wrapper.SetCartItem)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/cart/merge", wrapper.MergeCart)
 	})
 
 	return r
@@ -2461,6 +2666,125 @@ func (response RegisterdefaultJSONResponse) VisitRegisterResponse(w http.Respons
 	return err
 }
 
+type GetCartRequestObject struct {
+	Params GetCartParams
+}
+
+type GetCartResponseObject interface {
+	VisitGetCartResponse(w http.ResponseWriter) error
+}
+
+type GetCart200JSONResponse Cart
+
+func (response GetCart200JSONResponse) VisitGetCartResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCartdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response GetCartdefaultJSONResponse) VisitGetCartResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetCartItemRequestObject struct {
+	VariantId openapi_types.UUID `json:"variant_id"`
+	Params    SetCartItemParams
+	Body      *SetCartItemJSONRequestBody
+}
+
+type SetCartItemResponseObject interface {
+	VisitSetCartItemResponse(w http.ResponseWriter) error
+}
+
+type SetCartItem200JSONResponse Cart
+
+func (response SetCartItem200JSONResponse) VisitSetCartItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetCartItemdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response SetCartItemdefaultJSONResponse) VisitSetCartItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MergeCartRequestObject struct {
+	Body *MergeCartJSONRequestBody
+}
+
+type MergeCartResponseObject interface {
+	VisitMergeCartResponse(w http.ResponseWriter) error
+}
+
+type MergeCart200JSONResponse Cart
+
+func (response MergeCart200JSONResponse) VisitMergeCartResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MergeCartdefaultJSONResponse struct {
+	Body       Error
+	StatusCode int
+}
+
+func (response MergeCartdefaultJSONResponse) VisitMergeCartResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListCategoriesRequestObject struct {
 }
 
@@ -2779,6 +3103,15 @@ type StrictServerInterface interface {
 	// Register Create a customer account and sign in
 	// (POST /v1/auth/register)
 	Register(ctx context.Context, request RegisterRequestObject) (RegisterResponseObject, error)
+	// GetCart The shopper's cart
+	// (GET /v1/cart)
+	GetCart(ctx context.Context, request GetCartRequestObject) (GetCartResponseObject, error)
+	// SetCartItem Set how many of a variant are in the cart
+	// (PUT /v1/cart/items/{variant_id})
+	SetCartItem(ctx context.Context, request SetCartItemRequestObject) (SetCartItemResponseObject, error)
+	// MergeCart Move a guest cart into the signed-in customer's cart
+	// (POST /v1/cart/merge)
+	MergeCart(ctx context.Context, request MergeCartRequestObject) (MergeCartResponseObject, error)
 	// ListCategories Every category, in display order
 	// (GET /v1/categories)
 	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
@@ -3389,6 +3722,97 @@ func (sh *strictHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetCart operation middleware
+func (sh *strictHandler) GetCart(w http.ResponseWriter, r *http.Request, params GetCartParams) {
+	var request GetCartRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCart(ctx, request.(GetCartRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCart")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCartResponseObject); ok {
+		if err := validResponse.VisitGetCartResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetCartItem operation middleware
+func (sh *strictHandler) SetCartItem(w http.ResponseWriter, r *http.Request, variantId openapi_types.UUID, params SetCartItemParams) {
+	var request SetCartItemRequestObject
+
+	request.VariantId = variantId
+	request.Params = params
+
+	var body SetCartItemJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetCartItem(ctx, request.(SetCartItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetCartItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetCartItemResponseObject); ok {
+		if err := validResponse.VisitSetCartItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MergeCart operation middleware
+func (sh *strictHandler) MergeCart(w http.ResponseWriter, r *http.Request) {
+	var request MergeCartRequestObject
+
+	var body MergeCartJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MergeCart(ctx, request.(MergeCartRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MergeCart")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MergeCartResponseObject); ok {
+		if err := validResponse.VisitMergeCartResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListCategories operation middleware
 func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
 	var request ListCategoriesRequestObject
@@ -3544,90 +3968,102 @@ func (sh *strictHandler) GetStore(w http.ResponseWriter, r *http.Request, params
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

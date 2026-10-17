@@ -47,7 +47,7 @@ func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
 		r.Use(cors.Handler(cors.Options{
 			AllowedOrigins:   cfg.CORSOrigins,
 			AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
-			AllowedHeaders:   []string{"Authorization", "Content-Type", "Idempotency-Key", "If-None-Match"},
+			AllowedHeaders:   []string{"Authorization", "Content-Type", "Idempotency-Key", "If-None-Match", "X-Cart-Token"},
 			ExposedHeaders:   []string{"ETag"},
 			AllowCredentials: true,
 			MaxAge:           600,
