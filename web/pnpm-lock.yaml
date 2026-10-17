@@ -20,9 +20,6 @@ importers:
       '@hugeicons/core-free-icons':
         specifier: ^4.3.5
         version: 4.3.5
-      '@lucide/svelte':
-        specifier: 1.50.0
-        version: 1.50.0(svelte@5.57.2)
       openapi-fetch:
         specifier: 0.17.0
         version: 0.17.0
@@ -98,11 +95,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@lucide/svelte@1.50.0':
-    resolution: {integrity: sha512-0VGYwm1YgZd7UMv/DLZIUV0QXj9QbVds3b/ElkoTj9TwpI5GIHAV1Yk74TQ3dAzY0ShT4X/2xq7pihzBNVnvxQ==}
-    peerDependencies:
-      svelte: ^5
 
   '@oxc-project/types@0.154.0':
     resolution: {integrity: sha512-KYOUGQFlLWR+s4QMV2Q9ko38TZm7EdO87Qm7rvZLqk/webse/cDjtyxKhg/47l0byCbs/k46LT8qc4PKjAikzA==}
@@ -699,10 +691,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
-
-  '@lucide/svelte@1.50.0(svelte@5.57.2)':
-    dependencies:
-      svelte: 5.57.2
 
   '@oxc-project/types@0.154.0': {}
 

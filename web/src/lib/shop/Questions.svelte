@@ -108,7 +108,7 @@
 		font-weight: 600;
 	}
 	.mark {
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	.meta {
 		color: var(--text-secondary);

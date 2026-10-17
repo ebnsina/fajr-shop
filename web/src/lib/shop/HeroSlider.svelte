@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { onMount } from 'svelte';
 	import type { components } from '#lib/api.js';
 	import { slider as t } from '#lib/copy.js';
@@ -69,10 +69,10 @@
 			aria-label={t.previous}
 			onclick={() => go(current - 1)}
 		>
-			<ChevronLeft size={22} />
+			<Icon icon={ArrowLeft01Icon} size={22} />
 		</button>
 		<button type="button" class="arrow next" aria-label={t.next} onclick={() => go(current + 1)}>
-			<ChevronRight size={22} />
+			<Icon icon={ArrowRight01Icon} size={22} />
 		</button>
 		<div class="dots">
 			{#each slides as b, i (b.id)}

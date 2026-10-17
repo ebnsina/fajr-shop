@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Star from '@lucide/svelte/icons/star';
+	import { StarIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { reviewCopy as r } from '#lib/copy.js';
 
 	// A 1–5 star choice as native radios: arrow keys, forms and screen readers work as they do anywhere.
@@ -13,7 +14,7 @@
 		{#each [1, 2, 3, 4, 5] as n (n)}
 			<label>
 				<input type="radio" {name} value={n} checked={n === value} required />
-				<Star size={26} aria-hidden="true" />
+				<Icon icon={StarIcon} size={26} aria-hidden="true" />
 				<span class="sr">{r.starsLabel(n)}</span>
 			</label>
 		{/each}

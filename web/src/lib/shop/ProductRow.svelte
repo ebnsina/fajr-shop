@@ -1,5 +1,6 @@
 <script lang="ts">
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import type { components } from '#lib/api.js';
 	import { storefront as sf } from '#lib/copy.js';
 	import ProductCard from './ProductCard.svelte';
@@ -21,7 +22,7 @@
 <section class="site-container row" aria-labelledby={id}>
 	<div class="head">
 		<h2 class="site-title" {id}>{title}</h2>
-		<a {href}>{sf.viewAll} <ChevronRight size={16} /></a>
+		<a {href}>{sf.viewAll} <Icon icon={ArrowRight01Icon} size={16} /></a>
 	</div>
 	<ul class="grid">
 		{#each products.slice(0, 5) as p (p.id)}<li><ProductCard product={p} /></li>{/each}

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Mail from '@lucide/svelte/icons/mail';
-	import Phone from '@lucide/svelte/icons/phone';
+	import { Call02Icon, Mail01Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import type { components } from '#lib/api.js';
 	import { account as a, cart as c, storefront as sf, shop as t } from '#lib/copy.js';
 
@@ -23,11 +23,13 @@
 			{#if store.contact_phone}
 				<p class="label">{sf.hotlineHours}</p>
 				<a class="phone" href="tel:{store.contact_phone}"
-					><Phone size={18} /> {store.contact_phone}</a
+					><Icon icon={Call02Icon} size={18} /> {store.contact_phone}</a
 				>
 			{/if}
 			{#if store.contact_email}
-				<a href="mailto:{store.contact_email}"><Mail size={15} /> {store.contact_email}</a>
+				<a href="mailto:{store.contact_email}"
+					><Icon icon={Mail01Icon} size={15} /> {store.contact_email}</a
+				>
 			{/if}
 		</div>
 		<nav aria-label={sf.shop}>

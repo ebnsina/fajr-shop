@@ -1,6 +1,6 @@
 <script lang="ts">
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import X from '@lucide/svelte/icons/x';
+	import { ArrowLeft02Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { cart as t, delivery as d } from '#lib/copy.js';
@@ -40,7 +40,7 @@
 		<h1 class="site-title">
 			{t.title}{#if cart.item_count}<span class="count">{t.items(cart.item_count)}</span>{/if}
 		</h1>
-		<a class="back" href="/shop"><ArrowLeft size={16} /> {t.keepShopping}</a>
+		<a class="back" href="/shop"><Icon icon={ArrowLeft02Icon} size={16} /> {t.keepShopping}</a>
 	</div>
 	{#if form && 'message' in form && form.message}<p class="error" role="alert">
 			{form.message}
@@ -63,7 +63,7 @@
 							{t.discountLine(code.code)}
 							<form method="post" action="?/uncode" use:enhance class="inline">
 								<button type="submit" class="remove" aria-label={t.removeCode(code.code)}
-									><X size={14} /></button
+									><Icon icon={Cancel01Icon} size={14} /></button
 								>
 							</form>
 						</span>

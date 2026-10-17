@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Heart from '@lucide/svelte/icons/heart';
+	import { FavouriteIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { page } from '$app/state';
 	import { wishlist as w } from '#lib/copy.js';
 
@@ -21,7 +22,7 @@
 		aria-pressed={saved}
 		aria-label={saved ? w.unsave(name) : w.save(name)}
 	>
-		<Heart size={18} fill={saved ? 'currentColor' : 'none'} />
+		<Icon icon={FavouriteIcon} size={18} fill={saved ? 'currentColor' : 'none'} />
 		{#if label}<span>{saved ? w.saved : w.saveLabel}</span>{/if}
 	</button>
 {:else}
@@ -31,7 +32,7 @@
 		aria-label={w.signIn}
 		title={w.signIn}
 	>
-		<Heart size={18} />
+		<Icon icon={FavouriteIcon} size={18} />
 		{#if label}<span>{w.saveLabel}</span>{/if}
 	</a>
 {/if}
@@ -63,12 +64,12 @@
 	}
 	.heart:hover {
 		border-color: var(--brand-600);
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	/* Saved: filled heart in the brand color, and the pressed state says so to screen readers. */
 	.on {
 		border-color: var(--brand-600);
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	.heart:focus-visible {
 		outline: var(--ui-ring-width) solid var(--ui-ring);

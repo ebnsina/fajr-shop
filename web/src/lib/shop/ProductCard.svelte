@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { StarIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import type { components } from '#lib/api.js';
-	import Star from '@lucide/svelte/icons/star';
 	import { ratings as r, storefront as sf, shop as t } from '#lib/copy.js';
 	import Price from './Price.svelte';
 	import SaveButton from './SaveButton.svelte';
@@ -33,7 +34,7 @@
 		<h3><a href="/p/{p.slug}">{p.name}</a></h3>
 		{#if p.rating_count && p.rating_average}
 			<p class="rating" aria-label={r.stars(one.format(p.rating_average), p.rating_count)}>
-				<Star size={14} fill="currentColor" aria-hidden="true" />
+				<Icon icon={StarIcon} size={14} fill="currentColor" aria-hidden="true" />
 				<span aria-hidden="true">{one.format(p.rating_average)} ({p.rating_count})</span>
 			</p>
 		{/if}
@@ -134,7 +135,7 @@
 		text-decoration: none;
 	}
 	.card:hover h3 a {
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	h3 a::after {
 		/* The whole card is the link's target, so it's easy to tap on a phone. */

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Star from '@lucide/svelte/icons/star';
+	import { StarIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
@@ -36,7 +37,11 @@
 
 {#snippet stars(n: number, size = 14)}
 	<span class="stars" aria-hidden="true">
-		{#each [1, 2, 3, 4, 5] as i (i)}<Star {size} class={i <= Math.round(n) ? 'on' : ''} />{/each}
+		{#each [1, 2, 3, 4, 5] as i (i)}<Icon
+				icon={StarIcon}
+				{size}
+				class={i <= Math.round(n) ? 'on' : ''}
+			/>{/each}
 	</span>
 {/snippet}
 

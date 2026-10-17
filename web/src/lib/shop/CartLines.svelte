@@ -1,5 +1,6 @@
 <script lang="ts">
-	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { Delete02Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { components } from '#lib/api.js';
@@ -89,7 +90,7 @@
 						square
 						aria-label={t.remove(item.name)}
 					>
-						<Trash2 size={16} />
+						<Icon icon={Delete02Icon} size={16} />
 					</Button>
 				</form>
 			</div>

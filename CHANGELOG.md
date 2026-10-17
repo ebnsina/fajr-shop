@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Brand color is Svelte's orange (#ff3e00) for the header, borders and icons, with a darker
+  orange (#cc3300) for buttons and links so text stays readable. Footer: the muted page tone
+  with rounded top corners.
+- Icons are Hugeicons throughout (Lucide removed); the WhatsApp button shows WhatsApp's own mark.
 - Checkout and orders: guests and customers check out with name, mobile number, district, area,
   address and a note; cash on delivery. Prices, discount, delivery and VAT are worked out on the
   server; stock is taken and the discount's use counted in the same step, and the bag empties.

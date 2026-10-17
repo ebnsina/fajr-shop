@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { highlightIcons as icons } from './highlight-icons.js';
 	import type { components } from '#lib/api.js';
 
@@ -9,13 +10,12 @@
 <div class="site-container wrap">
 	<ul class="highlights">
 		{#each items as h (h.title)}
-			{@const Icon = icons[h.icon]}
 			<li>
 				<span>
 					<strong>{h.title}</strong>
 					{#if h.text}<span class="text">{h.text}</span>{/if}
 				</span>
-				<span class="icon"><Icon size={22} strokeWidth={1.75} /></span>
+				<span class="icon"><Icon icon={icons[h.icon]} size={22} strokeWidth={1.75} /></span>
 			</li>
 		{/each}
 	</ul>

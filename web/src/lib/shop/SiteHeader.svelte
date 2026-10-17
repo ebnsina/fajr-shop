@@ -1,11 +1,14 @@
 <script lang="ts">
-	import Heart from '@lucide/svelte/icons/heart';
-	import Mail from '@lucide/svelte/icons/mail';
-	import Menu from '@lucide/svelte/icons/menu';
-	import Phone from '@lucide/svelte/icons/phone';
-	import Search from '@lucide/svelte/icons/search';
-	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
-	import User from '@lucide/svelte/icons/user';
+	import {
+		Call02Icon,
+		FavouriteIcon,
+		Mail01Icon,
+		Menu01Icon,
+		Search01Icon,
+		ShoppingBag02Icon,
+		UserIcon
+	} from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { page } from '$app/state';
 	import { scrollEdges } from '#lib/sinaui/ui/scroll-edges.js';
 	import type { components } from '#lib/api.js';
@@ -48,11 +51,14 @@
 <div class="topbar">
 	<div class="row">
 		{#if store.contact_phone}
-			<a href="tel:{store.contact_phone}"><Phone size={13} /> {sf.hotline}: {store.contact_phone}</a
+			<a href="tel:{store.contact_phone}"
+				><Icon icon={Call02Icon} size={13} /> {sf.hotline}: {store.contact_phone}</a
 			>
 		{/if}
 		{#if store.contact_email}
-			<a href="mailto:{store.contact_email}"><Mail size={13} /> {store.contact_email}</a>
+			<a href="mailto:{store.contact_email}"
+				><Icon icon={Mail01Icon} size={13} /> {store.contact_email}</a
+			>
 		{/if}
 	</div>
 </div>
@@ -60,7 +66,7 @@
 <header class="header">
 	<div class="row main">
 		<button type="button" class="icon narrow" aria-label={t.menu} onclick={() => (menu = true)}>
-			<Menu size={22} />
+			<Icon icon={Menu01Icon} size={22} />
 		</button>
 		<a class="brand" href="/">
 			{#if store.logo_url}<img src={store.logo_url} alt={store.name} />{:else}{store.name}{/if}
@@ -68,14 +74,18 @@
 		<form class="search" method="get" action="/search" role="search">
 			<label class="sr" for="site-search">{sf.searchLabel}</label>
 			<input id="site-search" name="q" type="search" value={q} placeholder={t.searchPlaceholder} />
-			<button type="submit" aria-label={sf.searchButton}><Search size={18} /></button>
+			<button type="submit" aria-label={sf.searchButton}
+				><Icon icon={Search01Icon} size={18} /></button
+			>
 		</form>
 		<div class="actions">
 			{#if me}
-				<a class="action wide" href="/account"><User size={20} /><span>{a.hello(me.name)}</span></a>
+				<a class="action wide" href="/account"
+					><Icon icon={UserIcon} size={20} /><span>{a.hello(me.name)}</span></a
+				>
 			{:else}
 				<span class="action wide">
-					<User size={20} />
+					<Icon icon={UserIcon} size={20} />
 					<a href="/account/login">{a.signIn}</a><span aria-hidden="true">|</span><a
 						href="/account/register">{a.register}</a
 					>
@@ -83,7 +93,7 @@
 			{/if}
 			<a class="action" href="/wishlist" aria-label={w.open(saved)}>
 				<span class="bag-icon">
-					<Heart size={24} />
+					<Icon icon={FavouriteIcon} size={24} />
 					{#if saved}<span class="badge saved" aria-hidden="true"
 							><RollingNumber value={saved} /></span
 						>{/if}
@@ -91,7 +101,7 @@
 			</a>
 			<a class="action bag" href="/cart" aria-label={c.open(count)} onclick={openBag}>
 				<span class="bag-icon">
-					<ShoppingBag size={24} />
+					<Icon icon={ShoppingBag02Icon} size={24} />
 					<span class="badge" aria-hidden="true"><RollingNumber value={count} /></span>
 				</span>
 			</a>
@@ -153,7 +163,7 @@
 		position: sticky;
 		inset-block-start: 0;
 		z-index: 20;
-		background: var(--ui-accent);
+		background: var(--brand-600);
 		color: var(--ui-on-accent);
 	}
 	.main {
@@ -250,16 +260,11 @@
 		padding-inline: 0.25rem;
 		box-sizing: border-box;
 		border-radius: 999px;
-		background: var(--accent-700);
-		color: var(--on-dark);
+		background: var(--bg-surface);
+		color: var(--brand-800);
 		font-size: 0.6875rem;
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
-	}
-	/* Only the bag's count is orange; the saved count stays in the header's own colors. */
-	.badge.saved {
-		background: var(--bg-surface);
-		color: var(--brand-800);
 	}
 	.icon {
 		display: inline-flex;
@@ -290,7 +295,7 @@
 	}
 	.cats a:hover,
 	.cats a[aria-current='page'] {
-		color: var(--brand-600);
+		color: var(--brand-700);
 		box-shadow: inset 0 -2px 0 currentColor;
 	}
 	.sheet {

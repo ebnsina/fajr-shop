@@ -1,5 +1,6 @@
 <script lang="ts">
-	import CircleCheck from '@lucide/svelte/icons/circle-check';
+	import { CheckmarkCircle02Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { orderCopy as t } from '#lib/copy.js';
 	import OrderView from '#lib/orders/OrderView.svelte';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
@@ -18,7 +19,7 @@
 <section class="site-container page">
 	{#if data.placed}
 		<div class="thanks" role="status">
-			<CircleCheck size={28} aria-hidden="true" />
+			<Icon icon={CheckmarkCircle02Icon} size={28} aria-hidden="true" />
 			<div>
 				<p class="big">{t.thanks}</p>
 				<p>{t.thanksBody}</p>

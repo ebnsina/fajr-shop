@@ -1,5 +1,6 @@
 <script lang="ts">
-	import ImageIcon from '@lucide/svelte/icons/image';
+	import { Image01Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { shop as t } from '#lib/copy.js';
 	import Image from '#lib/sinaui/ui/Image.svelte';
 
@@ -33,7 +34,7 @@
 		aria-label={alt ? `${alt} (${t.noPhoto})` : undefined}
 		aria-hidden={alt ? undefined : 'true'}
 	>
-		<ImageIcon size={icon} strokeWidth={1.5} />
+		<Icon icon={Image01Icon} size={icon} strokeWidth={1.5} />
 	</div>
 {/if}
 

@@ -12,5 +12,5 @@ export function accentCss(hex: string | null | undefined) {
 			? 'var(--on-dark)'
 			: 'var(--text-primary)';
 	// html:root outranks the default brand in app.css, whichever stylesheet loads last.
-	return `html:root{--brand-600:${hex};--ui-on-accent:${on}}`;
+	return `html:root{--brand-600:${hex};--brand-700:${hex};--ui-on-accent:${on}}`;
 }

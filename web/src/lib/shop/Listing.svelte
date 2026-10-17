@@ -1,6 +1,6 @@
 <script lang="ts">
-	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
-	import X from '@lucide/svelte/icons/x';
+	import { Cancel01Icon, FilterHorizontalIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { tick } from 'svelte';
 	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
@@ -115,7 +115,7 @@
 	{#if filters.featured}<input type="hidden" name="featured" value="1" />{/if}
 
 	<details class="filters" open>
-		<summary class="toggle"><SlidersHorizontal size={16} /> {t.filters}</summary>
+		<summary class="toggle"><Icon icon={FilterHorizontalIcon} size={16} /> {t.filters}</summary>
 		<div class="card">
 			<Accordion.Root>
 				{#if facets && facets.categories.length > 1}
@@ -218,7 +218,9 @@
 			<ul class="chips" aria-label={t.active}>
 				{#each chips as c (c.href)}
 					<li>
-						<a href={c.href} aria-label={t.remove(c.label)}>{c.label} <X size={14} /></a>
+						<a href={c.href} aria-label={t.remove(c.label)}
+							>{c.label} <Icon icon={Cancel01Icon} size={14} /></a
+						>
 					</li>
 				{/each}
 				<li><a class="all" href={cleared}>{t.clearAll}</a></li>

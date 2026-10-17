@@ -7,11 +7,13 @@
 /* The shop's palette. Light only for now. Blue is the brand; orange is only for the purchase
    action; green means available; red is only for discounts, errors and destructive actions. */
 :root {
-	--brand-50: #eff6ff;
-	--brand-100: #dbeafe;
-	--brand-600: #1d4ed8;
-	--brand-700: #1e40af;
-	--brand-800: #1e3a8a;
+	/* Svelte's orange. #ff3e00 fills large areas (the header) and draws borders, icons and rings;
+	   it is too light for small text, so text and buttons use the darker 700 (5.2:1 with white). */
+	--brand-50: #fff4ef;
+	--brand-100: #ffe1d4;
+	--brand-600: #ff3e00;
+	--brand-700: #cc3300;
+	--brand-800: #a32700;
 
 	--accent-700: #c2410c;
 	--accent-800: #9a3412;
@@ -47,11 +49,11 @@
 	--badge-out-bg: #e5e7eb;
 	--badge-out-text: #374151;
 
-	/* Footer: a light cyan, near white, with dark text. */
-	--footer-bg: #ecfeff;
-	--footer-text: #475569;
-	--footer-heading: #0f172a;
-	--footer-line: #cffafe;
+	/* Footer: the muted page tone, with dark text. */
+	--footer-bg: var(--bg-subtle);
+	--footer-text: var(--text-secondary);
+	--footer-heading: var(--text-primary);
+	--footer-line: var(--border);
 	--on-dark: #ffffff;
 
 	/* WhatsApp's own green, so shoppers recognize the button. */
@@ -59,7 +61,7 @@
 
 	/* Sina UI reads these; the app styles it through them only. */
 	--font-heading: var(--ui-font);
-	--ui-accent: var(--brand-600);
+	--ui-accent: var(--brand-700);
 	--ui-on-accent: var(--on-dark);
 	--ui-bg: var(--bg-page);
 	--ui-surface: var(--bg-surface);

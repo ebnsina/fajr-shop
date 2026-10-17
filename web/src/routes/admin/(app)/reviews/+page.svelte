@@ -96,7 +96,7 @@
 		font-weight: 600;
 	}
 	.top a {
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	.stars {
 		color: var(--star);

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import LogOut from '@lucide/svelte/icons/log-out';
-	import Package from '@lucide/svelte/icons/package';
+	import { Logout01Icon, PackageIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { account as t, errorText, orderCopy as o } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
@@ -21,7 +21,9 @@
 	<div class="head">
 		<h1 class="site-title">{t.hello(data.me.name)}</h1>
 		<form method="POST" action="?/signout">
-			<Button type="submit" variant="secondary"><LogOut size={16} /> {t.signOut}</Button>
+			<Button type="submit" variant="secondary"
+				><Icon icon={Logout01Icon} size={16} /> {t.signOut}</Button
+			>
 		</form>
 	</div>
 	<div class="grid">
@@ -58,7 +60,8 @@
 			{:else}
 				<EmptyState title={o.noOrders}>
 					{o.noOrdersBody}
-					{#snippet actions()}<Button href="/shop"><Package size={16} /> {t.shopNow}</Button
+					{#snippet actions()}<Button href="/shop"
+							><Icon icon={PackageIcon} size={16} /> {t.shopNow}</Button
 						>{/snippet}
 				</EmptyState>
 			{/if}
@@ -127,7 +130,7 @@
 		text-decoration: none;
 	}
 	.orders a:hover .num {
-		color: var(--brand-600);
+		color: var(--brand-700);
 		text-decoration: underline;
 	}
 	.num {

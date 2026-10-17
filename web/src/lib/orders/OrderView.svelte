@@ -182,7 +182,7 @@
 		color: var(--text-secondary);
 	}
 	a {
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	@media (width < 56rem) {
 		.order {

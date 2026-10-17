@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { DeliveryTruck01Icon, StarIcon, WhatsappIcon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import MessageCircle from '@lucide/svelte/icons/message-circle';
-	import Truck from '@lucide/svelte/icons/truck';
 	import { goto } from '$app/navigation';
 	import {
 		cart as c,
@@ -26,7 +26,6 @@
 	import Questions from '#lib/shop/Questions.svelte';
 	import Reviews from '#lib/shop/Reviews.svelte';
 	import SaveButton from '#lib/shop/SaveButton.svelte';
-	import Star from '@lucide/svelte/icons/star';
 	import { highlightIcons } from '#lib/shop/highlight-icons.js';
 	import * as Tabs from '#lib/sinaui/ui/tabs/index.js';
 	import type { PageProps } from './$types';
@@ -177,7 +176,7 @@
 			</div>
 			{#if p.rating_count && p.rating_average}
 				<a class="rated" href="#reviews" onclick={openTab('reviews')}>
-					<Star size={16} fill="currentColor" aria-hidden="true" />
+					<Icon icon={StarIcon} size={16} fill="currentColor" aria-hidden="true" />
 					{one.format(p.rating_average)} · {rc.count(p.rating_count)}
 				</a>
 			{/if}
@@ -274,7 +273,7 @@
 		{#if whatsapp}
 			<span class="wa">
 				<Button href={whatsapp} target="_blank" rel="noopener"
-					><MessageCircle size={18} /> {inStock ? pt.whatsapp : pt.whatsappAsk}</Button
+					><Icon icon={WhatsappIcon} size={18} /> {inStock ? pt.whatsapp : pt.whatsappAsk}</Button
 				>
 			</span>
 		{/if}
@@ -290,7 +289,7 @@
 
 		{#if data.zones.length}
 			<div class="delivery">
-				<p class="dtitle"><Truck size={18} /> {dl.zones}</p>
+				<p class="dtitle"><Icon icon={DeliveryTruck01Icon} size={18} /> {dl.zones}</p>
 				<ul>
 					{#each data.zones as z (z.id)}
 						<li>
@@ -306,8 +305,7 @@
 		{#if data.store.highlights?.length}
 			<ul class="promises">
 				{#each data.store.highlights as h (h.title)}
-					{@const Icon = highlightIcons[h.icon]}
-					<li><Icon size={18} /> <span>{h.title}</span></li>
+					<li><Icon icon={highlightIcons[h.icon]} size={18} /> <span>{h.title}</span></li>
 				{/each}
 			</ul>
 		{/if}
@@ -464,7 +462,7 @@
 		color: var(--star);
 	}
 	.rated:hover {
-		color: var(--brand-600);
+		color: var(--brand-700);
 		text-decoration: underline;
 	}
 	.meta {
@@ -550,7 +548,7 @@
 	}
 	.dtitle :global(svg),
 	.promises :global(svg) {
-		color: var(--brand-600);
+		color: var(--brand-700);
 	}
 	.sections {
 		margin-block-start: 3rem;

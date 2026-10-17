@@ -119,7 +119,7 @@
 		font-size: 0.875rem;
 	}
 	.top a {
-		color: var(--brand-600);
+		color: var(--brand-700);
 		font-weight: 600;
 	}
 	.q {

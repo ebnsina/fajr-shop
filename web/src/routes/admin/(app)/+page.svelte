@@ -1,8 +1,11 @@
 <script lang="ts">
-	import Box from '@lucide/svelte/icons/box';
-	import FolderTree from '@lucide/svelte/icons/folder-tree';
-	import PackageX from '@lucide/svelte/icons/package-x';
-	import PencilLine from '@lucide/svelte/icons/pencil-line';
+	import {
+		CubeIcon,
+		FolderTreeIcon,
+		PackageRemoveIcon,
+		PencilEdit02Icon
+	} from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { activity, overview as t } from '#lib/copy.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
@@ -17,23 +20,23 @@
 		{
 			label: t.forSale,
 			value: o.products.active,
-			icon: Box,
+			icon: CubeIcon,
 			href: '/admin/products?status=active'
 		},
 		{
 			label: t.drafts,
 			value: o.products.draft,
-			icon: PencilLine,
+			icon: PencilEdit02Icon,
 			href: '/admin/products?status=draft'
 		},
 		{
 			label: t.soldOut,
 			value: o.out_of_stock,
-			icon: PackageX,
+			icon: PackageRemoveIcon,
 			href: '/admin/products',
 			warn: o.out_of_stock > 0
 		},
-		{ label: t.categories, value: o.categories, icon: FolderTree, href: '/admin/categories' }
+		{ label: t.categories, value: o.categories, icon: FolderTreeIcon, href: '/admin/categories' }
 	]);
 </script>
 
@@ -52,10 +55,9 @@
 
 <ul class="stats">
 	{#each stats as s (s.label)}
-		{@const Icon = s.icon}
 		<li class={[s.warn && 'warn']}>
 			<svelte:element this={s.href ? 'a' : 'div'} href={s.href} class="stat">
-				<span class="icon"><Icon size={20} /></span>
+				<span class="icon"><Icon icon={s.icon} size={20} /></span>
 				<span class="value">{n.format(s.value)}</span>
 				<span class="label">{s.label}</span>
 			</svelte:element>

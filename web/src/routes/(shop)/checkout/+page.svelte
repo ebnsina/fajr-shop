@@ -1,5 +1,6 @@
 <script lang="ts">
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
@@ -57,7 +58,7 @@
 <section class="site-container page">
 	<div class="top">
 		<h1 class="site-title">{t.title}</h1>
-		<a class="back" href="/cart"><ArrowLeft size={16} /> {t.backToBag}</a>
+		<a class="back" href="/cart"><Icon icon={ArrowLeft02Icon} size={16} /> {t.backToBag}</a>
 	</div>
 
 	<form
@@ -252,7 +253,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		color: var(--brand-600);
+		color: var(--brand-700);
 		font-size: 0.875rem;
 		font-weight: 600;
 		text-decoration: none;

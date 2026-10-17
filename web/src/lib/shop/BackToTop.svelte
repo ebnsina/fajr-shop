@@ -1,5 +1,6 @@
 <script lang="ts">
-	import ArrowUp from '@lucide/svelte/icons/arrow-up';
+	import { ArrowUp02Icon } from '@hugeicons/core-free-icons';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { onMount } from 'svelte';
 	import { storefront as t } from '#lib/copy.js';
 
@@ -24,7 +25,7 @@
 	inert={!shown}
 	onclick={top}
 >
-	<ArrowUp size={20} />
+	<Icon icon={ArrowUp02Icon} size={20} />
 </button>
 
 <style>

@@ -80,7 +80,7 @@
 	.back {
 		display: inline-block;
 		margin-block-end: 0.75rem;
-		color: var(--brand-600);
+		color: var(--brand-700);
 		font-size: 0.875rem;
 	}
 	.head {
