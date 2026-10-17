@@ -304,13 +304,15 @@
 										hint={i === 0 ? t.compareAtHint : undefined}
 										error={fields[`variants.${i}.compare_at_price`]}
 									/>
-									<Input
-										label={t.sku}
-										placeholder={ph.sku}
-										bind:value={row.sku}
-										maxlength={64}
-										error={fields[`variants.${i}.sku`]}
-									/>
+									<div class="sku">
+										<Input
+											label={t.sku}
+											placeholder={ph.sku}
+											bind:value={row.sku}
+											maxlength={64}
+											error={fields[`variants.${i}.sku`]}
+										/>
+									</div>
 									<NumberField
 										label={d.weight}
 										bind:value={row.weight}
@@ -498,6 +500,7 @@
 	}
 	.error {
 		grid-column: 1 / -1;
+		flex-basis: 100%;
 		margin: 0;
 		color: var(--ui-danger);
 		font-size: 0.875rem;
@@ -572,12 +575,17 @@
 		margin: 0;
 		font-size: 0.9375rem;
 	}
+	/* NumberField is as wide as its number, so fields wrap rather than squeeze into equal columns. */
 	.variant-fields {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+		display: flex;
+		flex-wrap: wrap;
 		align-items: start;
-		gap: 0.75rem;
+		gap: 0.75rem 1rem;
 		margin-block-start: 0.5rem;
+	}
+	.sku {
+		flex: 1 1 9rem;
+		max-inline-size: 14rem;
 	}
 	.stock {
 		display: grid;

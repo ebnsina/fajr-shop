@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Product editor: price, old price, weight and stock boxes no longer squeeze into each other on
+  narrower screens; they wrap to the next line instead.
 - Dashboard: review stars are Hugeicons stars, not text characters, and the product editor
   has a breadcrumb in place of a text "← All products" link.
 - Dashboard: Team, API keys, Reviews, Questions, Orders and Customers are tables with a "⋯" menu
