@@ -114,7 +114,7 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 			w, h := 1600, 800
 			switch b.placement {
 			case "side":
-				w, h = 800, 400
+				w, h = 800, 600
 			case "wide":
 				w, h = 2000, 400
 			}
@@ -142,7 +142,9 @@ func Run(ctx context.Context, pool *pgxpool.Pool, mediaDir string) error {
 		if err != nil {
 			return err
 		}
+		// A fresh shop gets a demo name; one the owner already named keeps it.
 		_, err = tx.Exec(ctx, `UPDATE store_settings SET highlights = $1,
+			name = CASE WHEN name = 'My shop' THEN 'Fajr Bazar' ELSE name END,
 			contact_phone = COALESCE(contact_phone, '09610-000000'), updated_at = now() WHERE id = 1`, hlJSON)
 		return err
 	})
@@ -275,7 +277,8 @@ func (f fonts) picture(w, h int, hue float64, title, line string) image.Image {
 			img.SetRGBA(x, y, c)
 		}
 	}
-	wide := w > h
+	// Left-aligned only on banners at least twice as wide as tall; squarer pictures center it.
+	wide := w >= 2*h
 	x := w / 2
 	if wide {
 		x = w / 14

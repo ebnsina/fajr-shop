@@ -16,11 +16,12 @@
 </script>
 
 <article class={['card', !p.in_stock && 'out']}>
-	<a class="media" href="/p/{p.slug}" tabindex="-1" aria-hidden="true">
+	<div class="media">
 		<ProductImage src={p.image?.url} alt="" ratio="1" loading={eager ? 'eager' : 'lazy'} />
 		{#if !p.in_stock}<span class="flag sold">{t.soldOut}</span>
 		{:else if off > 0}<span class="flag">{sf.off(off)}</span>{/if}
-	</a>
+	</div>
+	{#if p.brand}<p class="brand">{p.brand}</p>{/if}
 	<h3><a href="/p/{p.slug}">{p.name}</a></h3>
 	<Price amount={p.price_min} was={p.compare_at_price} from={p.price_min !== p.price_max} />
 </article>
@@ -29,54 +30,64 @@
 	.card {
 		position: relative;
 		display: grid;
-		grid-template-rows: auto 1fr auto;
-		gap: 0.5rem;
+		grid-template-rows: auto auto 1fr auto;
+		gap: 0.375rem;
 		block-size: 100%;
 		box-sizing: border-box;
 		min-inline-size: 0;
 		padding: 0.625rem 0.625rem 0.875rem;
-		border-radius: var(--ui-radius);
+		border: 1px solid var(--ui-line);
+		border-radius: calc(var(--ui-radius) * 0.75);
 		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-xs);
-		transition: box-shadow var(--ui-dur) var(--ui-ease-out);
+		transition:
+			box-shadow var(--ui-dur) var(--ui-ease-out),
+			border-color var(--ui-dur) var(--ui-ease-out);
 	}
 	@media (hover: hover) {
 		.card:hover {
+			border-color: transparent;
 			box-shadow: var(--ui-shadow-card);
 		}
 	}
 	.media {
 		position: relative;
-		display: block;
+		margin-block-end: 0.25rem;
 		overflow: hidden;
-		border-radius: calc(var(--ui-radius) * 0.75);
+		border-radius: calc(var(--ui-radius) * 0.5);
 	}
 	.out .media {
-		opacity: 0.6;
+		opacity: 0.55;
 	}
 	.flag {
 		position: absolute;
-		inset-block-start: 0.5rem;
-		inset-inline-start: 0.5rem;
+		inset-block-start: 0.375rem;
+		inset-inline-end: 0.375rem;
 		padding: 0.1875rem 0.5rem;
 		border-radius: 999px;
 		background: var(--ui-danger);
 		color: var(--ui-on-danger);
-		font-size: 0.75rem;
+		font-size: 0.6875rem;
 		font-weight: 700;
+		text-transform: uppercase;
 	}
 	.sold {
 		background: var(--ui-fg);
 		color: var(--ui-bg);
 	}
+	.brand {
+		margin: 0;
+		color: var(--ui-muted);
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
 	h3 {
 		display: -webkit-box;
 		margin: 0;
 		overflow: hidden;
-		font-family: var(--ui-font);
-		font-size: 0.9375rem;
+		font-size: 0.875rem;
 		font-weight: 500;
-		line-height: 1.35;
+		line-height: 1.4;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
@@ -85,7 +96,7 @@
 		color: var(--ui-fg);
 		text-decoration: none;
 	}
-	h3 a:hover {
+	.card:hover h3 a {
 		color: var(--ui-accent);
 	}
 	h3 a::after {

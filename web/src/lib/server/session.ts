@@ -42,3 +42,5 @@ const CART = 'fs_cart';
 export const readCartToken = (cookies: Cookies) => cookies.get(CART);
 export const saveCartToken = (cookies: Cookies, token: string) =>
 	cookies.set(CART, token, { ...base, maxAge: 60 * 24 * 60 * 60 });
+
+export const clearCartToken = (cookies: Cookies) => cookies.delete(CART, { path: '/' });

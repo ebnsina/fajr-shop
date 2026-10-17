@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { Delete02Icon } from '@hugeicons/core-free-icons';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { components } from '#lib/api.js';
 	import { cart as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
-	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { pop, reflow } from '#lib/sinaui/ui/motion.js';
 	import RollingNumber from '#lib/sinaui/ui/RollingNumber.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
@@ -89,7 +88,7 @@
 						square
 						aria-label={t.remove(item.name)}
 					>
-						<Icon icon={Delete02Icon} size={16} />
+						<Trash2 size={16} />
 					</Button>
 				</form>
 			</div>
