@@ -806,6 +806,7 @@ export const checkoutCopy = {
 	payment: 'Payment',
 	cod: 'Cash on delivery',
 	codHint: 'Pay the delivery person when your order arrives.',
+	due: (amount: string) => `${amount} on delivery`,
 	summary: 'Your order',
 	pickDistrict: 'Choose your district to see the delivery charge.',
 	place: 'Place order',

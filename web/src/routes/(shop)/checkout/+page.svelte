@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Money03Icon } from '@hugeicons/core-free-icons';
 	import { ArrowLeft02Icon } from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { untrack } from 'svelte';
@@ -169,15 +170,24 @@
 				/>
 			</fieldset>
 
-			<fieldset class="card">
-				<legend>{t.payment}</legend>
+			<!-- RadioCards' own legend titles this card; no second heading. -->
+			<div class="card">
 				<RadioCards
 					legend={t.payment}
 					name="payment_method"
 					value="cod"
-					options={[{ value: 'cod', label: t.cod, description: t.codHint }]}
+					layout="list"
+					options={[
+						{
+							value: 'cod',
+							label: t.cod,
+							description: t.codHint,
+							icon: Money03Icon,
+							detail: data.quote ? t.due(formatMoney(total)) : undefined
+						}
+					]}
 				/>
-			</fieldset>
+			</div>
 		</div>
 
 		<aside class="card summary" aria-labelledby="summary">
