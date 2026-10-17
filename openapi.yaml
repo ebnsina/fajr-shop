@@ -342,6 +342,12 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: brand
+          in: query
+          description: Only this brand's products (exact name, as `GET /v1/brands` gives it).
+          schema:
+            type: string
+            maxLength: 80
         - name: featured
           in: query
           description: Only products the shop marked as featured.
@@ -834,6 +840,77 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/brands:
+    get:
+      operationId: listBrands
+      tags: [catalog]
+      summary: Brands with products for sale, most products first
+      description: At most 50.
+      responses:
+        "200":
+          description: Brands
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Brand"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/newsletter:
+    post:
+      operationId: subscribeNewsletter
+      tags: [store]
+      summary: Sign an email up for the shop's news and offers
+      description: |
+        Always answers 204, whether or not the address was already signed up, so the form can't be
+        used to find out who shops here. Rate-limited per address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 254
+      responses:
+        "204":
+          description: Signed up
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/overview:
+    get:
+      operationId: adminOverview
+      tags: [admin]
+      summary: The numbers on the dashboard's home page
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Overview"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   securitySchemes:
     bearer:
@@ -955,6 +1032,12 @@ components:
           maxLength: 254
         vat:
           $ref: "#/components/schemas/Vat"
+        highlights:
+          description: Up to four promises shown in a strip on the home page, e.g. cash on delivery.
+          type: array
+          maxItems: 4
+          items:
+            $ref: "#/components/schemas/Highlight"
 
     Vat:
       type: object
@@ -1306,6 +1389,8 @@ components:
           $ref: "#/components/schemas/ProductStatus"
         featured:
           type: boolean
+        brand:
+          type: [string, "null"]
         category:
           oneOf:
             - $ref: "#/components/schemas/Category"
@@ -1352,6 +1437,9 @@ components:
         featured:
           description: Shown in the home page's featured section.
           type: boolean
+        brand:
+          type: [string, "null"]
+          maxLength: 80
         category_id:
           type: [string, "null"]
           format: uuid
@@ -1390,6 +1478,8 @@ components:
           type: string
         status:
           $ref: "#/components/schemas/ProductStatus"
+        brand:
+          type: [string, "null"]
         price_min:
           type: integer
           format: int64
@@ -1545,3 +1635,79 @@ components:
           minimum: 0
         active:
           type: boolean
+
+    Highlight:
+      type: object
+      required: [icon, title]
+      properties:
+        icon:
+          type: string
+          enum: [truck, cash, return, shield, phone, gift]
+        title:
+          type: string
+          minLength: 1
+          maxLength: 60
+        text:
+          type: [string, "null"]
+          maxLength: 120
+
+    Brand:
+      type: object
+      required: [name, product_count]
+      properties:
+        name:
+          type: string
+        product_count:
+          type: integer
+        image:
+          description: The newest product photo of this brand, to show beside its name.
+          oneOf:
+            - $ref: "#/components/schemas/Image"
+            - type: "null"
+
+    Overview:
+      type: object
+      required: [products, categories, out_of_stock, low_stock, subscribers]
+      properties:
+        products:
+          type: object
+          required: [active, draft, archived]
+          properties:
+            active:
+              type: integer
+            draft:
+              type: integer
+            archived:
+              type: integer
+        categories:
+          type: integer
+        out_of_stock:
+          description: Variants of products for sale that have none left.
+          type: integer
+        low_stock:
+          description: Up to 10 variants of products for sale with 1 to 3 left, fewest first.
+          type: array
+          items:
+            $ref: "#/components/schemas/LowStockItem"
+        subscribers:
+          description: Emails signed up for the newsletter.
+          type: integer
+
+    LowStockItem:
+      type: object
+      required: [variant_id, product_id, name, options, stock]
+      properties:
+        variant_id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        options:
+          type: object
+          additionalProperties:
+            type: string
+        stock:
+          type: integer

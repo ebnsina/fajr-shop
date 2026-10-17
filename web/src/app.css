@@ -1,19 +1,22 @@
-@import '@fontsource-variable/sora';
-@import '@fontsource-variable/geist-mono';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
 
+/* Sina UI's tokens already name IBM Plex Sans and Mono; these just load them. */
 :root {
-	--ui-font: 'Sora Variable', ui-sans-serif, system-ui, sans-serif;
 	--font-heading: var(--ui-font);
-	--ui-font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+	/* Light unless the shopper picks dark. */
+	color-scheme: light;
 }
-
-h1,
-h2,
-h3 {
-	font-family: var(--font-heading);
+:root[data-theme='dark'] {
+	color-scheme: dark;
 }
 
 html {
+	/* A touch smaller than the browser's 16px, as dense shop pages read better. */
+	font-size: 93.75%;
 	font-family: var(--ui-font);
 	background: var(--ui-bg);
 	color: var(--ui-fg);
@@ -21,4 +24,10 @@ html {
 
 body {
 	margin: 0;
+}
+
+code,
+pre,
+kbd {
+	font-family: var(--ui-font-mono);
 }

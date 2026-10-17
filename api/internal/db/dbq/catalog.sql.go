@@ -170,9 +170,9 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 }
 
 const createProduct = `-- name: CreateProduct :one
-INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured
+INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured, brand)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand
 `
 
 type CreateProductParams struct {
@@ -185,6 +185,7 @@ type CreateProductParams struct {
 	PriceMin    int64
 	PriceMax    int64
 	Featured    bool
+	Brand       *string
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
@@ -198,6 +199,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		arg.PriceMin,
 		arg.PriceMax,
 		arg.Featured,
+		arg.Brand,
 	)
 	var i Product
 	err := row.Scan(
@@ -213,6 +215,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Featured,
+		&i.Brand,
 	)
 	return i, err
 }
@@ -310,7 +313,7 @@ func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) (Category, e
 }
 
 const deleteProduct = `-- name: DeleteProduct :one
-DELETE FROM products WHERE id = $1 RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured
+DELETE FROM products WHERE id = $1 RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -329,6 +332,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, err
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Featured,
+		&i.Brand,
 	)
 	return i, err
 }
@@ -418,6 +422,62 @@ func (q *Queries) InsertStockMovement(ctx context.Context, arg InsertStockMoveme
 	return err
 }
 
+const listBrands = `-- name: ListBrands :many
+SELECT b.brand::text AS name, b.n::int AS product_count,
+       COALESCE(img.id, '00000000-0000-0000-0000-000000000000')::uuid AS image_id,
+       COALESCE(img.key, '')::text AS image_key,
+       COALESCE(img.width, 0)::int AS image_width, COALESCE(img.height, 0)::int AS image_height
+FROM (
+    SELECT p.brand, count(*) AS n FROM products p
+    WHERE p.status = 'active' AND p.brand IS NOT NULL
+    GROUP BY p.brand ORDER BY n DESC, p.brand LIMIT 50
+) b
+LEFT JOIN LATERAL (
+    SELECT u.id, u.key, u.width, u.height FROM products p
+    JOIN product_images pi ON pi.product_id = p.id AND pi.position = 0
+    JOIN uploads u ON u.id = pi.upload_id
+    WHERE p.brand = b.brand AND p.status = 'active'
+    ORDER BY p.created_at DESC LIMIT 1
+) img ON true
+ORDER BY b.n DESC, b.brand
+`
+
+type ListBrandsRow struct {
+	Name         string
+	ProductCount int32
+	ImageID      uuid.UUID
+	ImageKey     string
+	ImageWidth   int32
+	ImageHeight  int32
+}
+
+func (q *Queries) ListBrands(ctx context.Context) ([]ListBrandsRow, error) {
+	rows, err := q.db.Query(ctx, listBrands)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListBrandsRow
+	for rows.Next() {
+		var i ListBrandsRow
+		if err := rows.Scan(
+			&i.Name,
+			&i.ProductCount,
+			&i.ImageID,
+			&i.ImageKey,
+			&i.ImageWidth,
+			&i.ImageHeight,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCategories = `-- name: ListCategories :many
 SELECT c.id, c.parent_id, c.name, c.slug, c.position, c.created_at, c.image_id, COALESCE(u.key, '')::text AS image_key, COALESCE(u.width, 0)::int AS image_width, COALESCE(u.height, 0)::int AS image_height
 FROM categories c LEFT JOIN uploads u ON u.id = c.image_id
@@ -468,8 +528,84 @@ func (q *Queries) ListCategories(ctx context.Context) ([]ListCategoriesRow, erro
 	return items, nil
 }
 
+const lowStock = `-- name: LowStock :many
+SELECT v.id AS variant_id, p.id AS product_id, p.name, v.options, v.stock
+FROM variants v JOIN products p ON p.id = v.product_id
+WHERE p.status = 'active' AND v.stock BETWEEN 1 AND 3
+ORDER BY v.stock, p.name
+LIMIT 10
+`
+
+type LowStockRow struct {
+	VariantID uuid.UUID
+	ProductID uuid.UUID
+	Name      string
+	Options   []byte
+	Stock     int32
+}
+
+func (q *Queries) LowStock(ctx context.Context) ([]LowStockRow, error) {
+	rows, err := q.db.Query(ctx, lowStock)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LowStockRow
+	for rows.Next() {
+		var i LowStockRow
+		if err := rows.Scan(
+			&i.VariantID,
+			&i.ProductID,
+			&i.Name,
+			&i.Options,
+			&i.Stock,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const overviewCounts = `-- name: OverviewCounts :one
+SELECT
+    (SELECT count(*) FROM products WHERE status = 'active')::int AS active,
+    (SELECT count(*) FROM products WHERE status = 'draft')::int AS draft,
+    (SELECT count(*) FROM products WHERE status = 'archived')::int AS archived,
+    (SELECT count(*) FROM categories)::int AS categories,
+    (SELECT count(*) FROM variants v JOIN products p ON p.id = v.product_id
+        WHERE p.status = 'active' AND v.stock = 0)::int AS out_of_stock,
+    (SELECT count(*) FROM newsletter_subscribers)::int AS subscribers
+`
+
+type OverviewCountsRow struct {
+	Active      int32
+	Draft       int32
+	Archived    int32
+	Categories  int32
+	OutOfStock  int32
+	Subscribers int32
+}
+
+func (q *Queries) OverviewCounts(ctx context.Context) (OverviewCountsRow, error) {
+	row := q.db.QueryRow(ctx, overviewCounts)
+	var i OverviewCountsRow
+	err := row.Scan(
+		&i.Active,
+		&i.Draft,
+		&i.Archived,
+		&i.Categories,
+		&i.OutOfStock,
+		&i.Subscribers,
+	)
+	return i, err
+}
+
 const productByID = `-- name: ProductByID :one
-SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured FROM products WHERE id = $1
+SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand FROM products WHERE id = $1
 `
 
 func (q *Queries) ProductByID(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -488,12 +624,13 @@ func (q *Queries) ProductByID(ctx context.Context, id uuid.UUID) (Product, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Featured,
+		&i.Brand,
 	)
 	return i, err
 }
 
 const productBySlug = `-- name: ProductBySlug :one
-SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured FROM products WHERE slug = $1 AND status = 'active'
+SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand FROM products WHERE slug = $1 AND status = 'active'
 `
 
 func (q *Queries) ProductBySlug(ctx context.Context, slug string) (Product, error) {
@@ -512,6 +649,7 @@ func (q *Queries) ProductBySlug(ctx context.Context, slug string) (Product, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Featured,
+		&i.Brand,
 	)
 	return i, err
 }
@@ -546,6 +684,15 @@ func (q *Queries) SlugTaken(ctx context.Context, arg SlugTakenParams) (pgtype.Bo
 	var column_1 pgtype.Bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const subscribe = `-- name: Subscribe :exec
+INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING
+`
+
+func (q *Queries) Subscribe(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, subscribe, email)
+	return err
 }
 
 const updateCategory = `-- name: UpdateCategory :one
@@ -585,9 +732,9 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 
 const updateProduct = `-- name: UpdateProduct :one
 UPDATE products SET slug = $2, name = $3, description = $4, status = $5, category_id = $6, options = $7,
-    price_min = $8, price_max = $9, featured = $10, updated_at = now()
+    price_min = $8, price_max = $9, featured = $10, brand = $11, updated_at = now()
 WHERE id = $1
-RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured
+RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured, brand
 `
 
 type UpdateProductParams struct {
@@ -601,6 +748,7 @@ type UpdateProductParams struct {
 	PriceMin    int64
 	PriceMax    int64
 	Featured    bool
+	Brand       *string
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
@@ -615,6 +763,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		arg.PriceMin,
 		arg.PriceMax,
 		arg.Featured,
+		arg.Brand,
 	)
 	var i Product
 	err := row.Scan(
@@ -630,6 +779,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Featured,
+		&i.Brand,
 	)
 	return i, err
 }

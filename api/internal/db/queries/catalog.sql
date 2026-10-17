@@ -51,13 +51,13 @@ SELECT * FROM products WHERE id = $1;
 SELECT * FROM products WHERE slug = $1 AND status = 'active';
 
 -- name: CreateProduct :one
-INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured, brand)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING *;
 
 -- name: UpdateProduct :one
 UPDATE products SET slug = $2, name = $3, description = $4, status = $5, category_id = $6, options = $7,
-    price_min = $8, price_max = $9, featured = $10, updated_at = now()
+    price_min = $8, price_max = $9, featured = $10, brand = $11, updated_at = now()
 WHERE id = $1
 RETURNING *;
 
@@ -102,3 +102,42 @@ SELECT EXISTS (SELECT 1 FROM variants WHERE id = $1);
 -- name: InsertStockMovement :exec
 INSERT INTO stock_movements (variant_id, delta, reason, note, actor_user_id, actor_api_key_id)
 VALUES ($1, $2, $3, $4, $5, $6);
+
+-- name: ListBrands :many
+SELECT b.brand::text AS name, b.n::int AS product_count,
+       COALESCE(img.id, '00000000-0000-0000-0000-000000000000')::uuid AS image_id,
+       COALESCE(img.key, '')::text AS image_key,
+       COALESCE(img.width, 0)::int AS image_width, COALESCE(img.height, 0)::int AS image_height
+FROM (
+    SELECT p.brand, count(*) AS n FROM products p
+    WHERE p.status = 'active' AND p.brand IS NOT NULL
+    GROUP BY p.brand ORDER BY n DESC, p.brand LIMIT 50
+) b
+LEFT JOIN LATERAL (
+    SELECT u.id, u.key, u.width, u.height FROM products p
+    JOIN product_images pi ON pi.product_id = p.id AND pi.position = 0
+    JOIN uploads u ON u.id = pi.upload_id
+    WHERE p.brand = b.brand AND p.status = 'active'
+    ORDER BY p.created_at DESC LIMIT 1
+) img ON true
+ORDER BY b.n DESC, b.brand;
+
+-- name: OverviewCounts :one
+SELECT
+    (SELECT count(*) FROM products WHERE status = 'active')::int AS active,
+    (SELECT count(*) FROM products WHERE status = 'draft')::int AS draft,
+    (SELECT count(*) FROM products WHERE status = 'archived')::int AS archived,
+    (SELECT count(*) FROM categories)::int AS categories,
+    (SELECT count(*) FROM variants v JOIN products p ON p.id = v.product_id
+        WHERE p.status = 'active' AND v.stock = 0)::int AS out_of_stock,
+    (SELECT count(*) FROM newsletter_subscribers)::int AS subscribers;
+
+-- name: LowStock :many
+SELECT v.id AS variant_id, p.id AS product_id, p.name, v.options, v.stock
+FROM variants v JOIN products p ON p.id = v.product_id
+WHERE p.status = 'active' AND v.stock BETWEEN 1 AND 3
+ORDER BY v.stock, p.name
+LIMIT 10;
+
+-- name: Subscribe :exec
+INSERT INTO newsletter_subscribers (email) VALUES ($1) ON CONFLICT (email) DO NOTHING;

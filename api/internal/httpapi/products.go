@@ -23,6 +23,7 @@ type productFilter struct {
 	minPrice    *int64
 	maxPrice    *int64
 	inStock     bool
+	brand       string
 	featured    bool
 	onSale      bool
 	options     map[string]string
@@ -58,6 +59,9 @@ func (s *Server) ListProducts(ctx context.Context, req apigen.ListProductsReques
 		f.inStock = *pr.InStock
 	}
 	f.featured = pr.Featured != nil && *pr.Featured
+	if pr.Brand != nil {
+		f.brand = strings.TrimSpace(*pr.Brand)
+	}
 	f.onSale = pr.OnSale != nil && *pr.OnSale
 	if pr.Sort != nil {
 		f.sort = string(*pr.Sort)
@@ -147,6 +151,9 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 	if f.featured {
 		where = append(where, "p.featured")
 	}
+	if f.brand != "" {
+		where = append(where, "p.brand = "+arg(f.brand))
+	}
 	if f.onSale {
 		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.compare_at_price IS NOT NULL)")
 	}
@@ -164,7 +171,7 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 		}
 		where = append(where, fmt.Sprintf(sort.after, arg(c.Value)+"::"+sort.cast, arg(c.ID)))
 	}
-	sql := `SELECT p.id, p.slug, p.name, p.status::text, p.price_min, p.price_max,
+	sql := `SELECT p.id, p.slug, p.name, p.status::text, p.brand, p.price_min, p.price_max,
 		(SELECT v.compare_at_price FROM variants v WHERE v.product_id = p.id ORDER BY v.price, v.position LIMIT 1),
 		EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.stock > 0),
 		img.id, img.key, img.alt, img.width, img.height, ` + sort.key + `::text
@@ -198,7 +205,7 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 		var imgID uuid.NullUUID
 		var imgKey, imgAlt *string
 		var imgW, imgH *int32
-		if err := rows.Scan(&p.Id, &p.Slug, &p.Name, &status, &p.PriceMin, &p.PriceMax, &compare, &p.InStock,
+		if err := rows.Scan(&p.Id, &p.Slug, &p.Name, &status, &p.Brand, &p.PriceMin, &p.PriceMax, &compare, &p.InStock,
 			&imgID, &imgKey, &imgAlt, &imgW, &imgH, &lastKey); err != nil {
 			return apigen.ProductPage{}, fmt.Errorf("list products: scan: %w", err)
 		}

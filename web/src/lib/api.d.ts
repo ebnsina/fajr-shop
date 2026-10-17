@@ -554,6 +554,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/brands": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Brands with products for sale, most products first
+         * @description At most 50.
+         */
+        get: operations["listBrands"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/newsletter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign an email up for the shop's news and offers
+         * @description Always answers 204, whether or not the address was already signed up, so the form can't be
+         *     used to find out who shops here. Rate-limited per address.
+         */
+        post: operations["subscribeNewsletter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The numbers on the dashboard's home page
+         * @description Needs `catalog:write`.
+         */
+        get: operations["adminOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -585,6 +646,8 @@ export interface components {
             /** Format: email */
             contact_email?: string | null;
             vat: components["schemas"]["Vat"];
+            /** @description Up to four promises shown in a strip on the home page, e.g. cash on delivery. */
+            highlights?: components["schemas"]["Highlight"][];
         };
         Vat: {
             enabled: boolean;
@@ -762,6 +825,7 @@ export interface components {
             description: string;
             status: components["schemas"]["ProductStatus"];
             featured: boolean;
+            brand?: string | null;
             category?: components["schemas"]["Category"] | null;
             currency: string;
             options: components["schemas"]["ProductOption"][];
@@ -780,6 +844,7 @@ export interface components {
             status: components["schemas"]["ProductStatus"];
             /** @description Shown in the home page's featured section. */
             featured?: boolean;
+            brand?: string | null;
             /** Format: uuid */
             category_id?: string | null;
             /** @description Up to three, e.g. Size and Color. Empty for a product with one variant. */
@@ -795,6 +860,7 @@ export interface components {
             slug: string;
             name: string;
             status: components["schemas"]["ProductStatus"];
+            brand?: string | null;
             /** Format: int64 */
             price_min: number;
             /** Format: int64 */
@@ -879,6 +945,43 @@ export interface components {
             alt: string;
             position?: number;
             active?: boolean;
+        };
+        Highlight: {
+            /** @enum {string} */
+            icon: "truck" | "cash" | "return" | "shield" | "phone" | "gift";
+            title: string;
+            text?: string | null;
+        };
+        Brand: {
+            name: string;
+            product_count: number;
+            /** @description The newest product photo of this brand, to show beside its name. */
+            image?: components["schemas"]["Image"] | null;
+        };
+        Overview: {
+            products: {
+                active: number;
+                draft: number;
+                archived: number;
+            };
+            categories: number;
+            /** @description Variants of products for sale that have none left. */
+            out_of_stock: number;
+            /** @description Up to 10 variants of products for sale with 1 to 3 left, fewest first. */
+            low_stock: components["schemas"]["LowStockItem"][];
+            /** @description Emails signed up for the newsletter. */
+            subscribers: number;
+        };
+        LowStockItem: {
+            /** Format: uuid */
+            variant_id: string;
+            /** Format: uuid */
+            product_id: string;
+            name: string;
+            options: {
+                [key: string]: string;
+            };
+            stock: number;
         };
     };
     responses: {
@@ -1227,6 +1330,8 @@ export interface operations {
                 min_price?: number;
                 max_price?: number;
                 in_stock?: boolean;
+                /** @description Only this brand's products (exact name, as `GET /v1/brands` gives it). */
+                brand?: string;
                 /** @description Only products the shop marked as featured. */
                 featured?: boolean;
                 /** @description Only products with a variant priced below its old price. */
@@ -1729,6 +1834,77 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listBrands: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Brands */
+            200: {
+                headers: {
+                    "Cache-Control": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Brand"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    subscribeNewsletter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Signed up */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Overview */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
+                };
             };
             default: components["responses"]["Error"];
         };
