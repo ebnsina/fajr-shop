@@ -46,83 +46,88 @@
 	<p>{t.description}</p>
 </div>
 
-{#if form && 'created' in form && form.created}
-	<Alert tone="success" title={t.createdTitle} live>
-		<p>{t.createdBody}</p>
-		<div class="key">
-			<code>{form.created.key}</code>
-			<CopyButton value={form.created.key} size="sm">{t.copy}</CopyButton>
-		</div>
-	</Alert>
-{/if}
+<div class="split">
+	<div>
+		{#if form && 'created' in form && form.created}
+			<Alert tone="success" title={t.createdTitle} live>
+				<p>{t.createdBody}</p>
+				<div class="key">
+					<code>{form.created.key}</code>
+					<CopyButton value={form.created.key} size="sm">{t.copy}</CopyButton>
+				</div>
+			</Alert>
+		{/if}
 
-<Card title={t.create} level={2}>
-	<form
-		method="POST"
-		action="?/create"
-		novalidate
-		use:enhance={() => {
-			creating = true;
-			return async ({ update }) => {
-				await update();
-				creating = false;
-			};
-		}}
-	>
-		{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
-		<Input
-			label={t.name}
-			name="name"
-			maxlength={80}
-			hint={t.nameHint}
-			error={fields.name}
-			required
-		/>
-		<fieldset>
-			<legend>{t.scopes}</legend>
-			{#each keyScopes as value (value)}
-				<Checkbox name="scopes" {value} hint={permissions[value].hint}
-					>{permissions[value].label}</Checkbox
-				>
-			{/each}
-			{#if fields.scopes}<p class="error" role="alert">{fields.scopes}</p>{/if}
-		</fieldset>
-		<div class="actions"><Button type="submit" loading={creating}>{t.create}</Button></div>
-	</form>
-</Card>
-
-{#if data.keys.length}
-	<Table caption={t.listCaption}>
-		<thead>
-			<tr>
-				<th>{t.columns.name}</th>
-				<th>{t.columns.key}</th>
-				<th>{t.columns.access}</th>
-				<th>{t.columns.created}</th>
-				<th><span class="sr-only">{t.columns.actions}</span></th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each data.keys as key (key.id)}
-				<tr>
-					<td>{key.name}</td>
-					<td><code>…{key.hint}</code></td>
-					<td class="scopes">
-						{#each key.scopes as s (s)}<Badge icon={false}>{permissions[s].label}</Badge>{/each}
-					</td>
-					<td>{date.format(new Date(key.created_at))}</td>
-					<td>
-						<ConfirmButton size="sm" confirm={t.revokeConfirm} onconfirm={() => revoke(key.id)}>
-							{t.revoke}
-						</ConfirmButton>
-					</td>
-				</tr>
-			{/each}
-		</tbody>
-	</Table>
-{:else}
-	<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
-{/if}
+		<Card title={t.create} level={2}>
+			<form
+				method="POST"
+				action="?/create"
+				novalidate
+				use:enhance={() => {
+					creating = true;
+					return async ({ update }) => {
+						await update();
+						creating = false;
+					};
+				}}
+			>
+				{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
+				<Input
+					label={t.name}
+					name="name"
+					maxlength={80}
+					hint={t.nameHint}
+					error={fields.name}
+					required
+				/>
+				<fieldset>
+					<legend>{t.scopes}</legend>
+					{#each keyScopes as value (value)}
+						<Checkbox name="scopes" {value} hint={permissions[value].hint}
+							>{permissions[value].label}</Checkbox
+						>
+					{/each}
+					{#if fields.scopes}<p class="error" role="alert">{fields.scopes}</p>{/if}
+				</fieldset>
+				<div class="actions"><Button type="submit" loading={creating}>{t.create}</Button></div>
+			</form>
+		</Card>
+	</div>
+	<div class="list">
+		{#if data.keys.length}
+			<Table caption={t.listCaption}>
+				<thead>
+					<tr>
+						<th>{t.columns.name}</th>
+						<th>{t.columns.key}</th>
+						<th>{t.columns.access}</th>
+						<th>{t.columns.created}</th>
+						<th><span class="sr-only">{t.columns.actions}</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					{#each data.keys as key (key.id)}
+						<tr>
+							<td>{key.name}</td>
+							<td><code>…{key.hint}</code></td>
+							<td class="scopes">
+								{#each key.scopes as s (s)}<Badge icon={false}>{permissions[s].label}</Badge>{/each}
+							</td>
+							<td>{date.format(new Date(key.created_at))}</td>
+							<td>
+								<ConfirmButton size="sm" confirm={t.revokeConfirm} onconfirm={() => revoke(key.id)}>
+									{t.revoke}
+								</ConfirmButton>
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</Table>
+		{:else}
+			<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
+		{/if}
+	</div>
+</div>
 
 <style>
 	.head h1 {
@@ -183,7 +188,8 @@
 		clip-path: inset(50%);
 		white-space: nowrap;
 	}
-	:global(.page) > :global(*) + :global(*) {
-		margin-block-start: 1.25rem;
+	.split > :first-child {
+		display: grid;
+		gap: 1rem;
 	}
 </style>

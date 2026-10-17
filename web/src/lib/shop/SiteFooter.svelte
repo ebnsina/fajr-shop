@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { CallIcon, Mail01Icon } from '@hugeicons/core-free-icons';
+	import Mail from '@lucide/svelte/icons/mail';
+	import Phone from '@lucide/svelte/icons/phone';
 	import type { components } from '#lib/api.js';
-	import { cart as c, storefront as sf, shop as t } from '#lib/copy.js';
-	import Icon from '#lib/sinaui/ui/Icon.svelte';
+	import { account as a, cart as c, storefront as sf, shop as t } from '#lib/copy.js';
+	import Newsletter from './Newsletter.svelte';
 
 	let {
 		store,
@@ -14,6 +15,8 @@
 	const year = new Date().getFullYear();
 </script>
 
+<Newsletter />
+
 <footer class="footer">
 	<div class="cols">
 		<div class="brand">
@@ -21,24 +24,28 @@
 					{store.name}
 				</p>{/if}
 			{#if store.contact_phone}
-				<p class="label">{sf.contact}</p>
+				<p class="label">{sf.hotlineHours}</p>
 				<a class="phone" href="tel:{store.contact_phone}"
-					><Icon icon={CallIcon} size={18} /> {store.contact_phone}</a
+					><Phone size={18} /> {store.contact_phone}</a
 				>
 			{/if}
 			{#if store.contact_email}
-				<a href="mailto:{store.contact_email}"
-					><Icon icon={Mail01Icon} size={16} /> {store.contact_email}</a
-				>
+				<a href="mailto:{store.contact_email}"><Mail size={15} /> {store.contact_email}</a>
 			{/if}
 		</div>
 		<nav aria-label={sf.shop}>
 			<h2>{sf.shop}</h2>
-			{#each nav as link (link.href)}<a href={link.href}>{link.label}</a>{/each}
+			{#each nav.slice(0, 8) as link (link.href)}<a href={link.href}>{link.label}</a>{/each}
 		</nav>
-		<nav aria-label={sf.help}>
-			<h2>{sf.help}</h2>
+		<nav aria-label={sf.myAccount}>
+			<h2>{sf.myAccount}</h2>
+			<a href="/account/login">{a.signIn}</a>
+			<a href="/account/register">{a.register}</a>
 			<a href="/cart">{c.title}</a>
+		</nav>
+		<nav aria-label={sf.service}>
+			<h2>{sf.service}</h2>
+			{#if store.contact_phone}<a href="tel:{store.contact_phone}">{sf.contact}</a>{/if}
 			<a href="/search">{t.search}</a>
 		</nav>
 	</div>
@@ -50,10 +57,9 @@
 
 <style>
 	.footer {
-		margin-block-start: 4rem;
 		background: var(--ui-surface);
 		color: var(--ui-muted);
-		font-size: 0.9375rem;
+		font-size: 0.875rem;
 	}
 	.cols,
 	.bottom {
@@ -64,7 +70,7 @@
 	}
 	.cols {
 		display: grid;
-		grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+		grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
 		gap: 2rem;
 		padding-block: 3rem 2rem;
 	}
@@ -82,8 +88,7 @@
 	.name {
 		margin: 0;
 		color: var(--ui-fg);
-		font-family: var(--font-heading);
-		font-size: 1.375rem;
+		font-size: 1.25rem;
 		font-weight: 700;
 	}
 	.label {
@@ -91,14 +96,13 @@
 	}
 	.phone {
 		color: var(--ui-fg);
-		font-family: var(--font-heading);
-		font-size: 1.375rem;
+		font-size: 1.25rem;
 		font-weight: 700;
 	}
 	h2 {
 		margin: 0 0 0.25rem;
 		color: var(--ui-fg);
-		font-size: 0.875rem;
+		font-size: 0.8125rem;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 	}
@@ -119,7 +123,7 @@
 		gap: 0.5rem 2rem;
 		padding-block: 1.25rem;
 		box-shadow: 0 -1px 0 var(--ui-line);
-		font-size: 0.875rem;
+		font-size: 0.8125rem;
 	}
 	.bottom p {
 		margin: 0;

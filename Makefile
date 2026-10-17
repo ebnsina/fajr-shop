@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help gen run web migrate test check
+.PHONY: help gen run web migrate seed test check
 
 TEST_DB_URL ?= postgres://fajr_shop:fajr_shop@localhost:5432/fajr_shop_test?sslmode=disable
 
@@ -18,6 +18,9 @@ web: ## Start the web app on :5173, talking to the API from .env
 
 migrate: ## Apply migrations (reads .env)
 	set -a && . ./.env && set +a && cd api && go run ./cmd/fajr migrate
+
+seed: ## Fill an empty shop with ~3,400 Bangladeshi demo products (reads .env)
+	set -a && . ./.env && set +a && cd api && go run ./cmd/fajr seed
 
 test: ## Run every test against the test database
 	cd api && FAJR_TEST_DATABASE_URL="$(TEST_DB_URL)" go test ./... -race

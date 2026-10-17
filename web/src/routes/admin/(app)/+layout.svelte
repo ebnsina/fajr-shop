@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import {
 		Activity01Icon,
+		DashboardSquare01Icon,
 		Folder01Icon,
 		Image01Icon,
 		Key01Icon,
@@ -18,6 +19,7 @@
 	let { data, children }: LayoutProps = $props();
 
 	const groups: SidebarGroup[] = [
+		{ items: [{ label: nav.overview, href: '/admin', icon: DashboardSquare01Icon }] },
 		{
 			title: nav.catalog,
 			items: [
@@ -43,7 +45,11 @@
 	const current = $derived(
 		groups
 			.flatMap((g) => g.items)
-			.find((i) => page.url.pathname === i.href || page.url.pathname.startsWith(i.href + '/'))?.href
+			.find(
+				(i) =>
+					page.url.pathname === i.href ||
+					(i.href !== '/admin' && page.url.pathname.startsWith(i.href + '/'))
+			)?.href
 	);
 
 	let signingOut = $state(false);
@@ -99,7 +105,49 @@
 	}
 	.page {
 		box-sizing: border-box;
-		inline-size: min(48rem, 100%);
-		padding: 1.5rem 1rem 3rem;
+		inline-size: 100%;
+		max-inline-size: 100rem;
+		padding: 1.75rem 2rem 4rem;
+	}
+	/* Shared by every dashboard page, so they all read alike. */
+	.page :global(.head) {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-block-end: 1.5rem;
+	}
+	.page :global(.head h1) {
+		margin: 0 0 0.25rem;
+		font-size: 1.5rem;
+	}
+	/* A header with no actions: title, then the description under it. */
+	.page :global(.head > h1:has(+ p)),
+	.page :global(.head > p) {
+		flex-basis: 100%;
+	}
+	.page :global(.head > p) {
+		margin-block-start: -1rem;
+	}
+	.page :global(.head p) {
+		margin: 0;
+		max-inline-size: 48rem;
+		color: var(--ui-muted);
+	}
+	/* A form beside the list it adds to. */
+	.page :global(.split) {
+		display: grid;
+		grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr);
+		align-items: start;
+		gap: 1.5rem;
+	}
+	@media (width < 64rem) {
+		.page {
+			padding: 1.25rem 1rem 3rem;
+		}
+		.page :global(.split) {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 </style>

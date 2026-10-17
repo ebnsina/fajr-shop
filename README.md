@@ -22,6 +22,7 @@ cp .env.example .env     # point it at your Postgres (a non-superuser role)
 make migrate
 FAJR_ADMIN_NAME="Shop owner" FAJR_ADMIN_EMAIL=owner@example.com FAJR_ADMIN_PASSWORD=… \
   sh -c 'set -a; . ./.env; set +a; cd api && go run ./cmd/fajr create-admin'
+make seed                # optional: ~3,400 demo products, banners and categories
 make run                 # API on http://127.0.0.1:8090
 cd web && pnpm install && cd ..
 make web                 # dashboard on http://localhost:5173/admin

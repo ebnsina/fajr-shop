@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Image01Icon } from '@hugeicons/core-free-icons';
+	import ImageIcon from '@lucide/svelte/icons/image';
 	import { shop as t } from '#lib/copy.js';
-	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import Image from '#lib/sinaui/ui/Image.svelte';
 
 	// A product photo, or (with no URL yet) a quiet empty slot the same shape.
@@ -34,7 +33,7 @@
 		aria-label={alt ? `${alt} (${t.noPhoto})` : undefined}
 		aria-hidden={alt ? undefined : 'true'}
 	>
-		<Icon icon={Image01Icon} size={icon} />
+		<ImageIcon size={icon} strokeWidth={1.5} />
 	</div>
 {/if}
 

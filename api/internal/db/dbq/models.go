@@ -202,6 +202,11 @@ type Category struct {
 	ImageID   uuid.NullUUID
 }
 
+type NewsletterSubscriber struct {
+	Email     string
+	CreatedAt pgtype.Timestamptz
+}
+
 type Product struct {
 	ID          uuid.UUID
 	Slug        string
@@ -215,6 +220,7 @@ type Product struct {
 	CreatedAt   pgtype.Timestamptz
 	UpdatedAt   pgtype.Timestamptz
 	Featured    bool
+	Brand       *string
 }
 
 type ProductImage struct {
@@ -260,6 +266,7 @@ type StoreSetting struct {
 	PricesIncludeVat bool
 	VatBin           *string
 	UpdatedAt        pgtype.Timestamptz
+	Highlights       []byte
 }
 
 type Upload struct {

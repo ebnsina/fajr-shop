@@ -330,7 +330,7 @@ func (s *Server) saveProduct(ctx context.Context, id uuid.UUID, in apigen.Produc
 		if id == uuid.Nil {
 			row, err = q.CreateProduct(ctx, dbq.CreateProductParams{
 				Slug: slug, Name: name, Description: description, Status: dbq.ProductStatus(in.Status),
-				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi, Featured: featured,
+				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi, Featured: featured, Brand: blank(in.Brand),
 			})
 		} else {
 			old, err := q.ProductByID(ctx, id)
@@ -345,7 +345,7 @@ func (s *Server) saveProduct(ctx context.Context, id uuid.UUID, in apigen.Produc
 			}
 			row, err = q.UpdateProduct(ctx, dbq.UpdateProductParams{
 				ID: id, Slug: slug, Name: name, Description: description, Status: dbq.ProductStatus(in.Status),
-				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi, Featured: featured,
+				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi, Featured: featured, Brand: blank(in.Brand),
 			})
 			if err != nil {
 				return err
@@ -551,7 +551,7 @@ func (s *Server) UploadImage(ctx context.Context, req apigen.UploadImageRequestO
 // loadProduct adds a product's category, variants and images: three more queries, whatever its size.
 func (s *Server) loadProduct(ctx context.Context, q *dbq.Queries, p dbq.Product) (apigen.Product, error) {
 	out := apigen.Product{
-		Id: p.ID, Slug: p.Slug, Name: p.Name, Description: p.Description, Status: apigen.ProductStatus(p.Status), Featured: p.Featured,
+		Id: p.ID, Slug: p.Slug, Name: p.Name, Description: p.Description, Status: apigen.ProductStatus(p.Status), Featured: p.Featured, Brand: p.Brand,
 		Currency: "BDT", CreatedAt: p.CreatedAt.Time, UpdatedAt: p.UpdatedAt.Time,
 		Options: []apigen.ProductOption{}, Variants: []apigen.Variant{}, Images: []apigen.Image{},
 	}

@@ -72,6 +72,7 @@ export const activity: Record<string, string> = {
 
 export const nav = {
 	label: 'Shop dashboard',
+	overview: 'Overview',
 	shop: 'Shop',
 	catalog: 'Catalog',
 	products: 'Products',
@@ -114,7 +115,21 @@ export const storeSettings = {
 	bin: 'BIN',
 	binHint: 'Your Business Identification Number. It is printed on Mushak-6.3 invoices.',
 	save: 'Save changes',
-	saved: 'Store settings saved'
+	saved: 'Store settings saved',
+	highlights: 'Promises on the home page',
+	highlightsHint:
+		'Up to four, shown in a strip under the banners. Leave a title empty to remove it.',
+	highlightIcon: 'Icon',
+	highlightTitle: 'Title',
+	highlightText: 'Short line',
+	icons: {
+		cash: 'Cash',
+		truck: 'Delivery truck',
+		return: 'Return arrow',
+		shield: 'Shield',
+		phone: 'Headset',
+		gift: 'Gift'
+	}
 };
 
 export const apiKeys = {
@@ -199,9 +214,13 @@ export const productEditor = {
 	descriptionHint: 'What it is, what it’s made of, how it fits. Customers read this before buying.',
 	status: 'Status',
 	featured: 'Featured on the home page',
+	organize: 'Organize',
+	brand: 'Brand',
+	brandHint: 'Shoppers can browse by brand.',
 	category: 'Category',
 	noCategory: 'No category',
 	images: 'Photos',
+	mainPhoto: 'Main',
 	imagesHint:
 		'JPEG, PNG or WebP, up to 10 MB each. The first photo is the main one; drag to reorder.',
 	addImages: 'Add photos',
@@ -365,7 +384,10 @@ export const storefront = {
 	help: 'Help',
 	shop: 'Shop',
 	contact: 'Contact us',
-	cod: 'Cash on delivery available'
+	cod: 'Cash on delivery available',
+	myAccount: 'My account',
+	service: 'Customer service',
+	hotlineHours: 'Call us any day'
 };
 
 export const banners = {
@@ -399,4 +421,64 @@ export const banners = {
 	editTitle: 'Edit banner',
 	emptyTitle: 'No banners yet',
 	emptyBody: 'Without banners, the home page shows your shop’s name and a Shop all button.'
+};
+
+export const account = {
+	signIn: 'Sign in',
+	register: 'Register',
+	account: 'Account',
+	yourAccount: 'Your account',
+	signOut: 'Sign out',
+	signInTitle: 'Sign in',
+	signInLede: 'Welcome back. Use the email or phone number you registered with.',
+	registerTitle: 'Create your account',
+	registerLede: 'Save your details for faster checkout and see your orders in one place.',
+	login: 'Email or phone',
+	name: 'Your name',
+	phone: 'Mobile number',
+	phoneHint: 'Like 01712345678. We text order updates to it.',
+	email: 'Email (optional)',
+	password: 'Password',
+	passwordHint: 'At least 8 characters.',
+	noAccount: 'New here?',
+	haveAccount: 'Already have an account?',
+	createOne: 'Create an account',
+	signInInstead: 'Sign in',
+	details: 'Your details',
+	ordersSoon: 'Your orders will appear here after you buy something.',
+	shopNow: 'Start shopping',
+	hello: (name: string) => `Hello, ${name.split(' ')[0]}`
+};
+
+export const home = {
+	recommended: 'Recommended for you',
+	tabs: { newest: 'New arrivals', sale: 'On sale', featured: 'Featured' },
+	brands: 'Top brands',
+	products: (n: number) => `${n} ${n === 1 ? 'product' : 'products'}`,
+	newsletterTitle: 'Subscribe to our newsletter',
+	newsletterText: 'News about sales and new arrivals. No spam; leave any time.',
+	newsletterEmail: 'Your email',
+	newsletterButton: 'Subscribe',
+	newsletterThanks: 'Thank you. You’re on the list.',
+	backHome: 'Back to the shop'
+};
+
+export const overview = {
+	title: 'Overview',
+	description: 'How your shop is doing at a glance.',
+	addProduct: 'Add a product',
+	addBanner: 'Add a banner',
+	forSale: 'Products for sale',
+	drafts: 'Drafts',
+	soldOut: 'Sold-out variants',
+	categories: 'Categories',
+	subscribers: 'Newsletter sign-ups',
+	lowStock: 'Running low',
+	lowStockNone: 'Nothing is running low.',
+	product: 'Product',
+	left: 'Left',
+	recent: 'Recent activity',
+	recentNone: 'Nothing has happened yet.',
+	allActivity: 'All activity',
+	system: 'The system'
 };

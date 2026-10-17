@@ -29,11 +29,11 @@
 
 <div class="site">
 	<a class="skip" href="#main">{t.skip}</a>
-	<SiteHeader store={data.store} {nav} count={data.cart.item_count} />
+	<SiteHeader store={data.store} {nav} count={data.cart.item_count} me={data.me} />
 	<div id="main" class="site-main" role="main" tabindex="-1">{@render children()}</div>
 	<SiteFooter store={data.store} {nav} />
 </div>
-<BottomNav count={data.cart.item_count} />
+<BottomNav count={data.cart.item_count} signedIn={!!data.me} />
 <BagDrawer cart={data.cart} {vatNote} />
 <Toaster />
 

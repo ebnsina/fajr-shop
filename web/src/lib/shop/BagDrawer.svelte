@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { ShoppingBag01Icon } from '@hugeicons/core-free-icons';
+	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 	import type { components } from '#lib/api.js';
 	import { cart as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
-	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import RollingNumber from '#lib/sinaui/ui/RollingNumber.svelte';
 	import { bag } from './bag.svelte';
 	import CartLines from './CartLines.svelte';
@@ -19,7 +18,7 @@
 		<CartLines items={cart.items} onnavigate={close} />
 	{:else}
 		<div class="empty">
-			<span class="mark" aria-hidden="true"><Icon icon={ShoppingBag01Icon} size={22} /></span>
+			<span class="mark" aria-hidden="true"><ShoppingBag size={22} /></span>
 			<p>{t.empty}</p>
 			<Button variant="secondary" href="/shop" onclick={close}>{t.browse}</Button>
 		</div>

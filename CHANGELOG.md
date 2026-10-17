@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `fajr seed` fills an empty shop with a Bangladeshi demo catalog: 10 departments, 45
+  categories, about 3,400 products and 15,000 variants from familiar brands, with drawn pictures,
+  banners and home-page highlights.
+- Brands, home-page highlights, newsletter sign-up and a dashboard overview in the API.
 - Storefront layout in the style Bangladeshi shoppers know: hotline bar, a brand-colored header
   with a big search box and the bag, a category row, hero slides with side banners, round category
   pictures, Featured / On sale / New arrivals sections, boxed product cards with "% off", a fuller

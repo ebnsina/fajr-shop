@@ -36,6 +36,14 @@ func (s *Server) UpdateStore(ctx context.Context, req apigen.UpdateStoreRequestO
 		e := strings.ToLower(string(*b.ContactEmail))
 		email = &e
 	}
+	highlights := []apigen.Highlight{}
+	if b.Highlights != nil {
+		highlights = *b.Highlights
+	}
+	highlightsJSON, err := json.Marshal(highlights)
+	if err != nil {
+		return nil, err
+	}
 	var saved dbq.StoreSetting
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.q.WithTx(tx)
@@ -47,7 +55,7 @@ func (s *Server) UpdateStore(ctx context.Context, req apigen.UpdateStoreRequestO
 			Name: strings.TrimSpace(b.Name), LogoUrl: blank(b.LogoUrl), AccentColor: blank(b.AccentColor),
 			Currency: b.Currency, ContactPhone: blank(b.ContactPhone), ContactEmail: email,
 			VatEnabled: b.Vat.Enabled, VatRateBp: int32(b.Vat.RateBp), PricesIncludeVat: b.Vat.PricesIncludeVat,
-			VatBin: blank(b.Vat.Bin),
+			VatBin: blank(b.Vat.Bin), Highlights: highlightsJSON,
 		})
 		if err != nil {
 			return err

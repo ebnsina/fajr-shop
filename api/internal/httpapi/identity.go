@@ -173,7 +173,7 @@ func (l *limiter) allow(key string) bool {
 
 func (s *Server) throttle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost && strings.HasPrefix(r.URL.Path, "/v1/auth/") {
+		if r.Method == http.MethodPost && (strings.HasPrefix(r.URL.Path, "/v1/auth/") || r.URL.Path == "/v1/newsletter") {
 			ip := ""
 			if a := ipFrom(r.Context()); a != nil {
 				ip = a.String()

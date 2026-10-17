@@ -12,12 +12,14 @@ const noCart: components['schemas']['Cart'] = {
 };
 
 export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders }) => {
-	// Only someone with a cart (or signed in) costs a cart lookup, and only their pages turn private.
+	// Only someone with a cart or a session costs these lookups, and only their pages turn private.
 	const s = readSession(cookies);
-	const personal = !!(readCartToken(cookies) || s.access || s.refresh);
-	const [cats, cart] = await Promise.all([
+	const signedIn = !!(s.access || s.refresh);
+	const personal = signedIn || !!readCartToken(cookies);
+	const [cats, cart, me] = await Promise.all([
 		locals.api.GET('/v1/categories'),
-		personal ? locals.api.GET('/v1/cart') : null
+		personal ? locals.api.GET('/v1/cart') : null,
+		signedIn ? locals.api.GET('/v1/me') : null
 	]);
 	if (!cats.data) error(cats.response.status, errorText(cats.error?.error.code));
 	setHeaders({
@@ -25,5 +27,5 @@ export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders }) =>
 			? 'private, no-store'
 			: 'public, max-age=60, stale-while-revalidate=300'
 	});
-	return { categories: cats.data.items, cart: cart?.data ?? noCart };
+	return { categories: cats.data.items, cart: cart?.data ?? noCart, me: me?.data ?? null };
 };

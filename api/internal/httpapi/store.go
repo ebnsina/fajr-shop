@@ -51,6 +51,9 @@ func toStore(row dbq.StoreSetting) apigen.Store {
 		e := openapi_types.Email(*row.ContactEmail)
 		st.ContactEmail = &e
 	}
+	highlights := []apigen.Highlight{}
+	_ = json.Unmarshal(row.Highlights, &highlights) // the column is always a JSON array we wrote
+	st.Highlights = &highlights
 	return st
 }
 
