@@ -44,3 +44,14 @@ export const saveCartToken = (cookies: Cookies, token: string) =>
 	cookies.set(CART, token, { ...base, maxAge: 60 * 24 * 60 * 60 });
 
 export const clearCartToken = (cookies: Cookies) => cookies.delete(CART, { path: '/' });
+
+// A guest's saved products (product ids), until they sign in and these move to their account.
+const SAVED = 'fs_saved';
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+export const readSaved = (cookies: Cookies) =>
+	(cookies.get(SAVED) ?? '').split('.').filter((id) => uuid.test(id));
+export function saveSaved(cookies: Cookies, ids: string[]) {
+	if (!ids.length) return cookies.delete(SAVED, { path: '/' });
+	// ponytail: 50 ids fit a cookie comfortably; past that the oldest drop off.
+	cookies.set(SAVED, ids.slice(0, 50).join('.'), { ...base, maxAge: 180 * 24 * 60 * 60 });
+}

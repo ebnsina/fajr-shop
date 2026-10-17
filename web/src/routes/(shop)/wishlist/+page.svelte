@@ -15,6 +15,12 @@
 
 <section class="site-container page">
 	<h1 class="site-title">{w.title}</h1>
+	{#if data.guest && data.items.length}
+		<p class="hint">
+			{w.guestHint}
+			<a href="/account/login?next=/wishlist">{w.signInToKeep}</a>
+		</p>
+	{/if}
 	{#if data.items.length}
 		<ul class="site-grid">
 			{#each data.items as p (p.id)}<li><ProductCard product={p} /></li>{/each}
@@ -40,5 +46,13 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+	.hint {
+		margin: 0;
+		color: var(--text-secondary);
+	}
+	.hint a {
+		color: var(--brand-700);
+		font-weight: 600;
 	}
 </style>

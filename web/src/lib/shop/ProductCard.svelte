@@ -4,6 +4,7 @@
 	import type { components } from '#lib/api.js';
 	import { cart as c, ratings as r, storefront as sf, shop as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
+	import { quick } from './quick.svelte.js';
 	import SaveButton from './SaveButton.svelte';
 	import ProductImage from './ProductImage.svelte';
 
@@ -50,7 +51,18 @@
 					<Icon icon={ShoppingBag02Icon} size={20} />
 				</button>
 			{:else}
-				<a class="tile" href="/p/{p.slug}" aria-label={c.choose(p.name)} tabindex="-1">
+				<!-- Opens the quick-add window; without scripts it's a plain link to the product. -->
+				<a
+					class="tile"
+					href="/p/{p.slug}"
+					aria-label={c.choose(p.name)}
+					aria-haspopup="dialog"
+					onclick={(e) => {
+						e.preventDefault();
+						quick.slug = p.slug;
+						quick.open = true;
+					}}
+				>
 					<Icon icon={ShoppingBag02Icon} size={20} />
 				</a>
 			{/if}

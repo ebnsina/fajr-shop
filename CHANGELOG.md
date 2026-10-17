@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Product cards' buttons work in place: the bag opens a quick-add window (options, price,
+  stock, Add to bag) for products with options, and adds one-variant products straight away;
+  the heart saves for guests too, on their device, and those saves move to the account on
+  sign-in or registration. The API's product list takes `ids`.
 - Product cards redesigned: a soft picture panel with the discount ("−20%") or "Sold out" as a
   pill, the star rating in its corner when there are reviews, and a cut-out corner holding
   Save and Bag buttons. Bag adds one-variant products straight away (and opens the bag);

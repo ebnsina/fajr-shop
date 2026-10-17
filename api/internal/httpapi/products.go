@@ -152,6 +152,9 @@ func (s *Server) ListProducts(ctx context.Context, req apigen.ListProductsReques
 		return apigen.ListProducts200JSONResponse{Items: []apigen.ProductSummary{}}, nil
 	}
 	f.cursor, f.sort, f.limit = pr.Cursor, "newest", limitOr(pr.Limit)
+	if pr.Ids != nil {
+		f.ids = *pr.Ids
+	}
 	if pr.Sort != nil {
 		f.sort = string(*pr.Sort)
 	}

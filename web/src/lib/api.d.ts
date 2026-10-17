@@ -2207,6 +2207,8 @@ export interface operations {
                  *     all match the same variant (`Size:M&Size:L&Color:Red`: a red M or a red L).
                  */
                 option?: components["parameters"]["OptionFilter"];
+                /** @description Only these products (a guest's saved items, say). Repeat for several. */
+                ids?: string[];
                 sort?: "newest" | "price_asc" | "price_desc" | "name";
                 /** @description `next_cursor` from the previous page. */
                 cursor?: components["parameters"]["Cursor"];

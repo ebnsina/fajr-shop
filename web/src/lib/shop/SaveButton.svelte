@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { wishlist as w } from '#lib/copy.js';
 
-	// The heart that saves a product to the wishlist. Signed out, it leads to sign-in and back.
+	// The heart that saves a product: to the account, or for a guest to a cookie until they sign in.
 	let {
 		id,
 		name,
@@ -13,34 +13,21 @@
 	}: { id: string; name: string; label?: boolean; tile?: boolean } = $props();
 
 	const saved = $derived(((page.data.saved as string[] | undefined) ?? []).includes(id));
-	const next = $derived(encodeURIComponent(page.url.pathname + page.url.search));
 </script>
 
-{#if page.data.me}
-	<!-- Belongs to the one wishlist form in the shop layout, so it works inside other forms too. -->
-	<button
-		type="submit"
-		form="wishlist-form"
-		name="toggle"
-		value="{id}:{saved ? '0' : '1'}"
-		class={['heart', label && 'labelled', tile && 'tile', saved && 'on']}
-		aria-pressed={saved}
-		aria-label={saved ? w.unsave(name) : w.save(name)}
-	>
-		<Icon icon={FavouriteIcon} size={18} fill={saved ? 'currentColor' : 'none'} />
-		{#if label}<span>{saved ? w.saved : w.saveLabel}</span>{/if}
-	</button>
-{:else}
-	<a
-		class={['heart', label && 'labelled', tile && 'tile']}
-		href="/account/login?next={next}"
-		aria-label={w.signIn}
-		title={w.signIn}
-	>
-		<Icon icon={FavouriteIcon} size={18} />
-		{#if label}<span>{w.saveLabel}</span>{/if}
-	</a>
-{/if}
+<!-- Belongs to the one wishlist form in the shop layout, so it works inside other forms too. -->
+<button
+	type="submit"
+	form="wishlist-form"
+	name="toggle"
+	value="{id}:{saved ? '0' : '1'}"
+	class={['heart', label && 'labelled', tile && 'tile', saved && 'on']}
+	aria-pressed={saved}
+	aria-label={saved ? w.unsave(name) : w.save(name)}
+>
+	<Icon icon={FavouriteIcon} size={18} fill={saved ? 'currentColor' : 'none'} />
+	{#if label}<span>{saved ? w.saved : w.saveLabel}</span>{/if}
+</button>
 
 <style>
 	.heart {

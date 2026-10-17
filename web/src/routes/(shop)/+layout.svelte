@@ -4,6 +4,7 @@
 	import { cart as c, errorText, shop as t } from '#lib/copy.js';
 	import { toast, Toaster } from '#lib/sinaui/ui/toast/index.js';
 	import BagDrawer from '#lib/shop/BagDrawer.svelte';
+	import QuickAdd from '#lib/shop/QuickAdd.svelte';
 	import { bag } from '#lib/shop/bag.svelte.js';
 	import BackToTop from '#lib/shop/BackToTop.svelte';
 	import BottomNav from '#lib/shop/BottomNav.svelte';
@@ -46,6 +47,7 @@
 <BackToTop />
 <BottomNav count={data.cart.item_count} signedIn={!!data.me} />
 <BagDrawer cart={data.cart} {vatNote} />
+<QuickAdd />
 <!-- A product card's bag button adds its one variant through this form (see ProductCard). -->
 <form
 	id="bag-form"

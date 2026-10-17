@@ -377,6 +377,8 @@ export const wishlist = {
 	saved: 'Saved',
 	saveLabel: 'Save',
 	signIn: 'Sign in to save items',
+	guestHint: 'Saved on this device.',
+	signInToKeep: 'Sign in to keep them on every device',
 	emptyTitle: 'Nothing saved yet',
 	emptyBody: 'Tap the heart on any product to keep it here for later.',
 	browse: 'Browse the shop'
@@ -452,6 +454,7 @@ export const cart = {
 	add: 'Add to bag',
 	addNamed: (name: string) => `Add ${name} to bag`,
 	choose: (name: string) => `Choose options for ${name}`,
+	fullDetails: 'See full details',
 	added: (name: string) => `${name} added to your bag`,
 	quantity: 'Quantity',
 	viewBag: 'View bag',

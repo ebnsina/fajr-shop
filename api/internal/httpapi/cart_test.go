@@ -56,6 +56,11 @@ func TestGuestCart(t *testing.T) {
 		t.Errorf("single variant: %+v", listed)
 	}
 
+	byID := decode[apigen.ProductPage](t, h.call("GET", "/v1/products?ids="+listed[0].Id.String(), "", nil)).Items
+	if len(byID) != 1 || byID[0].Id != listed[0].Id {
+		t.Errorf("by ids: %+v", byID)
+	}
+
 	first := h.setItem("", "", oud, 2)
 	if first.Token == nil {
 		t.Fatal("a new guest cart must hand back its token")

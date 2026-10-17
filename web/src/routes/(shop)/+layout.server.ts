@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { components } from '#lib/api.js';
 import { errorText } from '#lib/copy.js';
-import { readCartToken, readSession } from '#lib/server/session.js';
+import { readCartToken, readSaved, readSession } from '#lib/server/session.js';
 import type { LayoutServerLoad } from './$types';
 
 const noCart: components['schemas']['Cart'] = {
@@ -20,7 +20,8 @@ export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders, url 
 	// Only someone with a cart or a session costs these lookups, and only their pages turn private.
 	const s = readSession(cookies);
 	const signedIn = !!(s.access || s.refresh);
-	const personal = signedIn || !!readCartToken(cookies);
+	const guestSaved = signedIn ? [] : readSaved(cookies);
+	const personal = signedIn || !!readCartToken(cookies) || guestSaved.length > 0;
 	const [cats, cart, me, wishlist] = await Promise.all([
 		locals.api.GET('/v1/categories'),
 		personal ? locals.api.GET('/v1/cart') : null,
@@ -39,6 +40,6 @@ export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders, url 
 		cart: cart?.data ?? noCart,
 		me: me?.data ?? null,
 		// Ids of the products the customer saved, so every heart on the page shows its state.
-		saved: wishlist?.data?.items.map((p) => p.id) ?? []
+		saved: wishlist?.data?.items.map((p) => p.id) ?? guestSaved
 	};
 };
