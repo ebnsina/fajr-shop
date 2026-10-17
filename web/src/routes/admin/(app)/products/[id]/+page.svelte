@@ -166,9 +166,7 @@
 <div class="head">
 	<h1>{data.product?.name ?? t.newTitle}</h1>
 	{#if data.product?.status === 'active'}
-		<Button variant="secondary" href="/products/{data.product.slug}" target="_blank"
-			>{t.view}</Button
-		>
+		<Button variant="secondary" href="/p/{data.product.slug}" target="_blank">{t.view}</Button>
 	{/if}
 </div>
 

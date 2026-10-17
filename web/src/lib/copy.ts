@@ -264,3 +264,55 @@ export const categories = {
 	emptyTitle: 'No categories yet',
 	emptyBody: 'Add one, such as “Men” or “Saree”.'
 };
+
+export const shop = {
+	skip: 'Skip to content',
+	menu: 'Open menu',
+	all: 'Shop all',
+	search: 'Search',
+	searchPlaceholder: 'Search the shop',
+	home: 'Home',
+	newest: 'New in',
+	seeAll: 'See everything',
+	soldOut: 'Sold out',
+	sale: 'Sale',
+	from: 'From',
+	was: 'was',
+	noPhoto: 'no photo yet',
+	inStock: 'In stock',
+	onlyLeft: (n: number) => `Only ${n} left`,
+	filters: 'Filters',
+	minPrice: 'Lowest price',
+	maxPrice: 'Highest price',
+	inStockOnly: 'In stock only',
+	apply: 'Apply',
+	clear: 'Clear filters',
+	sort: 'Sort by',
+	sorts: {
+		newest: 'Newest',
+		price_asc: 'Price, low to high',
+		price_desc: 'Price, high to low',
+		name: 'Name, A to Z'
+	},
+	next: 'More products',
+	first: 'Back to the start',
+	emptyTitle: 'Nothing here yet',
+	emptyBody: 'New products will appear here soon.',
+	noMatchTitle: 'Nothing matches those filters',
+	noMatchBody: 'Try a wider price range, or clear the filters.',
+	searchTitle: 'Search',
+	searchResults: (q: string) => `Results for “${q}”`,
+	searchEmpty: 'Type what you’re looking for.',
+	searchNone: (q: string) => `Nothing found for “${q}”. Try other words.`,
+	pictures: 'Pictures',
+	picture: (i: number, n: number) => `Picture ${i} of ${n}`,
+	contact: 'Contact',
+	vatIncluded: 'Price includes VAT.',
+	vatAdded: (rate: string) => `VAT (${rate}) is added at checkout.`
+};
+
+export const productPage = {
+	soldOut: 'Sold out',
+	notOffered: 'Not available in this combination',
+	description: 'About this product'
+};

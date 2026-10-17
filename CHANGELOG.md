@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Catalog: categories (nested), products with up to three options (size, color…) and a price and
+  stock per combination, photos, search, filters (category, price, in stock, option) and sorting.
+- Stock changes are recorded with a reason and who made them; a product form can't overwrite a
+  sale that happened while it was open.
+- Dashboard: products list and editor, categories, stock adjustments, logo upload.
+- Storefront: home, all products, category and product pages, search, sitemap.xml and robots.txt,
+  each with its own title, description, canonical link and Open Graph tags; products carry
+  schema.org data for search engines. Filters work without JavaScript.
+- Validation messages are plain sentences, never the validator's own wording.
 - Accounts and sign-in: customers register with email or phone; the shop owner is created with
   `fajr create-admin`. Sessions use short-lived access tokens and single-use refresh tokens.
 - API keys with scopes, for integrations, created and revoked from the dashboard.
