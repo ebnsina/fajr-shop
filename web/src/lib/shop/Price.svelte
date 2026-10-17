@@ -13,7 +13,7 @@
 
 <span class={['price', size]}>
 	{#if from}<span class="from">{t.from}</span>{/if}
-	<span class={['now', was && 'sale']}>{formatMoney(amount)}</span>
+	<span class="now">{formatMoney(amount)}</span>
 	{#if was}<s><span class="sr">{t.was} </span>{formatMoney(was)}</s>{/if}
 </span>
 
@@ -29,11 +29,10 @@
 		color: var(--ui-muted);
 		font-size: 0.875em;
 	}
+	/* The price is always the text color; red is kept for the discount badge. */
 	.now {
-		font-weight: 600;
-	}
-	.sale {
-		color: color-mix(in srgb, var(--ui-danger) 85%, var(--ui-fg));
+		color: var(--ui-fg);
+		font-weight: 700;
 	}
 	s {
 		color: var(--ui-muted);

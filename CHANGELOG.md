@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Product pages: "Buy now" (adds to the bag and goes there; checkout comes next) and "Order on
+  WhatsApp", which opens a chat with the product and its link when the shop sets a WhatsApp
+  number in store settings.
+- Shop filters open and close with an animation; the price field's focus ring is no longer cut
+  off. Sale prices show in the normal text color, with the old price struck through.
 - Storefront fixes: the header bag is an icon only; the promise strip is separate cards with a
   colored icon on the right; home rows show five products and "View all" instead of scrolling;
   product photos' thumbnails keep their corners when picked; the bag drawer keeps its title and

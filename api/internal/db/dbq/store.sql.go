@@ -10,7 +10,7 @@ import (
 )
 
 const getStoreSettings = `-- name: GetStoreSettings :one
-SELECT id, name, logo_url, accent_color, currency, contact_phone, contact_email, vat_enabled, vat_rate_bp, prices_include_vat, vat_bin, updated_at, highlights FROM store_settings WHERE id = 1
+SELECT id, name, logo_url, accent_color, currency, contact_phone, contact_email, vat_enabled, vat_rate_bp, prices_include_vat, vat_bin, updated_at, highlights, whatsapp FROM store_settings WHERE id = 1
 `
 
 func (q *Queries) GetStoreSettings(ctx context.Context) (StoreSetting, error) {
@@ -30,6 +30,7 @@ func (q *Queries) GetStoreSettings(ctx context.Context) (StoreSetting, error) {
 		&i.VatBin,
 		&i.UpdatedAt,
 		&i.Highlights,
+		&i.Whatsapp,
 	)
 	return i, err
 }
@@ -38,9 +39,9 @@ const updateStoreSettings = `-- name: UpdateStoreSettings :one
 UPDATE store_settings SET
     name = $1, logo_url = $2, accent_color = $3, currency = $4, contact_phone = $5,
     contact_email = $6, vat_enabled = $7, vat_rate_bp = $8, prices_include_vat = $9,
-    vat_bin = $10, highlights = $11, updated_at = now()
+    vat_bin = $10, highlights = $11, whatsapp = $12, updated_at = now()
 WHERE id = 1
-RETURNING id, name, logo_url, accent_color, currency, contact_phone, contact_email, vat_enabled, vat_rate_bp, prices_include_vat, vat_bin, updated_at, highlights
+RETURNING id, name, logo_url, accent_color, currency, contact_phone, contact_email, vat_enabled, vat_rate_bp, prices_include_vat, vat_bin, updated_at, highlights, whatsapp
 `
 
 type UpdateStoreSettingsParams struct {
@@ -55,6 +56,7 @@ type UpdateStoreSettingsParams struct {
 	PricesIncludeVat bool
 	VatBin           *string
 	Highlights       []byte
+	Whatsapp         *string
 }
 
 func (q *Queries) UpdateStoreSettings(ctx context.Context, arg UpdateStoreSettingsParams) (StoreSetting, error) {
@@ -70,6 +72,7 @@ func (q *Queries) UpdateStoreSettings(ctx context.Context, arg UpdateStoreSettin
 		arg.PricesIncludeVat,
 		arg.VatBin,
 		arg.Highlights,
+		arg.Whatsapp,
 	)
 	var i StoreSetting
 	err := row.Scan(
@@ -86,6 +89,7 @@ func (q *Queries) UpdateStoreSettings(ctx context.Context, arg UpdateStoreSettin
 		&i.VatBin,
 		&i.UpdatedAt,
 		&i.Highlights,
+		&i.Whatsapp,
 	)
 	return i, err
 }

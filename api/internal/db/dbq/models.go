@@ -293,6 +293,7 @@ type StoreSetting struct {
 	VatBin           *string
 	UpdatedAt        pgtype.Timestamptz
 	Highlights       []byte
+	Whatsapp         *string
 }
 
 type Upload struct {

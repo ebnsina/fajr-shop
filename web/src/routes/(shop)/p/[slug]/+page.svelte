@@ -2,7 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
+	import MessageCircle from '@lucide/svelte/icons/message-circle';
 	import Truck from '@lucide/svelte/icons/truck';
+	import { goto } from '$app/navigation';
 	import { cart as c, delivery as dl, productPage as pt, shop as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
@@ -50,6 +52,15 @@
 					: t.inStock
 	);
 	let tab = $state('description');
+	// wa.me takes the number in international form: 01812345678 → 8801812345678.
+	const whatsapp = $derived.by(() => {
+		const n = data.store.whatsapp;
+		if (!n) return null;
+		const opts = variant ? Object.values(variant.options).join(', ') : '';
+		const name = opts ? `${p.name} (${opts})` : p.name;
+		const text = pt.whatsappText(name, `${page.url.origin}/p/${p.slug}`);
+		return `https://wa.me/88${n}?text=${encodeURIComponent(text)}`;
+	});
 	// Paragraphs split by a blank line; a paragraph whose lines all start with "- " is a list.
 	const blocks = $derived(
 		p.description
@@ -172,6 +183,12 @@
 					// The action lives on /cart; refresh the data here rather than going there.
 					return async ({ result }) => {
 						adding = false;
+						// "Buy now" goes straight on to the bag.
+						if (result.type === 'redirect') {
+							await invalidateAll();
+							await goto(result.location);
+							return;
+						}
 						if (result.type === 'failure') {
 							addError = String(result.data?.message ?? '');
 							return;
@@ -195,7 +212,17 @@
 					/>
 				</div>
 				<Button type="submit" loading={adding}>{c.add}</Button>
+				<span class="cta">
+					<Button type="submit" formaction="/cart?/buy" disabled={adding}>{pt.buyNow}</Button>
+				</span>
 			</form>
+			{#if whatsapp}
+				<span class="wa">
+					<Button href={whatsapp} target="_blank" rel="noopener"
+						><MessageCircle size={18} /> {pt.whatsapp}</Button
+					>
+				</span>
+			{/if}
 			{#if addError}<p class="add-error" role="alert">{addError}</p>{/if}
 		{/if}
 
@@ -300,8 +327,21 @@
 	.qty {
 		inline-size: 8rem;
 	}
-	.add > :global(.btn) {
+	.add > :global(.btn),
+	.cta {
 		flex: 1;
+	}
+	.cta,
+	.wa {
+		display: grid;
+	}
+	.cta {
+		--ui-accent: var(--accent-700);
+		--ui-on-accent: #fff;
+	}
+	.wa {
+		--ui-accent: var(--whatsapp);
+		--ui-on-accent: #fff;
 	}
 	.add-error {
 		margin: 0;

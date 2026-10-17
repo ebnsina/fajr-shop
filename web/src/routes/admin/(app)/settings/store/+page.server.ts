@@ -22,6 +22,10 @@ export const actions: Actions = {
 			logo_url: text(form, 'logo_url') || null,
 			accent_color: text(form, 'accent_color') || null,
 			contact_phone: text(form, 'contact_phone') || null,
+			whatsapp:
+				text(form, 'whatsapp')
+					.replace(/[\s-]/g, '')
+					.replace(/^\+?880/, '0') || null,
 			contact_email: text(form, 'contact_email') || null,
 			vat: {
 				enabled: form.has('vat_enabled'),

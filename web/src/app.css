@@ -10,6 +10,10 @@
 	/* The shop's brand color when the owner hasn't chosen one: blue, as shoppers here expect. */
 	--ui-accent: light-dark(#1d4ed8, #60a5fa);
 	--ui-on-accent: light-dark(#ffffff, #0b1220);
+	/* Orange is for the one purchase action on a page (Buy now). */
+	--accent-700: #c2410c;
+	/* WhatsApp's own green, so shoppers recognize the button. */
+	--whatsapp: #25d366;
 	/* Light unless the shopper picks dark. */
 	color-scheme: light;
 }

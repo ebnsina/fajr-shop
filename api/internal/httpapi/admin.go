@@ -55,7 +55,7 @@ func (s *Server) UpdateStore(ctx context.Context, req apigen.UpdateStoreRequestO
 			Name: strings.TrimSpace(b.Name), LogoUrl: blank(b.LogoUrl), AccentColor: blank(b.AccentColor),
 			Currency: b.Currency, ContactPhone: blank(b.ContactPhone), ContactEmail: email,
 			VatEnabled: b.Vat.Enabled, VatRateBp: int32(b.Vat.RateBp), PricesIncludeVat: b.Vat.PricesIncludeVat,
-			VatBin: blank(b.Vat.Bin), Highlights: highlightsJSON,
+			VatBin: blank(b.Vat.Bin), Highlights: highlightsJSON, Whatsapp: blank(b.Whatsapp),
 		})
 		if err != nil {
 			return err

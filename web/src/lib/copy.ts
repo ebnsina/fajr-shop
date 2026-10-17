@@ -110,6 +110,8 @@ export const storeSettings = {
 	contactPhone: 'Phone',
 	contactEmail: 'Email',
 	contactHint: 'Shown to customers so they can reach you.',
+	whatsapp: 'WhatsApp number (optional)',
+	whatsappHint: 'Product pages get an “Order on WhatsApp” button that messages this number.',
 	currency: 'Currency',
 	currencyValue: 'Bangladeshi taka (৳)',
 	vat: 'VAT',
@@ -370,7 +372,10 @@ export const productPage = {
 	sku: 'SKU',
 	weight: 'Weight',
 	noDescription: 'The shop hasn’t written a description yet.',
-	similar: 'Similar products'
+	similar: 'Similar products',
+	buyNow: 'Buy now',
+	whatsapp: 'Order on WhatsApp',
+	whatsappText: (name: string, url: string) => `Hi, I'd like to order ${name}. ${url}`
 };
 
 export const cart = {

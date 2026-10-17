@@ -248,21 +248,24 @@ func TestUpdateStoreNeedsPermissionAndIsAudited(t *testing.T) {
 
 	store := map[string]any{
 		"name": "Bayt al-Hikma", "currency": "BDT", "accent_color": "#0f766e", "contact_phone": "01712345678",
-		"vat": map[string]any{"enabled": true, "rate_bp": 500, "prices_include_vat": true, "bin": "000123456-0101"},
+		"whatsapp": "01812345678",
+		"vat":      map[string]any{"enabled": true, "rate_bp": 500, "prices_include_vat": true, "bin": "000123456-0101"},
 	}
 	expect(t, h.call("PUT", "/v1/admin/store", "", store), 401, apigen.Unauthenticated)
 	expect(t, h.call("PUT", "/v1/admin/store", customer.AccessToken, store), 403, apigen.Forbidden)
 
-	bad := map[string]any{"name": "x", "currency": "BDT", "accent_color": "red", "vat": store["vat"]}
-	e := expect(t, h.call("PUT", "/v1/admin/store", admin.AccessToken, bad), 400, apigen.Validation)
-	if _, ok := (*e.Error.Fields)["accent_color"]; !ok {
-		t.Errorf("fields = %v, want accent_color", *e.Error.Fields)
+	for field, value := range map[string]string{"accent_color": "red", "whatsapp": "+8801812345678"} {
+		bad := map[string]any{"name": "x", "currency": "BDT", field: value, "vat": store["vat"]}
+		e := expect(t, h.call("PUT", "/v1/admin/store", admin.AccessToken, bad), 400, apigen.Validation)
+		if _, ok := (*e.Error.Fields)[field]; !ok {
+			t.Errorf("fields = %v, want %s", *e.Error.Fields, field)
+		}
 	}
 
 	expect(t, h.call("PUT", "/v1/admin/store", admin.AccessToken, store), 200, "")
 	expect(t, h.call("PUT", "/v1/admin/store", admin.AccessToken, store), 200, "")
 	got := decode[apigen.Store](t, expect2(t, h.call("GET", "/v1/store", "", nil), 200))
-	if got.Name != "Bayt al-Hikma" || got.Vat.RateBp != 500 || *got.Vat.Bin != "000123456-0101" {
+	if got.Name != "Bayt al-Hikma" || got.Vat.RateBp != 500 || *got.Vat.Bin != "000123456-0101" || *got.Whatsapp != "01812345678" {
 		t.Errorf("store = %+v", got)
 	}
 

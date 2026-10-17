@@ -42,7 +42,7 @@ func (s *Server) GetStore(ctx context.Context, req apigen.GetStoreRequestObject)
 func toStore(row dbq.StoreSetting) apigen.Store {
 	st := apigen.Store{
 		Name: row.Name, LogoUrl: row.LogoUrl, AccentColor: row.AccentColor, Currency: row.Currency,
-		ContactPhone: row.ContactPhone,
+		ContactPhone: row.ContactPhone, Whatsapp: row.Whatsapp,
 		Vat: apigen.Vat{
 			Enabled: row.VatEnabled, RateBp: int(row.VatRateBp), PricesIncludeVat: row.PricesIncludeVat, Bin: row.VatBin,
 		},

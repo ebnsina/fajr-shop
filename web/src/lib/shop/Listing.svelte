@@ -7,6 +7,7 @@
 	import { shop as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import type { Facets, Filters } from '#lib/server/listing.js';
+	import * as Accordion from '#lib/sinaui/ui/accordion/index.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Checkbox from '#lib/sinaui/ui/Checkbox.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
@@ -102,10 +103,9 @@
 	{@render boxes(name, items.slice(0, SHOWN))}
 	{#if items.length > SHOWN}
 		{@const rest = items.slice(SHOWN)}
-		<details class="more" open={rest.some((c) => c.on)}>
-			<summary>{t.more(rest.length)}</summary>
+		<Accordion.Item title={t.more(rest.length)} open={rest.some((c) => c.on)}>
 			{@render boxes(name, rest)}
-		</details>
+		</Accordion.Item>
 	{/if}
 {/snippet}
 
@@ -117,83 +117,85 @@
 	<details class="filters" open>
 		<summary class="toggle"><SlidersHorizontal size={16} /> {t.filters}</summary>
 		<div class="card">
-			{#if facets && facets.categories.length > 1}
-				<details class="group" open>
-					<summary>{t.category}</summary>
-					{@render cats(facets.categories.slice(0, SHOWN))}
-					{#if facets.categories.length > SHOWN}
-						{@const rest = facets.categories.slice(SHOWN)}
-						<details class="more" open={rest.some((c) => c.slug === filters.category)}>
-							<summary>{t.more(rest.length)}</summary>
-							{@render cats(rest)}
-						</details>
-					{/if}
-				</details>
-			{/if}
+			<Accordion.Root>
+				{#if facets && facets.categories.length > 1}
+					<Accordion.Item title={t.category} open>
+						{@render cats(facets.categories.slice(0, SHOWN))}
+						{#if facets.categories.length > SHOWN}
+							{@const rest = facets.categories.slice(SHOWN)}
+							<Accordion.Item
+								class="more"
+								title={t.more(rest.length)}
+								open={rest.some((c) => c.slug === filters.category)}
+							>
+								{@render cats(rest)}
+							</Accordion.Item>
+						{/if}
+					</Accordion.Item>
+				{/if}
 
-			<details class="group" open>
-				<summary>{t.priceRange}</summary>
-				<div class="range">
-					<Input
-						label={t.minPrice}
-						hideLabel
-						name="min"
-						type="number"
-						inputmode="numeric"
-						min="0"
-						value={filters.min}
-						placeholder={facets?.price ? formatMoney(facets.price.min) : t.minPlaceholder}
-					/>
-					<span aria-hidden="true">–</span>
-					<Input
-						label={t.maxPrice}
-						hideLabel
-						name="max"
-						type="number"
-						inputmode="numeric"
-						min="0"
-						value={filters.max}
-						placeholder={facets?.price ? formatMoney(facets.price.max) : t.maxPlaceholder}
-					/>
-				</div>
-				<Button type="submit" variant="secondary" size="sm">{t.apply}</Button>
-			</details>
+				<Accordion.Item title={t.priceRange} open>
+					<div class="pane">
+						<div class="range">
+							<Input
+								label={t.minPrice}
+								hideLabel
+								name="min"
+								type="number"
+								inputmode="numeric"
+								min="0"
+								value={filters.min}
+								placeholder={facets?.price ? formatMoney(facets.price.min) : t.minPlaceholder}
+							/>
+							<span aria-hidden="true">–</span>
+							<Input
+								label={t.maxPrice}
+								hideLabel
+								name="max"
+								type="number"
+								inputmode="numeric"
+								min="0"
+								value={filters.max}
+								placeholder={facets?.price ? formatMoney(facets.price.max) : t.maxPlaceholder}
+							/>
+						</div>
+						<div><Button type="submit" variant="secondary" size="sm">{t.apply}</Button></div>
+					</div>
+				</Accordion.Item>
 
-			{#if facets?.brands.length}
-				<details class="group" open>
-					<summary>{t.brand}</summary>
-					{@render choices(
-						'brand',
-						facets.brands.map((b) => ({
-							value: b.name,
-							label: b.name,
-							count: b.count,
-							on: filters.brands.includes(b.name)
-						}))
-					)}
-				</details>
-			{/if}
+				{#if facets?.brands.length}
+					<Accordion.Item title={t.brand} open>
+						{@render choices(
+							'brand',
+							facets.brands.map((b) => ({
+								value: b.name,
+								label: b.name,
+								count: b.count,
+								on: filters.brands.includes(b.name)
+							}))
+						)}
+					</Accordion.Item>
+				{/if}
 
-			{#each facets?.options ?? [] as o (o.name)}
-				<details class="group" open>
-					<summary>{o.name}</summary>
-					{@render choices(
-						'option',
-						o.values.map((v) => ({
-							value: `${o.name}:${v.value}`,
-							label: v.value,
-							count: v.count,
-							on: filters.options.includes(`${o.name}:${v.value}`)
-						}))
-					)}
-				</details>
-			{/each}
+				{#each facets?.options ?? [] as o (o.name)}
+					<Accordion.Item title={o.name} open>
+						{@render choices(
+							'option',
+							o.values.map((v) => ({
+								value: `${o.name}:${v.value}`,
+								label: v.value,
+								count: v.count,
+								on: filters.options.includes(`${o.name}:${v.value}`)
+							}))
+						)}
+					</Accordion.Item>
+				{/each}
 
-			<details class="group" open>
-				<summary>{t.availability}</summary>
-				<Checkbox name="stock" value="1" checked={filters.stock}>{t.inStockOnly}</Checkbox>
-				<Checkbox name="sale" value="1" checked={filters.sale}>{t.onSaleOnly}</Checkbox>
-			</details>
+				<Accordion.Item title={t.availability} open>
+					<Checkbox name="stock" value="1" checked={filters.stock}>{t.inStockOnly}</Checkbox>
+					<Checkbox name="sale" value="1" checked={filters.sale}>{t.onSaleOnly}</Checkbox>
+				</Accordion.Item>
+			</Accordion.Root>
 		</div>
 	</details>
 
@@ -271,42 +273,19 @@
 		overscroll-behavior: contain;
 		scrollbar-width: thin;
 		scrollbar-color: var(--ui-line) transparent;
-		padding: 0.25rem 1rem;
-		border-radius: var(--ui-radius);
+		padding: 0.25rem 1.125rem;
+		border-radius: calc(var(--ui-radius) * 1.5);
 		background: var(--ui-surface);
 		box-shadow: var(--ui-shadow-xs);
-		overscroll-behavior: contain;
 	}
-	.group {
+	/* The accordion clips while it animates, so content keeps room for focus rings. */
+	.pane,
+	.list {
+		padding: 4px;
+	}
+	.pane {
 		display: grid;
-		gap: 0.5rem;
-		padding-block: 0.875rem;
-	}
-	.group + .group {
-		border-block-start: 1px solid var(--ui-line);
-	}
-	.group > summary {
-		display: flex;
-		justify-content: space-between;
-		font-size: 0.8125rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
-		list-style: none;
-		cursor: pointer;
-	}
-	.group > summary::-webkit-details-marker {
-		display: none;
-	}
-	.group > summary::after {
-		content: '−';
-		color: var(--ui-muted);
-	}
-	.group:not([open]) > summary::after {
-		content: '+';
-	}
-	.group[open] > summary {
-		margin-block-end: 0.25rem;
+		gap: 0.75rem;
 	}
 	.list {
 		display: grid;
@@ -323,21 +302,6 @@
 		font-size: 0.75rem;
 		font-variant-numeric: tabular-nums;
 	}
-	.more > summary {
-		inline-size: fit-content;
-		color: var(--ui-accent);
-		font-size: 0.875rem;
-		font-weight: 500;
-		list-style: none;
-		cursor: pointer;
-	}
-	.more > summary::-webkit-details-marker {
-		display: none;
-	}
-	.more[open] > summary {
-		margin-block-end: 0.375rem;
-	}
-	:is(.group, .more) > summary:focus-visible,
 	.cats a:focus-visible,
 	.chips a:focus-visible {
 		outline: var(--ui-ring-width) solid var(--ui-ring);
@@ -348,7 +312,7 @@
 		display: grid;
 		gap: 0.125rem;
 		margin: 0;
-		padding: 0;
+		padding: 4px;
 		list-style: none;
 		font-size: 0.875rem;
 	}

@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { cart as t, errorText } from '#lib/copy.js';
 import { saveCartToken } from '#lib/server/session.js';
 import type { Actions, PageServerLoad } from './$types';
@@ -46,22 +46,27 @@ const read = (form: FormData) => ({
 	quantity: Math.max(0, Math.min(99, Math.trunc(Number(form.get('quantity')) || 0)))
 });
 
+// Adds to what's already in the bag, so pressing "Add to bag" twice means two.
+async function add(api: Api, cookies: Parameters<Actions[string]>[0]['cookies'], form: FormData) {
+	const { variant, quantity } = read(form);
+	const { data } = await api.GET('/v1/cart');
+	const already = data?.items.find((i) => i.variant_id === variant)?.quantity ?? 0;
+	return setQuantity(api, cookies, variant, Math.min(99, already + Math.max(1, quantity)));
+}
+
 export const actions: Actions = {
-	// Adds to what's already in the bag, so pressing "Add to bag" twice means two.
 	add: async ({ request, locals, cookies }) => {
-		const { variant, quantity } = read(await request.formData());
-		const { data } = await locals.api.GET('/v1/cart');
-		const already = data?.items.find((i) => i.variant_id === variant)?.quantity ?? 0;
-		const result = await setQuantity(
-			locals.api,
-			cookies,
-			variant,
-			Math.min(99, already + Math.max(1, quantity))
-		);
+		const result = await add(locals.api, cookies, await request.formData());
 		if ('cart' in result) {
-			const name = result.cart.items.find((i) => i.variant_id === variant)?.name ?? '';
+			const name = result.cart.items.find((i) => i.variant_id === result.variant)?.name ?? '';
 			return { ...result, added: t.added(name) };
 		}
+		return result;
+	},
+	// ponytail: goes to the bag until checkout exists; point it at /checkout then.
+	buy: async ({ request, locals, cookies }) => {
+		const result = await add(locals.api, cookies, await request.formData());
+		if ('cart' in result) redirect(303, '/cart');
 		return result;
 	},
 	set: async ({ request, locals, cookies }) => {

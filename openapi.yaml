@@ -1362,6 +1362,10 @@ components:
         contact_phone:
           type: [string, "null"]
           maxLength: 20
+        whatsapp:
+          description: A mobile number (01XXXXXXXXX) shoppers can message to order; null hides the button.
+          type: [string, "null"]
+          pattern: "^01[3-9][0-9]{8}$"
         contact_email:
           type: [string, "null"]
           format: email

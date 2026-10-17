@@ -102,6 +102,16 @@
 				error={fields.contact_phone}
 			/>
 			<Input
+				label={t.whatsapp}
+				placeholder={ph.phone}
+				name="whatsapp"
+				type="tel"
+				inputmode="numeric"
+				value={store.whatsapp}
+				hint={t.whatsappHint}
+				error={fields.whatsapp}
+			/>
+			<Input
 				label={t.contactEmail}
 				placeholder={ph.email}
 				name="contact_email"

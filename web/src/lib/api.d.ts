@@ -824,6 +824,8 @@ export interface components {
             /** @description ISO 4217 code. */
             currency: string;
             contact_phone?: string | null;
+            /** @description A mobile number (01XXXXXXXXX) shoppers can message to order; null hides the button. */
+            whatsapp?: string | null;
             /** Format: email */
             contact_email?: string | null;
             vat: components["schemas"]["Vat"];
