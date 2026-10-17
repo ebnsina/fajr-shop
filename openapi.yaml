@@ -1,0 +1,152 @@
+openapi: 3.1.0
+info:
+  title: Fajr Shop API
+  version: 0.1.0
+  description: |
+    The only way into a Fajr shop. The storefront, admin, mobile apps and integrations all use it.
+
+    Errors always look like `{"error": {"code": "...", "message": "...", "fields": {...}}}`.
+    `code` is stable and machine-readable; show your own words for it. `message` is English and
+    may change.
+
+    Money is an integer in the currency's minor unit (poisha for BDT) and always comes with
+    its `currency`.
+servers:
+  - url: /
+tags:
+  - name: system
+  - name: store
+
+paths:
+  /v1/health:
+    get:
+      operationId: getHealth
+      tags: [system]
+      summary: Is the API up and can it reach its database
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/store:
+    get:
+      operationId: getStore
+      tags: [store]
+      summary: The shop's public settings
+      description: Name, branding, currency and VAT. Every client reads this on start.
+      parameters:
+        - name: If-None-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Store settings
+          headers:
+            ETag:
+              required: true
+              schema:
+                type: string
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+        "304":
+          description: Unchanged since the given ETag
+        default:
+          $ref: "#/components/responses/Error"
+
+components:
+  responses:
+    Error:
+      description: Something went wrong; `error.code` says what
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              $ref: "#/components/schemas/ErrorCode"
+            message:
+              type: string
+            fields:
+              description: Per-field problems, keyed by field path.
+              type: object
+              additionalProperties:
+                type: string
+
+    ErrorCode:
+      type: string
+      enum:
+        - validation
+        - not_found
+        - method_not_allowed
+        - rate_limited
+        - internal
+
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+
+    Store:
+      type: object
+      required: [name, currency, vat]
+      properties:
+        name:
+          type: string
+        logo_url:
+          type: [string, "null"]
+        accent_color:
+          description: Hex color, e.g. "#0f766e".
+          type: [string, "null"]
+        currency:
+          description: ISO 4217 code.
+          type: string
+          minLength: 3
+          maxLength: 3
+        contact_phone:
+          type: [string, "null"]
+        contact_email:
+          type: [string, "null"]
+        vat:
+          $ref: "#/components/schemas/Vat"
+
+    Vat:
+      type: object
+      required: [enabled, rate_bp, prices_include_vat]
+      properties:
+        enabled:
+          type: boolean
+        rate_bp:
+          description: Default rate in basis points (500 = 5%).
+          type: integer
+          minimum: 0
+          maximum: 10000
+        prices_include_vat:
+          type: boolean
+        bin:
+          description: Business Identification Number, printed on Mushak-6.3 invoices.
+          type: [string, "null"]
