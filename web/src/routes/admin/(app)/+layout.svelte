@@ -13,6 +13,7 @@
 		Key01Icon,
 		PackageIcon,
 		ShoppingBag01Icon,
+		UserGroupIcon,
 		Store01Icon
 	} from '@hugeicons/core-free-icons';
 	import { nav } from '#lib/copy.js';
@@ -27,7 +28,8 @@
 		{
 			items: [
 				{ label: nav.overview, href: '/admin', icon: DashboardSquare01Icon },
-				{ label: nav.orders, href: '/admin/orders', icon: ShoppingBag01Icon }
+				{ label: nav.orders, href: '/admin/orders', icon: ShoppingBag01Icon },
+				{ label: nav.customers, href: '/admin/customers', icon: UserGroupIcon }
 			]
 		},
 		{

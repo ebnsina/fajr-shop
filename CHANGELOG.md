@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dashboard → Customers: every account with its orders, spending and last order, searchable by
+  name, email or phone; a customer's page lists their orders. (`/v1/admin/customers`, needs
+  `orders:write`.)
 - Product cards' buttons work in place: the bag opens a quick-add window (options, price,
   stock, Add to bag) for products with options, and adds one-variant products straight away;
   the heart saves for guests too, on their device, and those saves move to the account on

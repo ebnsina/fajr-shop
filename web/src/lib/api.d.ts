@@ -896,6 +896,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Customer accounts, newest first, with what they've ordered
+         * @description Needs `orders:write`. Guests have no account; find their orders by phone instead.
+         */
+        get: operations["adminListCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/customers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        /**
+         * One customer with their orders
+         * @description Needs `orders:write`.
+         */
+        get: operations["adminGetCustomer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/banners": {
         parameters: {
             query?: never;
@@ -1442,6 +1484,27 @@ export interface components {
             currency: string;
             /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
             token?: string | null;
+        };
+        CustomerSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            email?: string | null;
+            phone?: string | null;
+            order_count: number;
+            /**
+             * Format: int64
+             * @description Totals of their orders that aren't cancelled, in poisha.
+             */
+            spent: number;
+            /** Format: date-time */
+            last_order_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            disabled?: boolean;
+        };
+        Customer: components["schemas"]["CustomerSummary"] & {
+            orders: components["schemas"]["OrderSummary"][];
         };
         /** @enum {string} */
         OrderStatus: "pending" | "confirmed" | "packed" | "shipped" | "delivered" | "cancelled";
@@ -3243,6 +3306,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListCustomers: {
+        parameters: {
+            query?: {
+                /** @description Part of a name or email, or 4+ digits of a phone number. */
+                q?: string;
+                /** @description `next_cursor` from the previous page. */
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Customers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CustomerSummary"][];
+                        next_cursor?: string | null;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminGetCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The customer */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
                 };
             };
             default: components["responses"]["Error"];

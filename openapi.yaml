@@ -1375,6 +1375,61 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/admin/customers:
+    get:
+      operationId: adminListCustomers
+      tags: [admin, orders]
+      summary: Customer accounts, newest first, with what they've ordered
+      description: Needs `orders:write`. Guests have no account; find their orders by phone instead.
+      security:
+        - bearer: []
+      parameters:
+        - name: q
+          in: query
+          description: Part of a name or email, or 4+ digits of a phone number.
+          schema:
+            type: string
+            maxLength: 80
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Customers
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CustomerSummary"
+                  next_cursor:
+                    type: [string, "null"]
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/customers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      operationId: adminGetCustomer
+      tags: [admin, orders]
+      summary: One customer with their orders
+      description: Needs `orders:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: The customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/banners:
     get:
       operationId: listBanners
@@ -2487,6 +2542,45 @@ components:
         token:
           description: Only when this response created a guest cart. Send it back as X-Cart-Token.
           type: [string, "null"]
+
+    CustomerSummary:
+      type: object
+      required: [id, name, order_count, spent, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: [string, "null"]
+        phone:
+          type: [string, "null"]
+        order_count:
+          type: integer
+        spent:
+          description: Totals of their orders that aren't cancelled, in poisha.
+          type: integer
+          format: int64
+        last_order_at:
+          type: [string, "null"]
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        disabled:
+          type: boolean
+
+    Customer:
+      allOf:
+        - $ref: "#/components/schemas/CustomerSummary"
+        - type: object
+          required: [orders]
+          properties:
+            orders:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderSummary"
 
     OrderStatus:
       type: string

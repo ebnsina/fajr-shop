@@ -192,7 +192,7 @@ func TestRegisterSignInAndOut(t *testing.T) {
 	s := h.register(email)
 
 	me := decode[apigen.User](t, expect2(t, h.call("GET", "/v1/me", s.AccessToken, nil), 200))
-	if string(*me.Email) != email || me.Role != apigen.Customer || len(me.Permissions) != 0 {
+	if string(*me.Email) != email || me.Role != apigen.RoleCustomer || len(me.Permissions) != 0 {
 		t.Errorf("me = %+v", me)
 	}
 

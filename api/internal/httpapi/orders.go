@@ -262,22 +262,7 @@ func (s *Server) AdminListOrders(ctx context.Context, req apigen.AdminListOrders
 	if st := req.Params.Status; st != nil {
 		params.Status = dbq.NullOrderStatus{OrderStatus: dbq.OrderStatus(*st), Valid: true}
 	}
-	if q := strings.TrimSpace(ptrOr(req.Params.Q)); q != "" {
-		params.Q = &q
-		// LIKE's own wildcards in a name are matched as themselves.
-		name := strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(q)
-		params.NameLike = &name
-		digits := strings.Map(func(r rune) rune {
-			if r >= '0' && r <= '9' {
-				return r
-			}
-			return -1
-		}, q)
-		digits = strings.TrimPrefix(strings.TrimPrefix(digits, "88"), "0") // match +8801… however it's typed
-		if len(digits) >= 4 {
-			params.Digits = &digits
-		}
-	}
+	params.Q, params.NameLike, params.Digits = searchTerms(ptrOr(req.Params.Q))
 	if c := req.Params.Cursor; c != nil {
 		n, err := strconv.ParseInt(*c, 10, 64)
 		if err != nil {
@@ -451,4 +436,25 @@ func ptrOr(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+// searchTerms reads a dashboard search box: nil when empty; else the text, a LIKE pattern with its
+// own wildcards escaped, and a phone number's digits (4+, country code and leading 0 dropped).
+func searchTerms(raw string) (q, pattern, digits *string) {
+	text := strings.TrimSpace(raw)
+	if text == "" {
+		return nil, nil, nil
+	}
+	like := strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(text)
+	d := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, text)
+	d = strings.TrimPrefix(strings.TrimPrefix(d, "88"), "0")
+	if len(d) >= 4 {
+		digits = &d
+	}
+	return &text, &like, digits
 }

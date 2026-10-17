@@ -138,6 +138,24 @@ func TestCheckoutAndOrders(t *testing.T) {
 		t.Errorf("search found %v", got)
 	}
 
+	// Customers: the one who ordered, found by name, with what they've spent; guests aren't accounts.
+	expect(t, h.call("GET", "/v1/admin/customers", stranger.AccessToken, nil), 403, apigen.Forbidden)
+	found := decode[struct{ Items []apigen.CustomerSummary }](t, expect2(t, h.call("GET", "/v1/admin/customers?limit=100&q=battuta", staff.AccessToken, nil), 200)).Items
+	var me *apigen.CustomerSummary
+	for i := range found {
+		if found[i].Id == stranger.User.Id {
+			me = &found[i]
+		}
+	}
+	if me == nil || me.OrderCount != 1 || me.Spent != mine.Total || me.LastOrderAt == nil {
+		t.Fatalf("customer in list: %+v", me)
+	}
+	one := decode[apigen.Customer](t, expect2(t, h.call("GET", "/v1/admin/customers/"+stranger.User.Id.String(), staff.AccessToken, nil), 200))
+	if len(one.Orders) != 1 || one.Orders[0].Number != mine.Number {
+		t.Errorf("customer orders: %+v", one.Orders)
+	}
+	expect(t, h.call("GET", "/v1/admin/customers/"+staff.User.Id.String(), staff.AccessToken, nil), 404, apigen.NotFound) // staff aren't customers
+
 	// The overview counts orders for those who handle them, and only for them.
 	ov := decode[apigen.Overview](t, expect2(t, h.call("GET", "/v1/admin/overview", staff.AccessToken, nil), 200))
 	if ov.Orders == nil || ov.Orders.TodayOrders < 1 || ov.Orders.TodaySales < mine.Total {

@@ -85,6 +85,7 @@ export const nav = {
 	label: 'Shop dashboard',
 	overview: 'Overview',
 	orders: 'Orders',
+	customers: 'Customers',
 	shop: 'Shop',
 	catalog: 'Catalog',
 	products: 'Products',
@@ -792,6 +793,29 @@ export const orderAdmin = {
 	call: 'Call',
 	emptyTitle: 'No orders here',
 	emptyBody: 'Orders appear here as customers place them.'
+};
+
+export const customerAdmin = {
+	title: 'Customers',
+	description:
+		'Everyone with an account, newest first. Guests have no account: find their orders by phone.',
+	search: 'Search customers',
+	searchButton: 'Search',
+	searchPlaceholder: 'Name, email or phone',
+	name: 'Customer',
+	orders: 'Orders',
+	spent: 'Spent',
+	lastOrder: 'Last order',
+	joined: 'Joined',
+	never: 'No orders yet',
+	disabled: 'Switched off',
+	more: 'More customers',
+	back: 'All customers',
+	contact: 'Contact',
+	noOrders: 'No orders yet.',
+	noMatch: (q: string) => `No customers match “${q}”.`,
+	emptyTitle: 'No customers yet',
+	emptyBody: 'Customers appear here when they create an account.'
 };
 
 export const checkoutCopy = {
