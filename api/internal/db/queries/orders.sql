@@ -97,3 +97,22 @@ FROM days LEFT JOIN orders o
     ON o.created_at >= days.d AND o.created_at < days.d + interval '1 day' AND o.status <> 'cancelled'
 GROUP BY days.d
 ORDER BY days.d;
+
+-- name: ReserveShipment :one
+INSERT INTO shipments (order_id, provider, cod_amount) VALUES ($1, $2, $3)
+ON CONFLICT (order_id) DO NOTHING
+RETURNING *;
+
+-- name: BookedShipment :one
+UPDATE shipments SET consignment_id = $2, tracking_code = $3, courier_status = $4, updated_at = now()
+WHERE order_id = $1
+RETURNING *;
+
+-- name: DropShipment :exec
+DELETE FROM shipments WHERE order_id = $1 AND courier_status = 'booking';
+
+-- name: ShipmentForOrder :one
+SELECT * FROM shipments WHERE order_id = $1;
+
+-- name: SetShipmentStatus :one
+UPDATE shipments SET courier_status = $2, updated_at = now() WHERE order_id = $1 RETURNING *;

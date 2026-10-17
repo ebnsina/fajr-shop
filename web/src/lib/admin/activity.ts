@@ -37,6 +37,11 @@ export function describe(e: Entry): { text: string; href?: string } {
 			return { text: `${did} category ${name}`.trim(), href: '/admin/categories' };
 		case 'banner':
 			return { text: `${did} a banner`, href: '/admin/banners' };
+		case 'shipment':
+			return {
+				text: `Booked order #${e.entity_id} with ${field(now, 'provider_name')}`,
+				href: `/admin/orders/${e.entity_id}`
+			};
 		case 'provider': {
 			const on = now?.enabled === true;
 			const flipped = was ? was.enabled !== now?.enabled : false;

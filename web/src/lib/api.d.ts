@@ -872,6 +872,73 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/orders/{number}/shipment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Book the order's parcel with a courier
+         * @description Needs `orders:write`. The order must be confirmed or packed and not booked yet
+         *     (`already_booked`). The courier must be switched on in Integrations. The rider collects the
+         *     order total. On success the order moves to shipped. A courier's refusal is `courier_error`
+         *     with its reason.
+         */
+        post: operations["bookShipment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/orders/{number}/shipment/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask the courier where the parcel is
+         * @description Needs `orders:write`. A delivered parcel moves a shipped order to delivered.
+         */
+        post: operations["refreshShipment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/couriers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Couriers switched on, to book parcels with
+         * @description Needs `orders:write`.
+         */
+        get: operations["adminListCouriers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/orders/{number}/status": {
         parameters: {
             query?: never;
@@ -1258,7 +1325,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "not_deliverable" | "cart_empty" | "cart_changed" | "status_changed" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
+        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "already_booked" | "courier_error" | "not_deliverable" | "cart_empty" | "cart_changed" | "status_changed" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
         Provider: {
             code: string;
             /** @enum {string} */
@@ -1682,7 +1749,20 @@ export interface components {
             /** Format: date-time */
             created_at: string;
         };
+        Shipment: {
+            provider: string;
+            provider_name: string;
+            consignment_id?: string | null;
+            tracking_code?: string | null;
+            /** @description The courier's own word, like in_review, pending, delivered or cancelled; booking while the call is under way. */
+            status: string;
+            /** Format: int64 */
+            cod_amount: number;
+            /** Format: date-time */
+            created_at: string;
+        };
         Order: components["schemas"]["OrderSummary"] & {
+            shipment?: components["schemas"]["Shipment"] | null;
             email?: string | null;
             area: string;
             address: string;
@@ -3421,6 +3501,84 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    bookShipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    provider: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Booked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    refreshShipment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The order with the courier's latest status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListCouriers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Couriers that are on */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            code: string;
+                            name: string;
+                        }[];
+                    };
                 };
             };
             default: components["responses"]["Error"];

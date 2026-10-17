@@ -177,6 +177,40 @@ func (q *Queries) AdminOrders(ctx context.Context, arg AdminOrdersParams) ([]Adm
 	return items, nil
 }
 
+const bookedShipment = `-- name: BookedShipment :one
+UPDATE shipments SET consignment_id = $2, tracking_code = $3, courier_status = $4, updated_at = now()
+WHERE order_id = $1
+RETURNING order_id, provider, consignment_id, tracking_code, courier_status, cod_amount, created_at, updated_at
+`
+
+type BookedShipmentParams struct {
+	OrderID       uuid.UUID
+	ConsignmentID *string
+	TrackingCode  *string
+	CourierStatus string
+}
+
+func (q *Queries) BookedShipment(ctx context.Context, arg BookedShipmentParams) (Shipment, error) {
+	row := q.db.QueryRow(ctx, bookedShipment,
+		arg.OrderID,
+		arg.ConsignmentID,
+		arg.TrackingCode,
+		arg.CourierStatus,
+	)
+	var i Shipment
+	err := row.Scan(
+		&i.OrderID,
+		&i.Provider,
+		&i.ConsignmentID,
+		&i.TrackingCode,
+		&i.CourierStatus,
+		&i.CodAmount,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createOrder = `-- name: CreateOrder :one
 INSERT INTO orders (user_id, token_hash, payment_method, customer_name, phone, email, district, area, address, note,
     subtotal, discount_code, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included,
@@ -300,6 +334,15 @@ func (q *Queries) DailySales(ctx context.Context) ([]DailySalesRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const dropShipment = `-- name: DropShipment :exec
+DELETE FROM shipments WHERE order_id = $1 AND courier_status = 'booking'
+`
+
+func (q *Queries) DropShipment(ctx context.Context, orderID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, dropShipment, orderID)
+	return err
 }
 
 const emptyCart = `-- name: EmptyCart :exec
@@ -622,6 +665,34 @@ func (q *Queries) OrderStockMovement(ctx context.Context, arg OrderStockMovement
 	return err
 }
 
+const reserveShipment = `-- name: ReserveShipment :one
+INSERT INTO shipments (order_id, provider, cod_amount) VALUES ($1, $2, $3)
+ON CONFLICT (order_id) DO NOTHING
+RETURNING order_id, provider, consignment_id, tracking_code, courier_status, cod_amount, created_at, updated_at
+`
+
+type ReserveShipmentParams struct {
+	OrderID   uuid.UUID
+	Provider  string
+	CodAmount int64
+}
+
+func (q *Queries) ReserveShipment(ctx context.Context, arg ReserveShipmentParams) (Shipment, error) {
+	row := q.db.QueryRow(ctx, reserveShipment, arg.OrderID, arg.Provider, arg.CodAmount)
+	var i Shipment
+	err := row.Scan(
+		&i.OrderID,
+		&i.Provider,
+		&i.ConsignmentID,
+		&i.TrackingCode,
+		&i.CourierStatus,
+		&i.CodAmount,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const returnStock = `-- name: ReturnStock :exec
 UPDATE variants SET stock = stock + $1 WHERE id = $2
 `
@@ -677,6 +748,51 @@ func (q *Queries) SetOrderStatus(ctx context.Context, arg SetOrderStatusParams) 
 		&i.VatTotal,
 		&i.Total,
 		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const setShipmentStatus = `-- name: SetShipmentStatus :one
+UPDATE shipments SET courier_status = $2, updated_at = now() WHERE order_id = $1 RETURNING order_id, provider, consignment_id, tracking_code, courier_status, cod_amount, created_at, updated_at
+`
+
+type SetShipmentStatusParams struct {
+	OrderID       uuid.UUID
+	CourierStatus string
+}
+
+func (q *Queries) SetShipmentStatus(ctx context.Context, arg SetShipmentStatusParams) (Shipment, error) {
+	row := q.db.QueryRow(ctx, setShipmentStatus, arg.OrderID, arg.CourierStatus)
+	var i Shipment
+	err := row.Scan(
+		&i.OrderID,
+		&i.Provider,
+		&i.ConsignmentID,
+		&i.TrackingCode,
+		&i.CourierStatus,
+		&i.CodAmount,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const shipmentForOrder = `-- name: ShipmentForOrder :one
+SELECT order_id, provider, consignment_id, tracking_code, courier_status, cod_amount, created_at, updated_at FROM shipments WHERE order_id = $1
+`
+
+func (q *Queries) ShipmentForOrder(ctx context.Context, orderID uuid.UUID) (Shipment, error) {
+	row := q.db.QueryRow(ctx, shipmentForOrder, orderID)
+	var i Shipment
+	err := row.Scan(
+		&i.OrderID,
+		&i.Provider,
+		&i.ConsignmentID,
+		&i.TrackingCode,
+		&i.CourierStatus,
+		&i.CodAmount,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

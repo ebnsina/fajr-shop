@@ -428,6 +428,12 @@ func loadOrder(ctx context.Context, q *dbq.Queries, o dbq.Order) (apigen.Order, 
 	for _, n := range nextStatuses[o.Status] {
 		out.NextStatuses = append(out.NextStatuses, apigen.OrderStatus(n))
 	}
+	sh, err := q.ShipmentForOrder(ctx, o.ID)
+	if err == nil {
+		out.Shipment = toShipment(sh)
+	} else if !errors.Is(err, pgx.ErrNoRows) {
+		return apigen.Order{}, fmt.Errorf("order shipment: %w", err)
+	}
 	return out, nil
 }
 

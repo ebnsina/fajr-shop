@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Orders: "Send with courier" books a confirmed or packed order with Steadfast (switched on in
+  Integrations): the rider collects the order total, the order moves to on the way, and the
+  tracking code shows on the order for the shop and the customer. "Check parcel status" asks
+  Steadfast where it is and marks the order delivered when it is. A refusal says Steadfast's
+  reason; an order can't be booked twice. Pathao and RedX booking come next. (`POST
+  /v1/admin/orders/{number}/shipment`, `…/shipment/refresh`, `GET /v1/admin/couriers`; run
+  `fajr migrate` for `00014_shipments`.)
 - Dashboard → Integrations: connect the shop's own Steadfast, Pathao or RedX; bKash, Nagad,
   SSLCommerz, aamarPay or ShurjoPay; and BulkSMSBD or SSL Wireless accounts. Keys are pasted in a
   two-step dialog (keys, then test or live), stored encrypted, and never shown again; leaving a

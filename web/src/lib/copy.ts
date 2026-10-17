@@ -16,6 +16,8 @@ export const errors: Record<ErrorCode, string> = {
 	rate_limited: 'Too many tries. Wait a minute, then try again.',
 	internal: 'Something went wrong on our side. Try again in a moment.',
 	in_use: 'This is still in use. Move what’s in it first.',
+	already_booked: 'This order is already booked with a courier.',
+	courier_error: 'The courier couldn’t take this parcel. Try again in a minute.',
 	not_deliverable: 'We don’t deliver to that district yet.',
 	cart_empty: 'Your bag is empty.',
 	cart_changed: 'Something in your bag changed. Check your bag and try again.',
@@ -816,6 +818,29 @@ export const questionAdmin = {
 	emptyBody: 'Questions appear here as customers ask them.'
 };
 
+export const parcelCopy = {
+	title: 'Parcel',
+	with: (courier: string) => `With ${courier}`,
+	tracking: 'Tracking code',
+	consignment: 'Consignment',
+	collects: 'Collects',
+	/** Couriers' own status words, in plain language. */
+	statuses: {
+		booking: 'Being booked',
+		in_review: 'Waiting for the courier to accept',
+		pending: 'With the courier',
+		hold: 'On hold at the courier',
+		delivered: 'Delivered',
+		partial_delivered: 'Partly delivered',
+		cancelled: 'Cancelled by the courier',
+		delivered_approval_pending: 'Delivered, courier confirming',
+		partial_delivered_approval_pending: 'Partly delivered, courier confirming',
+		cancelled_approval_pending: 'Being cancelled, courier confirming',
+		unknown_approval_pending: 'Courier is checking',
+		unknown: 'Courier is checking'
+	} as Record<string, string>
+};
+
 export const orderCopy = {
 	statuses: {
 		pending: 'Placed',
@@ -882,7 +907,16 @@ export const orderAdmin = {
 	call: 'Call',
 	emptyTitle: 'No orders here',
 	emptyBody: 'Orders appear here as customers place them.',
-	view: 'View order'
+	view: 'View order',
+	sendWith: 'Send with courier',
+	sendTitle: 'Send with a courier',
+	sendStep: 'Courier',
+	chooseCourier: 'Which courier?',
+	collects: (amount: string) => `The rider collects ${amount} from the customer.`,
+	sendButton: 'Book parcel',
+	sent: (courier: string) => `Booked with ${courier}`,
+	checkParcel: 'Check parcel status',
+	checked: 'Parcel status updated'
 };
 
 export const customerAdmin = {

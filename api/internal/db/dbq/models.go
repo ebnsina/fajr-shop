@@ -385,6 +385,17 @@ type Session struct {
 	RevokedAt           pgtype.Timestamptz
 }
 
+type Shipment struct {
+	OrderID       uuid.UUID
+	Provider      string
+	ConsignmentID *string
+	TrackingCode  *string
+	CourierStatus string
+	CodAmount     int64
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
+}
+
 type ShippingZone struct {
 	ID           uuid.UUID
 	Name         string

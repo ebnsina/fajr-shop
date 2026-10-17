@@ -1331,6 +1331,104 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/admin/orders/{number}/shipment:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    post:
+      operationId: bookShipment
+      tags: [admin, orders]
+      summary: Book the order's parcel with a courier
+      description: |
+        Needs `orders:write`. The order must be confirmed or packed and not booked yet
+        (`already_booked`). The courier must be switched on in Integrations. The rider collects the
+        order total. On success the order moves to shipped. A courier's refusal is `courier_error`
+        with its reason.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [provider]
+              properties:
+                provider:
+                  type: string
+                  maxLength: 32
+      responses:
+        "200":
+          description: Booked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/orders/{number}/shipment/refresh:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    post:
+      operationId: refreshShipment
+      tags: [admin, orders]
+      summary: Ask the courier where the parcel is
+      description: Needs `orders:write`. A delivered parcel moves a shipped order to delivered.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: The order with the courier's latest status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/couriers:
+    get:
+      operationId: adminListCouriers
+      tags: [admin, orders]
+      summary: Couriers switched on, to book parcels with
+      description: Needs `orders:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Couriers that are on
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [code, name]
+                      properties:
+                        code:
+                          type: string
+                        name:
+                          type: string
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/admin/orders/{number}/status:
     parameters:
       - name: number
@@ -2065,6 +2163,8 @@ components:
         - invalid_credentials
         - account_exists
         - in_use
+        - already_booked
+        - courier_error
         - not_deliverable
         - cart_empty
         - cart_changed
@@ -2906,12 +3006,38 @@ components:
           type: string
           format: date-time
 
+    Shipment:
+      type: object
+      required: [provider, provider_name, status, cod_amount, created_at]
+      properties:
+        provider:
+          type: string
+        provider_name:
+          type: string
+        consignment_id:
+          type: [string, "null"]
+        tracking_code:
+          type: [string, "null"]
+        status:
+          type: string
+          description: The courier's own word, like in_review, pending, delivered or cancelled; booking while the call is under way.
+        cod_amount:
+          type: integer
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+
     Order:
       allOf:
         - $ref: "#/components/schemas/OrderSummary"
         - type: object
           required: [area, address, subtotal, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, items, events, next_statuses]
           properties:
+            shipment:
+              oneOf:
+                - $ref: "#/components/schemas/Shipment"
+                - type: "null"
             email:
               type: [string, "null"]
             area:

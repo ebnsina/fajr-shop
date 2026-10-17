@@ -20,7 +20,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		params: { path: { number: number(params.number) } }
 	});
 	if (!data) error(response.status, errorText(err?.error.code));
-	return { order: data };
+	const couriers = await locals.api.GET('/v1/admin/couriers');
+	return { order: data, couriers: couriers.data?.items ?? [] };
 };
 
 export const actions: Actions = {
@@ -38,5 +39,28 @@ export const actions: Actions = {
 		});
 		if (err) return fail(400, { message: err.error.fields?.to ?? errorText(err.error.code) });
 		return { to };
+	},
+	book: async ({ request, locals, params }) => {
+		const provider = String((await request.formData()).get('provider') ?? '');
+		const { data, error: err } = await locals.api.POST('/v1/admin/orders/{number}/shipment', {
+			params: { path: { number: number(params.number) } },
+			body: { provider }
+		});
+		if (!data)
+			return fail(400, {
+				message:
+					err?.error.fields?.provider ??
+					(err?.error.code === 'courier_error' ? err.error.message : errorText(err?.error.code))
+			});
+		return { booked: data.shipment?.provider_name ?? '' };
+	},
+	refresh: async ({ locals, params }) => {
+		const { error: err } = await locals.api.POST('/v1/admin/orders/{number}/shipment/refresh', {
+			params: { path: { number: number(params.number) } }
+		});
+		if (err)
+			return fail(400, {
+				message: err.error.code === 'courier_error' ? err.error.message : errorText(err.error.code)
+			});
 	}
 };

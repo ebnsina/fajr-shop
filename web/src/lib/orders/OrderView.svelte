@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { components } from '#lib/api.js';
-	import { orderCopy as t } from '#lib/copy.js';
+	import { orderCopy as t, parcelCopy as pc } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
@@ -70,6 +70,22 @@
 			</div>
 		</Card>
 
+		{#if o.shipment}
+			{@const sh = o.shipment}
+			<Card title={pc.title} level={2}>
+				<dl class="parcel">
+					<dt>{pc.with(sh.provider_name)}</dt>
+					<dd>{pc.statuses[sh.status] ?? sh.status}</dd>
+					{#if sh.tracking_code}
+						<dt>{pc.tracking}</dt>
+						<dd><code>{sh.tracking_code}</code></dd>
+					{/if}
+					<dt>{pc.collects}</dt>
+					<dd>{formatMoney(sh.cod_amount)}</dd>
+				</dl>
+			</Card>
+		{/if}
+
 		<Card title={t.timeline} level={2}>
 			<ol class="timeline">
 				{#each o.events as e, i (i)}
@@ -99,6 +115,22 @@
 	h3 {
 		margin: 0.5rem 0 0;
 		font-size: 0.9375rem;
+	}
+	.parcel {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.375rem 1rem;
+		margin: 0;
+	}
+	.parcel dt {
+		color: var(--text-secondary);
+	}
+	.parcel dd {
+		margin: 0;
+		text-align: end;
+	}
+	.parcel code {
+		font-family: var(--ui-font-mono);
 	}
 	.side {
 		display: grid;
