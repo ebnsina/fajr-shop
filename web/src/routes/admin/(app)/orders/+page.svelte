@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { orderAdmin as t, orderCopy as o } from '#lib/copy.js';
+	import { admin as a, orderAdmin as t, orderCopy as o, orderCopy as oc } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
+	import Table from '#lib/sinaui/ui/Table.svelte';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import SearchField from '#lib/sinaui/ui/SearchField.svelte';
 	import type { PageProps } from './$types';
@@ -54,8 +57,8 @@
 </div>
 
 {#if data.orders.length}
-	<div class="table">
-		<table>
+	<Card>
+		<Table caption={t.title} hideCaption>
 			<thead>
 				<tr>
 					<th scope="col">#</th>
@@ -64,6 +67,7 @@
 					<th scope="col">{t.items}</th>
 					<th scope="col" class="num">{t.total}</th>
 					<th scope="col">{t.status}</th>
+					<th scope="col"><span class="sr">{a.actions('')}</span></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -78,11 +82,20 @@
 						<td>{x.item_count}</td>
 						<td class="num">{formatMoney(x.total)}</td>
 						<td><StatusBadge status={x.status} /></td>
+						<td class="menu">
+							<RowMenu
+								label={a.actions(oc.number(x.number))}
+								actions={[
+									{ label: t.view, href: `/admin/orders/${x.number}` },
+									{ label: t.call, href: `tel:${x.phone}` }
+								]}
+							/>
+						</td>
 					</tr>
 				{/each}
 			</tbody>
-		</table>
-	</div>
+		</Table>
+	</Card>
 	{#if data.next}
 		<div class="more">
 			<Button
@@ -122,36 +135,6 @@
 		flex-wrap: wrap;
 		gap: 0.375rem;
 	}
-	.table {
-		overflow-x: auto;
-		border-radius: var(--ui-radius);
-		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-card);
-	}
-	table {
-		inline-size: 100%;
-		border-collapse: collapse;
-		font-size: 0.875rem;
-	}
-	th,
-	td {
-		padding: 0.75rem 1rem;
-		border-block-end: 1px solid var(--border);
-		text-align: start;
-		vertical-align: middle;
-	}
-	th {
-		color: var(--text-secondary);
-		font-weight: 600;
-		white-space: nowrap;
-	}
-	tr:last-child td {
-		border-block-end: 0;
-	}
-	.num {
-		text-align: end;
-		font-variant-numeric: tabular-nums;
-	}
 	td a {
 		color: var(--brand-700);
 		font-weight: 600;
@@ -167,5 +150,15 @@
 		display: flex;
 		justify-content: center;
 		margin-block-start: 1rem;
+	}
+	.menu {
+		inline-size: 1%;
+	}
+	.sr {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 </style>

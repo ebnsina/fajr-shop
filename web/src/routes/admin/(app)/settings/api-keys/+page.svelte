@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { deserialize, enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
-	import { apiKeys as t, errorText, keyScopes, permissions, ph } from '#lib/copy.js';
+	import type { components } from '#lib/api.js';
+	import { runAction } from '#lib/admin/actions.js';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
+	import StepForm from '#lib/admin/StepForm.svelte';
+	import { admin as a, apiKeys as t, keyScopes, permissions, ph } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
+	import AlertDialog from '#lib/sinaui/ui/AlertDialog.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
 	import Checkbox from '#lib/sinaui/ui/Checkbox.svelte';
-	import ConfirmButton from '#lib/sinaui/ui/ConfirmButton.svelte';
 	import CopyButton from '#lib/sinaui/ui/CopyButton.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import Input from '#lib/sinaui/ui/Input.svelte';
@@ -15,155 +17,132 @@
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
 
+	type Key = components['schemas']['ApiKey'];
 	let { data, form }: PageProps = $props();
+	const fields = $derived<Record<string, string>>((form && 'fields' in form && form.fields) || {});
+	const day = new Intl.DateTimeFormat('en-BD', { dateStyle: 'medium', timeZone: 'Asia/Dhaka' });
 
-	const fields = $derived<Record<string, string>>(form?.fields ?? {});
-	const date = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' });
-	let creating = $state(false);
-
-	async function revoke(id: string) {
-		const body = new FormData();
-		body.set('id', id);
-		const res = await fetch('?/revoke', {
-			method: 'POST',
-			body,
-			headers: { 'x-sveltekit-action': 'true' }
-		});
-		const result = deserialize(await res.text());
-		if (result.type === 'failure') {
-			toast.error(String(result.data?.message ?? errorText('internal')));
-			return;
-		}
-		toast.success(t.revoked);
-		await invalidateAll();
-	}
+	let open = $state(false);
+	let revoking = $state<Key | null>(null);
 </script>
 
 <svelte:head><title>{t.title} · {data.store.name}</title></svelte:head>
 
 <div class="head">
-	<h1>{t.title}</h1>
-	<p>{t.description}</p>
-</div>
-
-<div class="split">
 	<div>
-		{#if form && 'created' in form && form.created}
-			<Alert tone="success" title={t.createdTitle} live>
-				<p>{t.createdBody}</p>
-				<div class="key">
-					<code>{form.created.key}</code>
-					<CopyButton value={form.created.key} size="sm">{t.copy}</CopyButton>
-				</div>
-			</Alert>
-		{/if}
-
-		<Card title={t.create} level={2}>
-			<form
-				method="POST"
-				action="?/create"
-				novalidate
-				use:enhance={() => {
-					creating = true;
-					return async ({ update }) => {
-						await update();
-						creating = false;
-					};
-				}}
-			>
-				{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
-				<Input
-					label={t.name}
-					placeholder={ph.apiKeyName}
-					name="name"
-					maxlength={80}
-					hint={t.nameHint}
-					error={fields.name}
-					required
-				/>
-				<fieldset>
-					<legend>{t.scopes}</legend>
-					{#each keyScopes as value (value)}
-						<Checkbox name="scopes" {value} hint={permissions[value].hint}
-							>{permissions[value].label}</Checkbox
-						>
-					{/each}
-					{#if fields.scopes}<p class="error" role="alert">{fields.scopes}</p>{/if}
-				</fieldset>
-				<div class="actions"><Button type="submit" loading={creating}>{t.create}</Button></div>
-			</form>
-		</Card>
+		<h1>{t.title}</h1>
+		<p>{t.description}</p>
 	</div>
-	<div class="list">
-		{#if data.keys.length}
-			<Table caption={t.listCaption}>
-				<thead>
-					<tr>
-						<th>{t.columns.name}</th>
-						<th>{t.columns.key}</th>
-						<th>{t.columns.access}</th>
-						<th>{t.columns.created}</th>
-						<th><span class="sr-only">{t.columns.actions}</span></th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each data.keys as key (key.id)}
-						<tr>
-							<td>{key.name}</td>
-							<td><code>…{key.hint}</code></td>
-							<td class="scopes">
-								{#each key.scopes as s (s)}<Badge icon={false}>{permissions[s].label}</Badge>{/each}
-							</td>
-							<td>{date.format(new Date(key.created_at))}</td>
-							<td>
-								<ConfirmButton size="sm" confirm={t.revokeConfirm} onconfirm={() => revoke(key.id)}>
-									{t.revoke}
-								</ConfirmButton>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</Table>
-		{:else}
-			<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
-		{/if}
-	</div>
+	<Button onclick={() => (open = true)}>{t.create}</Button>
 </div>
+
+{#if form && 'created' in form && form.created}
+	<div class="created">
+		<Alert tone="success" title={t.createdTitle} live>
+			{t.createdBody}
+			<span class="key">
+				<code>{form.created.key}</code>
+				<CopyButton value={form.created.key} size="sm">{t.copy}</CopyButton>
+			</span>
+		</Alert>
+	</div>
+{/if}
+
+{#if data.keys.length}
+	<Card>
+		<Table caption={t.listCaption} hideCaption>
+			<thead>
+				<tr>
+					<th scope="col">{t.columns.name}</th>
+					<th scope="col">{t.columns.key}</th>
+					<th scope="col">{t.columns.access}</th>
+					<th scope="col">{t.columns.created}</th>
+					<th scope="col"><span class="sr">{t.columns.actions}</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each data.keys as key (key.id)}
+					<tr>
+						<td><strong>{key.name}</strong></td>
+						<td><code>…{key.hint}</code></td>
+						<td class="scopes">
+							{#each key.scopes as s (s)}<Badge icon={false}>{permissions[s].label}</Badge>{/each}
+						</td>
+						<td class="muted">{day.format(new Date(key.created_at))}</td>
+						<td class="menu">
+							<RowMenu
+								label={a.actions(key.name)}
+								actions={[{ label: t.revoke, danger: true, onselect: () => (revoking = key) }]}
+							/>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</Table>
+	</Card>
+{:else}
+	<EmptyState title={t.emptyTitle}>
+		{t.emptyBody}
+		{#snippet actions()}<Button onclick={() => (open = true)}>{t.create}</Button>{/snippet}
+	</EmptyState>
+{/if}
+
+{#key open}
+	<StepForm
+		bind:open
+		title={t.create}
+		action="?/create"
+		submitLabel={t.create}
+		message={form && 'message' in form ? form.message : undefined}
+		steps={[
+			{ label: t.stepName, body: name },
+			{ label: t.scopes, body: scopes }
+		]}
+	/>
+{/key}
+
+{#snippet name()}
+	<Input
+		label={t.name}
+		placeholder={ph.apiKeyName}
+		name="name"
+		maxlength={80}
+		hint={t.nameHint}
+		error={fields.name}
+		required
+	/>
+{/snippet}
+
+{#snippet scopes()}
+	<fieldset>
+		<legend>{t.scopes}</legend>
+		{#each keyScopes as value (value)}
+			<Checkbox name="scopes" {value} hint={permissions[value].hint}
+				>{permissions[value].label}</Checkbox
+			>
+		{/each}
+	</fieldset>
+	{#if fields.scopes}<Alert tone="danger" title={fields.scopes} />{/if}
+{/snippet}
+
+{#if revoking}
+	<AlertDialog
+		open
+		title={t.revokeTitle(revoking.name)}
+		description={t.revokeBody}
+		confirmLabel={t.revoke}
+		tone="danger"
+		onconfirm={async () => {
+			await runAction('revoke', { id: revoking!.id });
+			revoking = null;
+			toast.success(t.revoked);
+		}}
+	/>
+{/if}
 
 <style>
-	.head h1 {
-		margin: 0 0 0.25rem;
-		font-size: 1.5rem;
-	}
-	.head p {
-		margin: 0;
-		color: var(--ui-muted);
-	}
-	.head {
-		margin-block-end: 1.5rem;
-	}
-	form,
-	fieldset {
-		display: grid;
-		gap: 1rem;
-	}
-	fieldset {
-		margin: 0;
-		padding: 0;
-		border: 0;
-	}
-	legend {
-		margin-block-end: 0.75rem;
-		font-weight: 500;
-	}
-	.error {
-		margin: 0;
-		color: var(--ui-danger);
-		font-size: 0.875rem;
-	}
-	.actions {
-		display: flex;
-		justify-content: end;
+	.created {
+		margin-block-end: 1rem;
 	}
 	.key {
 		display: flex;
@@ -176,21 +155,34 @@
 		font-family: var(--ui-font-mono);
 		overflow-wrap: anywhere;
 	}
+	fieldset {
+		display: grid;
+		gap: 0.75rem;
+		margin: 0;
+		padding: 0;
+		border: 0;
+	}
+	legend {
+		margin-block-end: 0.5rem;
+		padding: 0;
+		font-weight: 500;
+	}
 	.scopes {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.25rem;
 	}
-	.sr-only {
+	.muted {
+		color: var(--text-secondary);
+	}
+	.menu {
+		inline-size: 1%;
+	}
+	.sr {
 		position: absolute;
 		inline-size: 1px;
 		block-size: 1px;
 		overflow: hidden;
 		clip-path: inset(50%);
-		white-space: nowrap;
-	}
-	.split > :first-child {
-		display: grid;
-		gap: 1rem;
 	}
 </style>

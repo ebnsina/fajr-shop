@@ -1,14 +1,28 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { errorText, reviewAdmin as t, reviewCopy as r } from '#lib/copy.js';
+	import type { components } from '#lib/api.js';
+	import { runAction } from '#lib/admin/actions.js';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
+	import { admin as a, reviewAdmin as t, reviewCopy as r } from '#lib/copy.js';
+	import Avatar from '#lib/sinaui/ui/Avatar.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
-	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
+	import Table from '#lib/sinaui/ui/Table.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
 
+	type Review = components['schemas']['Review'];
 	let { data }: PageProps = $props();
 	const day = new Intl.DateTimeFormat('en-BD', { dateStyle: 'medium', timeZone: 'Asia/Dhaka' });
+
+	async function moderate(x: Review, hidden: boolean) {
+		try {
+			await runAction('moderate', { id: x.id, hidden: hidden ? '1' : '0' });
+			toast.success(hidden ? t.hiddenToast : t.shownToast);
+		} catch (e) {
+			toast.error((e as Error).message);
+		}
+	}
 </script>
 
 <svelte:head><title>{t.title} · {data.store.name}</title></svelte:head>
@@ -19,94 +33,97 @@
 </div>
 
 {#if data.reviews.length}
-	<ul class="items">
-		{#each data.reviews as x (x.id)}
-			<li class={[x.hidden && 'off']}>
-				<div class="info">
-					<p class="top">
-						<span class="stars" aria-label={r.starsLabel(x.rating)}
-							>{'★'.repeat(x.rating)}<span class="dim">{'★'.repeat(5 - x.rating)}</span></span
+	<Card>
+		<Table caption={t.title} hideCaption>
+			<thead>
+				<tr>
+					<th scope="col">{t.product}</th>
+					<th scope="col">{t.rating}</th>
+					<th scope="col">{t.review}</th>
+					<th scope="col">{t.by}</th>
+					<th scope="col">{t.statusCol}</th>
+					<th scope="col"><span class="sr">{a.actions('')}</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each data.reviews as x (x.id)}
+					<tr>
+						<td
+							>{#if x.product}<a href="/p/{x.product.slug}" target="_blank">{x.product.name}</a
+								>{/if}</td
 						>
-						{#if x.product}<a href="/p/{x.product.slug}" target="_blank">{x.product.name}</a>{/if}
-						{#if x.hidden}<Badge tone="warning">{t.hidden}</Badge>{/if}
-					</p>
-					<p class={[!x.body && 'muted']}>{x.body || t.noText}</p>
-					<p class="muted">{x.author} · {day.format(new Date(x.created_at))}</p>
-				</div>
-				<form
-					method="POST"
-					action="?/moderate"
-					use:enhance={() =>
-						async ({ result, update }) => {
-							await update();
-							if (result.type === 'failure')
-								toast.error(String(result.data?.message ?? errorText('internal')));
-							else if (result.type === 'success')
-								toast.success(result.data?.hidden ? t.hiddenToast : t.shownToast);
-						}}
-				>
-					<input type="hidden" name="id" value={x.id} />
-					<input type="hidden" name="hidden" value={x.hidden ? '0' : '1'} />
-					<Button type="submit" variant="secondary" size="sm">{x.hidden ? t.show : t.hide}</Button>
-				</form>
-			</li>
-		{/each}
-	</ul>
+						<td>
+							<span class="stars" aria-label={r.starsLabel(x.rating)}
+								>{'★'.repeat(x.rating)}<span class="dim">{'★'.repeat(5 - x.rating)}</span></span
+							>
+						</td>
+						<td class="body">{x.body || t.noText}</td>
+						<td>
+							<span class="who"
+								><Avatar name={x.author} size="sm" decorative /><span
+									>{x.author}<span class="muted">{day.format(new Date(x.created_at))}</span></span
+								></span
+							>
+						</td>
+						<td>
+							{#if x.hidden}<Badge tone="warning">{t.hidden}</Badge>{:else}<Badge icon={false}
+									>{t.shown}</Badge
+								>{/if}
+						</td>
+						<td class="menu">
+							<RowMenu
+								label={a.actions(x.product?.name ?? x.author)}
+								actions={[
+									x.hidden
+										? { label: t.show, onselect: () => moderate(x, false) }
+										: { label: t.hide, onselect: () => moderate(x, true) },
+									...(x.product ? [{ label: t.viewProduct, href: `/p/${x.product.slug}` }] : [])
+								]}
+							/>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</Table>
+	</Card>
 {:else}
 	<EmptyState title={t.emptyTitle}>{t.emptyBody}</EmptyState>
 {/if}
 
 <style>
-	.items {
-		display: grid;
-		gap: 0.75rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	li {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: start;
-		justify-content: space-between;
-		gap: 1rem;
-		padding: 1rem 1.25rem;
-		border-radius: var(--ui-radius);
-		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-card);
-	}
-	.off {
-		opacity: 0.7;
-	}
-	.info {
-		display: grid;
-		flex: 1;
-		gap: 0.375rem;
-		min-inline-size: 16rem;
-	}
-	.info p {
-		margin: 0;
-		line-height: 1.5;
-	}
-	.top {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.625rem;
-		font-weight: 600;
-	}
-	.top a {
+	a {
 		color: var(--brand-700);
+		font-weight: 600;
 	}
 	.stars {
 		color: var(--star);
 		letter-spacing: 0.05em;
+		white-space: nowrap;
 	}
 	.dim {
 		color: var(--border-strong);
 	}
+	.body {
+		max-inline-size: 28rem;
+	}
+	.who {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 	.muted {
+		display: block;
 		color: var(--text-secondary);
 		font-size: 0.8125rem;
+	}
+	.menu {
+		inline-size: 1%;
+	}
+	.sr {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 </style>

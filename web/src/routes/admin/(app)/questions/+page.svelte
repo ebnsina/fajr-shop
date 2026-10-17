@@ -1,29 +1,33 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { errorText, questionAdmin as t } from '#lib/copy.js';
+	import type { components } from '#lib/api.js';
+	import { runAction } from '#lib/admin/actions.js';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
+	import StepForm from '#lib/admin/StepForm.svelte';
+	import { admin as a, questionAdmin as t } from '#lib/copy.js';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
+	import Table from '#lib/sinaui/ui/Table.svelte';
 	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	type Question = components['schemas']['Question'];
+	let { data, form }: PageProps = $props();
 	const day = new Intl.DateTimeFormat('en-BD', { dateStyle: 'medium', timeZone: 'Asia/Dhaka' });
-	const done =
-		() =>
-		async ({
-			result,
-			update
-		}: {
-			result: { type: string; data?: Record<string, unknown> };
-			update: (o?: { reset?: boolean }) => Promise<void>;
-		}) => {
-			await update({ reset: false });
-			if (result.type === 'failure')
-				toast.error(String(result.data?.message ?? errorText('internal')));
-			else if (result.type === 'success') toast.success(t.saved);
-		};
+
+	let open = $state(false);
+	let answering = $state<Question | null>(null);
+
+	async function setHidden(x: Question, hidden: boolean) {
+		try {
+			await runAction('save', { id: x.id, answer: x.answer ?? '', hidden: hidden ? '1' : '0' });
+			toast.success(t.saved);
+		} catch (e) {
+			toast.error((e as Error).message);
+		}
+	}
 </script>
 
 <svelte:head><title>{t.title} · {data.store.name}</title></svelte:head>
@@ -49,40 +53,87 @@
 </nav>
 
 {#if data.questions.length}
-	<ul class="items">
-		{#each data.questions as x (x.id)}
-			<li class={[x.hidden && 'off']}>
-				<p class="top">
-					{#if x.product}<a href="/p/{x.product.slug}#questions" target="_blank">{x.product.name}</a
-						>{/if}
-					{#if x.hidden}<Badge tone="warning">{t.hidden}</Badge>
-					{:else if x.answer}<Badge tone="accent">{t.answered}</Badge>{/if}
-				</p>
-				<p class="q">{x.body}</p>
-				<p class="muted">{x.author} · {day.format(new Date(x.created_at))}</p>
-				<form method="POST" action="?/save" class="answer" use:enhance={done}>
-					<input type="hidden" name="id" value={x.id} />
-					<input type="hidden" name="current" value={x.hidden ? '1' : '0'} />
-					<Textarea
-						label={t.answer}
-						name="answer"
-						value={x.answer ?? ''}
-						placeholder={t.answerPlaceholder}
-						maxlength={2000}
-					/>
-					<div class="buttons">
-						<Button type="submit">{x.answer ? t.update : t.post}</Button>
-						<Button type="submit" variant="ghost" name="hidden" value={x.hidden ? '0' : '1'}
-							>{x.hidden ? t.show : t.hide}</Button
+	<Card>
+		<Table caption={t.title} hideCaption>
+			<thead>
+				<tr>
+					<th scope="col">{t.question}</th>
+					<th scope="col">{t.product}</th>
+					<th scope="col">{t.asked}</th>
+					<th scope="col">{t.statusCol}</th>
+					<th scope="col"><span class="sr">{a.actions('')}</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each data.questions as x (x.id)}
+					<tr>
+						<td class="q">
+							<strong>{x.body}</strong>
+							{#if x.answer}<span class="muted">{x.answer}</span>{/if}
+						</td>
+						<td
+							>{#if x.product}<a href="/p/{x.product.slug}#questions" target="_blank"
+									>{x.product.name}</a
+								>{/if}</td
 						>
-					</div>
-				</form>
-			</li>
-		{/each}
-	</ul>
+						<td class="muted-cell">{x.author} · {day.format(new Date(x.created_at))}</td>
+						<td>
+							{#if x.hidden}<Badge tone="warning">{t.hidden}</Badge>
+							{:else if x.answer}<Badge tone="accent">{t.answered}</Badge>
+							{:else}<Badge tone="warning" icon={false}>{t.waitingBadge}</Badge>{/if}
+						</td>
+						<td class="menu">
+							<RowMenu
+								label={a.actions(x.body)}
+								actions={[
+									{
+										label: x.answer ? t.update : t.post,
+										onselect: () => {
+											answering = x;
+											open = true;
+										}
+									},
+									x.hidden
+										? { label: t.show, onselect: () => setHidden(x, false) }
+										: { label: t.hide, onselect: () => setHidden(x, true) }
+								]}
+							/>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</Table>
+	</Card>
 {:else}
 	<EmptyState title={data.all ? t.emptyAll : t.emptyWaiting}>{t.emptyBody}</EmptyState>
 {/if}
+
+{#key answering?.id}
+	<StepForm
+		bind:open
+		title={answering?.body ?? t.answer}
+		action="?/save"
+		submitLabel={answering?.answer ? t.update : t.post}
+		message={form && 'message' in form ? form.message : undefined}
+		onsaved={() => toast.success(t.saved)}
+		steps={[{ label: t.answer, body: answer }]}
+	/>
+{/key}
+
+{#snippet answer()}
+	{#if answering}
+		<input type="hidden" name="id" value={answering.id} />
+		<input type="hidden" name="current" value={answering.hidden ? '1' : '0'} />
+		<Textarea
+			label={t.answer}
+			name="answer"
+			value={answering.answer ?? ''}
+			placeholder={t.answerPlaceholder}
+			maxlength={2000}
+			required
+		/>
+	{/if}
+{/snippet}
 
 <style>
 	.filter {
@@ -90,53 +141,29 @@
 		gap: 0.375rem;
 		margin-block-end: 1rem;
 	}
-	.items {
-		display: grid;
-		gap: 0.75rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	li {
-		display: grid;
-		gap: 0.375rem;
-		padding: 1rem 1.25rem;
-		border-radius: var(--ui-radius);
-		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-card);
-	}
-	.off {
-		opacity: 0.7;
-	}
-	li p {
-		margin: 0;
-	}
-	.top {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.625rem;
-		font-size: 0.875rem;
-	}
-	.top a {
+	a {
 		color: var(--brand-700);
 		font-weight: 600;
 	}
 	.q {
-		font-weight: 600;
-		line-height: 1.5;
+		max-inline-size: 30rem;
 	}
 	.muted {
+		display: block;
 		color: var(--text-secondary);
 		font-size: 0.8125rem;
 	}
-	.answer {
-		display: grid;
-		gap: 0.5rem;
-		margin-block-start: 0.5rem;
+	.muted-cell {
+		color: var(--text-secondary);
 	}
-	.buttons {
-		display: flex;
-		gap: 0.5rem;
+	.menu {
+		inline-size: 1%;
+	}
+	.sr {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 </style>

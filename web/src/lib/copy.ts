@@ -171,7 +171,10 @@ export const apiKeys = {
 	},
 	revoke: 'Revoke',
 	revokeConfirm: 'Revoke it?',
-	revoked: 'Key revoked'
+	revoked: 'Key revoked',
+	stepName: 'Name',
+	revokeTitle: (name: string) => `Revoke “${name}”?`,
+	revokeBody: 'Anything using this key stops working at once. This can’t be undone.'
 };
 
 export const activityPage = {
@@ -731,6 +734,13 @@ export const reviewAdmin = {
 	hiddenToast: 'Review hidden',
 	shownToast: 'Review shown again',
 	noText: 'No words, just stars.',
+	product: 'Product',
+	rating: 'Rating',
+	review: 'Review',
+	by: 'By',
+	statusCol: 'Status',
+	shown: 'Shown',
+	viewProduct: 'View the product',
 	emptyTitle: 'No reviews yet',
 	emptyBody: 'Reviews appear here as customers write them.'
 };
@@ -748,6 +758,11 @@ export const questionAdmin = {
 	show: 'Show again',
 	hidden: 'Hidden',
 	answered: 'Answered',
+	question: 'Question',
+	product: 'Product',
+	asked: 'Asked',
+	statusCol: 'Status',
+	waitingBadge: 'Waiting',
 	saved: 'Saved',
 	emptyWaiting: 'No questions waiting',
 	emptyAll: 'No questions yet',
@@ -819,7 +834,8 @@ export const orderAdmin = {
 	done: 'Nothing more to do: this order is finished.',
 	call: 'Call',
 	emptyTitle: 'No orders here',
-	emptyBody: 'Orders appear here as customers place them.'
+	emptyBody: 'Orders appear here as customers place them.',
+	view: 'View order'
 };
 
 export const customerAdmin = {
@@ -839,6 +855,9 @@ export const customerAdmin = {
 	more: 'More customers',
 	back: 'All customers',
 	contact: 'Contact',
+	view: 'View customer',
+	call: 'Call',
+	email: 'Email',
 	noOrders: 'No orders yet.',
 	noMatch: (q: string) => `No customers match “${q}”.`,
 	emptyTitle: 'No customers yet',
@@ -872,7 +891,14 @@ export const teamAdmin = {
 	switchOn: 'Switch back on',
 	makeAdmin: 'Make admin',
 	makeStaff: 'Make staff',
-	roleLabel: { staff: 'Staff', admin: 'Admin' } as Record<string, string>
+	roleLabel: { staff: 'Staff', admin: 'Admin' } as Record<string, string>,
+	on: 'On',
+	statusCol: 'Access',
+	joined: 'Added',
+	stepWho: 'Who',
+	stepAccess: 'Access',
+	switchOffTitle: (name: string) => `Switch off ${name}?`,
+	switchOffBody: 'They’re signed out at once and can’t sign in until you switch them back on.'
 };
 
 export const checkoutCopy = {

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { errorText, orderAdmin as t, orderCopy as o } from '#lib/copy.js';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
+	import StepForm from '#lib/admin/StepForm.svelte';
+	import { admin as a, orderAdmin as t, orderCopy as o } from '#lib/copy.js';
 	import OrderView from '#lib/orders/OrderView.svelte';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
-	import Alert from '#lib/sinaui/ui/Alert.svelte';
+	import Breadcrumb from '#lib/sinaui/ui/Breadcrumb.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
-	import ConfirmButton from '#lib/sinaui/ui/ConfirmButton.svelte';
 	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
@@ -14,98 +14,92 @@
 	const order = $derived(data.order);
 	const forward = $derived(order.next_statuses.filter((s) => s !== 'cancelled'));
 	const canCancel = $derived(order.next_statuses.includes('cancelled'));
-	let moveForm = $state<HTMLFormElement>();
-	let cancel = $state('');
+
+	// Every move asks for an optional note in a dialog, then saves.
+	let open = $state(false);
+	let to = $state('');
+	function move(status: string) {
+		to = status;
+		open = true;
+	}
 </script>
 
 <svelte:head><title>{o.number(order.number)} · {data.store.name}</title></svelte:head>
 
-<a class="back" href="/admin/orders">← {t.back}</a>
+<Breadcrumb
+	items={[{ label: t.title, href: '/admin/orders' }, { label: o.number(order.number) }]}
+/>
 <div class="head">
-	<h1>{o.number(order.number)}</h1>
-	<StatusBadge status={order.status} />
+	<div class="title">
+		<h1>{o.number(order.number)}</h1>
+		<StatusBadge status={order.status} />
+	</div>
+	<div class="actions">
+		{#each forward as s (s)}<Button onclick={() => move(s)}>{o.moves[s]}</Button>{/each}
+		<RowMenu
+			label={a.actions(o.number(order.number))}
+			actions={[
+				{ label: t.call, href: `tel:${order.phone}` },
+				...(canCancel
+					? [
+							{
+								label: o.moves.cancelled,
+								danger: true,
+								separate: true,
+								onselect: () => move('cancelled')
+							}
+						]
+					: [])
+			]}
+		/>
+	</div>
 </div>
-
-<div class="actions">
-	{#if order.next_statuses.length}
-		<form
-			method="POST"
-			action="?/move"
-			bind:this={moveForm}
-			use:enhance={() =>
-				async ({ result, update }) => {
-					cancel = '';
-					await update();
-					if (result.type === 'success')
-						toast.success(t.moved(o.statuses[String(result.data?.to)] ?? ''));
-				}}
-		>
-			<input type="hidden" name="from" value={order.status} />
-			<input type="hidden" name="cancel" value={cancel} />
-			{#if form?.message}<Alert tone="danger" title={form.message} live />{/if}
-			<Textarea
-				label={t.note}
-				name="note"
-				placeholder={t.notePlaceholder}
-				maxlength={300}
-				rows={2}
-			/>
-			<div class="buttons">
-				{#each forward as s (s)}
-					<Button type="submit" name="to" value={s}>{o.moves[s]}</Button>
-				{/each}
-				{#if canCancel}
-					<ConfirmButton
-						confirm={t.cancelConfirm}
-						onconfirm={async () => {
-							cancel = 'cancelled';
-							await Promise.resolve();
-							moveForm?.requestSubmit();
-						}}>{o.moves.cancelled}</ConfirmButton
-					>
-				{/if}
-				<Button variant="ghost" href="tel:{order.phone}"
-					>{t.call} {order.phone.replace(/^\+88/, '')}</Button
-				>
-			</div>
-		</form>
-	{:else}
-		<p class="muted">{t.done}</p>
-	{/if}
-</div>
+{#if !order.next_statuses.length}<p class="done">{t.done}</p>{/if}
 
 <OrderView {order} />
 
+{#key to}
+	<StepForm
+		bind:open
+		title={o.moves[to] ?? ''}
+		action="?/move"
+		submitLabel={o.moves[to] ?? ''}
+		message={form?.message}
+		onsaved={() => toast.success(t.moved(o.statuses[to] ?? ''))}
+		steps={[{ label: o.moves[to] ?? '', body: note }]}
+	/>
+{/key}
+
+{#snippet note()}
+	<input type="hidden" name="from" value={order.status} />
+	<input type="hidden" name="to" value={to} />
+	<Textarea label={t.note} name="note" placeholder={t.notePlaceholder} maxlength={300} rows={3} />
+{/snippet}
+
 <style>
-	.back {
-		display: inline-block;
-		margin-block-end: 0.75rem;
-		color: var(--brand-700);
-		font-size: 0.875rem;
-	}
 	.head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-block: 0.75rem 1.25rem;
+	}
+	.title {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
 	}
+	.title h1 {
+		margin: 0;
+	}
 	.actions {
-		margin-block: 1rem 1.5rem;
-		padding: 1rem 1.25rem;
-		border-radius: var(--ui-radius);
-		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-card);
-	}
-	form {
-		display: grid;
-		gap: 0.75rem;
-	}
-	.buttons {
 		display: flex;
-		flex-wrap: wrap;
+		align-items: center;
 		gap: 0.5rem;
 	}
-	.muted {
-		margin: 0;
+	.done {
+		margin: -0.5rem 0 1rem;
 		color: var(--text-secondary);
 	}
 </style>

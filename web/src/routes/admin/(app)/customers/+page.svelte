@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { customerAdmin as t } from '#lib/copy.js';
+	import { admin as a, customerAdmin as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
+	import Table from '#lib/sinaui/ui/Table.svelte';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import SearchField from '#lib/sinaui/ui/SearchField.svelte';
 	import type { PageProps } from './$types';
@@ -32,8 +35,8 @@
 </form>
 
 {#if data.customers.length}
-	<div class="table">
-		<table>
+	<Card>
+		<Table caption={t.title} hideCaption>
 			<thead>
 				<tr>
 					<th scope="col">{t.name}</th>
@@ -41,6 +44,7 @@
 					<th scope="col" class="num">{t.spent}</th>
 					<th scope="col">{t.lastOrder}</th>
 					<th scope="col">{t.joined}</th>
+					<th scope="col"><span class="sr">{a.actions('')}</span></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -57,11 +61,21 @@
 							{c.last_order_at ? day.format(new Date(c.last_order_at)) : t.never}
 						</td>
 						<td class="muted">{day.format(new Date(c.created_at))}</td>
+						<td class="menu">
+							<RowMenu
+								label={a.actions(c.name)}
+								actions={[
+									{ label: t.view, href: `/admin/customers/${c.id}` },
+									...(c.phone ? [{ label: t.call, href: `tel:${c.phone}` }] : []),
+									...(c.email ? [{ label: t.email, href: `mailto:${c.email}` }] : [])
+								]}
+							/>
+						</td>
 					</tr>
 				{/each}
 			</tbody>
-		</table>
-	</div>
+		</Table>
+	</Card>
 	{#if data.next}
 		<div class="more">
 			<Button
@@ -88,36 +102,6 @@
 	.search > :global(:first-child) {
 		flex: 1;
 	}
-	.table {
-		overflow-x: auto;
-		border-radius: var(--ui-radius);
-		background: var(--ui-surface);
-		box-shadow: var(--ui-shadow-card);
-	}
-	table {
-		inline-size: 100%;
-		border-collapse: collapse;
-		font-size: 0.875rem;
-	}
-	th,
-	td {
-		padding: 0.75rem 1rem;
-		border-block-end: 1px solid var(--border);
-		text-align: start;
-		vertical-align: middle;
-	}
-	th {
-		color: var(--text-secondary);
-		font-weight: 600;
-		white-space: nowrap;
-	}
-	tr:last-child td {
-		border-block-end: 0;
-	}
-	.num {
-		text-align: end;
-		font-variant-numeric: tabular-nums;
-	}
 	td a {
 		color: var(--brand-700);
 		font-weight: 600;
@@ -132,5 +116,15 @@
 		display: flex;
 		justify-content: center;
 		margin-block-start: 1rem;
+	}
+	.menu {
+		inline-size: 1%;
+	}
+	.sr {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
 	}
 </style>

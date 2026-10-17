@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Dashboard: Team, API keys, Reviews, Questions, Orders and Customers are tables with a "⋯" menu
+  per row instead of inline buttons. Adding someone, creating a key and answering a question
+  happen in a dialog, one step at a time; switching someone off and revoking a key ask first.
+  An order moves forward from a dialog with an optional note; Cancel and Call sit in its menu.
 - Dashboard: Discounts, Delivery, Categories and Banners are tables with a "⋯" menu per row
   (Edit, Delete and more); adding and editing happen in a dialog, one step at a time, with the
   buttons on the right; deleting asks first.

@@ -3,6 +3,7 @@
 	import { formatMoney } from '#lib/money.js';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
+	import Breadcrumb from '#lib/sinaui/ui/Breadcrumb.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -14,7 +15,7 @@
 
 <svelte:head><title>{c.name} · {data.store.name}</title></svelte:head>
 
-<a class="back" href="/admin/customers">← {t.back}</a>
+<Breadcrumb items={[{ label: t.title, href: '/admin/customers' }, { label: c.name }]} />
 <div class="head">
 	<h1>{c.name}</h1>
 	{#if c.disabled}<Badge tone="warning">{t.disabled}</Badge>{/if}
@@ -58,16 +59,11 @@
 </div>
 
 <style>
-	.back {
-		display: inline-block;
-		margin-block-end: 0.75rem;
-		color: var(--brand-700);
-		font-size: 0.875rem;
-	}
 	.head {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
+		margin-block-start: 0.75rem;
 	}
 	.facts {
 		display: grid;
