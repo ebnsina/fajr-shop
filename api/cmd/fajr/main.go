@@ -1,4 +1,4 @@
-// Command fajr runs the shop API: `fajr serve`, `fajr migrate`, or `fajr create-admin`.
+// Command fajr runs the shop API: `fajr serve`, `fajr migrate`, `fajr create-admin`, or `fajr seed`.
 package main
 
 import (
@@ -18,6 +18,7 @@ import (
 	"github.com/ebnsina/fajr-shop/api/internal/db"
 	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
 	"github.com/ebnsina/fajr-shop/api/internal/httpapi"
+	"github.com/ebnsina/fajr-shop/api/internal/seed"
 )
 
 func main() {
@@ -29,8 +30,8 @@ func main() {
 }
 
 func run() error {
-	if len(os.Args) != 2 || (os.Args[1] != "serve" && os.Args[1] != "migrate" && os.Args[1] != "create-admin") {
-		return errors.New("usage: fajr serve|migrate|create-admin")
+	if len(os.Args) != 2 || (os.Args[1] != "serve" && os.Args[1] != "migrate" && os.Args[1] != "create-admin" && os.Args[1] != "seed") {
+		return errors.New("usage: fajr serve|migrate|create-admin|seed")
 	}
 	cfg, err := config.Load()
 	if err != nil {
@@ -50,6 +51,8 @@ func run() error {
 		return db.Migrate(ctx, pool)
 	case "create-admin":
 		return createAdmin(ctx, dbq.New(pool))
+	case "seed":
+		return seed.Run(ctx, pool, cfg.MediaDir)
 	}
 
 	handler, err := httpapi.New(pool, cfg)
