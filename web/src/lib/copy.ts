@@ -64,7 +64,10 @@ export const activity: Record<string, string> = {
 	'category.delete': 'Removed a category',
 	'product.create': 'Added a product',
 	'product.update': 'Changed a product',
-	'product.delete': 'Removed a product'
+	'product.delete': 'Removed a product',
+	'banner.create': 'Added a banner',
+	'banner.update': 'Changed a banner',
+	'banner.delete': 'Removed a banner'
 };
 
 export const nav = {
@@ -73,6 +76,7 @@ export const nav = {
 	catalog: 'Catalog',
 	products: 'Products',
 	categories: 'Categories',
+	banners: 'Banners',
 	storeSettings: 'Store settings',
 	activity: 'Activity',
 	developers: 'Developers',
@@ -194,6 +198,7 @@ export const productEditor = {
 	description: 'Description',
 	descriptionHint: 'What it is, what it’s made of, how it fits. Customers read this before buying.',
 	status: 'Status',
+	featured: 'Featured on the home page',
 	category: 'Category',
 	noCategory: 'No category',
 	images: 'Photos',
@@ -253,6 +258,9 @@ export const categories = {
 	topLevel: 'Top level',
 	position: 'Order',
 	positionHint: 'Lower numbers come first.',
+	picture: 'Picture',
+	pictureHint: 'Shown in a circle on the home page. A square picture works best.',
+	removePicture: 'Remove picture',
 	edit: 'Edit',
 	editTitle: 'Edit category',
 	save: 'Save',
@@ -338,4 +346,57 @@ export const cart = {
 	soldOut: 'Sold out',
 	onlyLeft: (n: number) => `Only ${n} left. Lower the quantity to buy it.`,
 	title: 'Your bag'
+};
+
+export const storefront = {
+	hotline: 'Hotline',
+	searchLabel: 'Search products',
+	searchButton: 'Search',
+	categories: 'Categories',
+	allCategories: 'All categories',
+	featured: 'Featured',
+	onSale: 'On sale',
+	newArrivals: 'New arrivals',
+	more: 'More products',
+	off: (pct: number) => `${pct}% off`,
+	bottomNav: 'Shop sections',
+	home: 'Home',
+	bag: 'Bag',
+	help: 'Help',
+	shop: 'Shop',
+	contact: 'Contact us',
+	cod: 'Cash on delivery available'
+};
+
+export const banners = {
+	title: 'Banners',
+	description:
+		'The pictures across your home page. Wide pictures work best: about 2:1 for the slides.',
+	add: 'Add a banner',
+	picture: 'Picture',
+	pictureHint: 'JPEG, PNG or WebP, up to 10 MB.',
+	placement: 'Where it goes',
+	placementHint:
+		'Big slides take turns at the top. Up to two more sit beside them. Strips go across the page between product sections.',
+	placements: {
+		hero: { label: 'Big slide', hint: 'The large slides at the top of the home page.' },
+		side: { label: 'Beside the slides', hint: 'Up to two, stacked next to the slides.' },
+		wide: { label: 'Across the page', hint: 'A full-width strip between product sections.' }
+	},
+	alt: 'What it says',
+	altHint: 'Read aloud to people who can’t see it, e.g. “Eid sale: 20% off panjabis”.',
+	link: 'Link (optional)',
+	linkHint: 'A page in your shop like /c/saree, or a full https:// address.',
+	position: 'Order',
+	active: 'Show on the shop',
+	save: 'Save',
+	saved: 'Banner saved',
+	delete: 'Delete',
+	deleteConfirm: 'Delete it?',
+	deleted: 'Banner deleted',
+	hidden: 'Hidden',
+	edit: 'Edit',
+	editTitle: 'Edit banner',
+	emptyTitle: 'No banners yet',
+	emptyBody: 'Without banners, the home page shows your shop’s name and a Shop all button.'
 };

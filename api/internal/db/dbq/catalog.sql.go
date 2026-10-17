@@ -40,12 +40,27 @@ func (q *Queries) AdjustStock(ctx context.Context, arg AdjustStockParams) (Varia
 }
 
 const categoryByID = `-- name: CategoryByID :one
-SELECT id, parent_id, name, slug, position, created_at FROM categories WHERE id = $1
+SELECT c.id, c.parent_id, c.name, c.slug, c.position, c.created_at, c.image_id, COALESCE(u.key, '')::text AS image_key, COALESCE(u.width, 0)::int AS image_width, COALESCE(u.height, 0)::int AS image_height
+FROM categories c LEFT JOIN uploads u ON u.id = c.image_id
+WHERE c.id = $1
 `
 
-func (q *Queries) CategoryByID(ctx context.Context, id uuid.UUID) (Category, error) {
+type CategoryByIDRow struct {
+	ID          uuid.UUID
+	ParentID    uuid.NullUUID
+	Name        string
+	Slug        string
+	Position    int32
+	CreatedAt   pgtype.Timestamptz
+	ImageID     uuid.NullUUID
+	ImageKey    string
+	ImageWidth  int32
+	ImageHeight int32
+}
+
+func (q *Queries) CategoryByID(ctx context.Context, id uuid.UUID) (CategoryByIDRow, error) {
 	row := q.db.QueryRow(ctx, categoryByID, id)
-	var i Category
+	var i CategoryByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.ParentID,
@@ -53,6 +68,10 @@ func (q *Queries) CategoryByID(ctx context.Context, id uuid.UUID) (Category, err
 		&i.Slug,
 		&i.Position,
 		&i.CreatedAt,
+		&i.ImageID,
+		&i.ImageKey,
+		&i.ImageWidth,
+		&i.ImageHeight,
 	)
 	return i, err
 }
@@ -118,7 +137,7 @@ func (q *Queries) ClearProductImages(ctx context.Context, productID uuid.UUID) e
 }
 
 const createCategory = `-- name: CreateCategory :one
-INSERT INTO categories (parent_id, name, slug, position) VALUES ($1, $2, $3, $4) RETURNING id, parent_id, name, slug, position, created_at
+INSERT INTO categories (parent_id, name, slug, position, image_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, parent_id, name, slug, position, created_at, image_id
 `
 
 type CreateCategoryParams struct {
@@ -126,6 +145,7 @@ type CreateCategoryParams struct {
 	Name     string
 	Slug     string
 	Position int32
+	ImageID  uuid.NullUUID
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
@@ -134,6 +154,7 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 		arg.Name,
 		arg.Slug,
 		arg.Position,
+		arg.ImageID,
 	)
 	var i Category
 	err := row.Scan(
@@ -143,14 +164,15 @@ func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) 
 		&i.Slug,
 		&i.Position,
 		&i.CreatedAt,
+		&i.ImageID,
 	)
 	return i, err
 }
 
 const createProduct = `-- name: CreateProduct :one
-INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at
+INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured
 `
 
 type CreateProductParams struct {
@@ -162,6 +184,7 @@ type CreateProductParams struct {
 	Options     []byte
 	PriceMin    int64
 	PriceMax    int64
+	Featured    bool
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
@@ -174,6 +197,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		arg.Options,
 		arg.PriceMin,
 		arg.PriceMax,
+		arg.Featured,
 	)
 	var i Product
 	err := row.Scan(
@@ -188,6 +212,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 		&i.PriceMax,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Featured,
 	)
 	return i, err
 }
@@ -266,7 +291,7 @@ func (q *Queries) CreateVariant(ctx context.Context, arg CreateVariantParams) (V
 }
 
 const deleteCategory = `-- name: DeleteCategory :one
-DELETE FROM categories WHERE id = $1 RETURNING id, parent_id, name, slug, position, created_at
+DELETE FROM categories WHERE id = $1 RETURNING id, parent_id, name, slug, position, created_at, image_id
 `
 
 func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) (Category, error) {
@@ -279,12 +304,13 @@ func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) (Category, e
 		&i.Slug,
 		&i.Position,
 		&i.CreatedAt,
+		&i.ImageID,
 	)
 	return i, err
 }
 
 const deleteProduct = `-- name: DeleteProduct :one
-DELETE FROM products WHERE id = $1 RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at
+DELETE FROM products WHERE id = $1 RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -302,6 +328,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) (Product, err
 		&i.PriceMax,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Featured,
 	)
 	return i, err
 }
@@ -392,18 +419,33 @@ func (q *Queries) InsertStockMovement(ctx context.Context, arg InsertStockMoveme
 }
 
 const listCategories = `-- name: ListCategories :many
-SELECT id, parent_id, name, slug, position, created_at FROM categories ORDER BY position, name LIMIT 500
+SELECT c.id, c.parent_id, c.name, c.slug, c.position, c.created_at, c.image_id, COALESCE(u.key, '')::text AS image_key, COALESCE(u.width, 0)::int AS image_width, COALESCE(u.height, 0)::int AS image_height
+FROM categories c LEFT JOIN uploads u ON u.id = c.image_id
+ORDER BY c.position, c.name LIMIT 500
 `
 
-func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
+type ListCategoriesRow struct {
+	ID          uuid.UUID
+	ParentID    uuid.NullUUID
+	Name        string
+	Slug        string
+	Position    int32
+	CreatedAt   pgtype.Timestamptz
+	ImageID     uuid.NullUUID
+	ImageKey    string
+	ImageWidth  int32
+	ImageHeight int32
+}
+
+func (q *Queries) ListCategories(ctx context.Context) ([]ListCategoriesRow, error) {
 	rows, err := q.db.Query(ctx, listCategories)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Category
+	var items []ListCategoriesRow
 	for rows.Next() {
-		var i Category
+		var i ListCategoriesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ParentID,
@@ -411,6 +453,10 @@ func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
 			&i.Slug,
 			&i.Position,
 			&i.CreatedAt,
+			&i.ImageID,
+			&i.ImageKey,
+			&i.ImageWidth,
+			&i.ImageHeight,
 		); err != nil {
 			return nil, err
 		}
@@ -423,7 +469,7 @@ func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
 }
 
 const productByID = `-- name: ProductByID :one
-SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at FROM products WHERE id = $1
+SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured FROM products WHERE id = $1
 `
 
 func (q *Queries) ProductByID(ctx context.Context, id uuid.UUID) (Product, error) {
@@ -441,12 +487,13 @@ func (q *Queries) ProductByID(ctx context.Context, id uuid.UUID) (Product, error
 		&i.PriceMax,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Featured,
 	)
 	return i, err
 }
 
 const productBySlug = `-- name: ProductBySlug :one
-SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at FROM products WHERE slug = $1 AND status = 'active'
+SELECT id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured FROM products WHERE slug = $1 AND status = 'active'
 `
 
 func (q *Queries) ProductBySlug(ctx context.Context, slug string) (Product, error) {
@@ -464,6 +511,7 @@ func (q *Queries) ProductBySlug(ctx context.Context, slug string) (Product, erro
 		&i.PriceMax,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Featured,
 	)
 	return i, err
 }
@@ -501,7 +549,7 @@ func (q *Queries) SlugTaken(ctx context.Context, arg SlugTakenParams) (pgtype.Bo
 }
 
 const updateCategory = `-- name: UpdateCategory :one
-UPDATE categories SET parent_id = $2, name = $3, slug = $4, position = $5 WHERE id = $1 RETURNING id, parent_id, name, slug, position, created_at
+UPDATE categories SET parent_id = $2, name = $3, slug = $4, position = $5, image_id = $6 WHERE id = $1 RETURNING id, parent_id, name, slug, position, created_at, image_id
 `
 
 type UpdateCategoryParams struct {
@@ -510,6 +558,7 @@ type UpdateCategoryParams struct {
 	Name     string
 	Slug     string
 	Position int32
+	ImageID  uuid.NullUUID
 }
 
 func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error) {
@@ -519,6 +568,7 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		arg.Name,
 		arg.Slug,
 		arg.Position,
+		arg.ImageID,
 	)
 	var i Category
 	err := row.Scan(
@@ -528,15 +578,16 @@ func (q *Queries) UpdateCategory(ctx context.Context, arg UpdateCategoryParams) 
 		&i.Slug,
 		&i.Position,
 		&i.CreatedAt,
+		&i.ImageID,
 	)
 	return i, err
 }
 
 const updateProduct = `-- name: UpdateProduct :one
 UPDATE products SET slug = $2, name = $3, description = $4, status = $5, category_id = $6, options = $7,
-    price_min = $8, price_max = $9, updated_at = now()
+    price_min = $8, price_max = $9, featured = $10, updated_at = now()
 WHERE id = $1
-RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at
+RETURNING id, slug, name, description, status, category_id, options, price_min, price_max, created_at, updated_at, featured
 `
 
 type UpdateProductParams struct {
@@ -549,6 +600,7 @@ type UpdateProductParams struct {
 	Options     []byte
 	PriceMin    int64
 	PriceMax    int64
+	Featured    bool
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
@@ -562,6 +614,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		arg.Options,
 		arg.PriceMin,
 		arg.PriceMax,
+		arg.Featured,
 	)
 	var i Product
 	err := row.Scan(
@@ -576,6 +629,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (P
 		&i.PriceMax,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Featured,
 	)
 	return i, err
 }

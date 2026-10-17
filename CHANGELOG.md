@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Storefront layout in the style Bangladeshi shoppers know: hotline bar, a brand-colored header
+  with a big search box and the bag, a category row, hero slides with side banners, round category
+  pictures, Featured / On sale / New arrivals sections, boxed product cards with "% off", a fuller
+  footer, and a bottom bar on phones.
+- Banners (big slides, beside the slides, across the page), category pictures and a "featured"
+  switch, all managed from the dashboard.
+- Typefaces: Familjen Grotesk for headings (self-hosted), Synonym for body text.
 - Cart: guests and signed-in customers each have a bag that always shows today's prices; a line
   that can't be bought (sold out, not enough stock, no longer for sale) is marked and left out of
   the subtotal. A guest's bag joins the customer's on sign-in (`POST /v1/cart/merge`).

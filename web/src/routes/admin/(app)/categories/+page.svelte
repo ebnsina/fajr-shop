@@ -9,6 +9,7 @@
 	import ConfirmButton from '#lib/sinaui/ui/ConfirmButton.svelte';
 	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
+	import ImageField from '#lib/admin/ImageField.svelte';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import NumberField from '#lib/sinaui/ui/NumberField.svelte';
 	import Select from '#lib/sinaui/ui/Select.svelte';
@@ -36,6 +37,8 @@
 	const fields = (action: string) =>
 		(form?.action === action ? form.fields : undefined) as Record<string, string> | undefined;
 	let editing = $state<Category | null>(null);
+	let picture = $state<{ id: string; url: string } | null>(null);
+	let editPicture = $state<{ id: string; url: string } | null>(null);
 	let editOpen = $state(false);
 
 	async function remove(id: string) {
@@ -80,7 +83,10 @@
 		use:enhance={() =>
 			async ({ result, update }) => {
 				await update();
-				if (result.type === 'success') toast.success(t.saved);
+				if (result.type === 'success') {
+					picture = null;
+					toast.success(t.saved);
+				}
 			}}
 	>
 		{#if form?.action === 'create' && form.message}<Alert
@@ -90,6 +96,13 @@
 			/>{/if}
 		<Input label={t.name} name="name" required maxlength={80} error={fields('create')?.name} />
 		{@render parentSelect(null)}
+		<ImageField
+			label={t.picture}
+			hint={t.pictureHint}
+			name="image_id"
+			removeLabel={t.removePicture}
+			bind:value={picture}
+		/>
 		<div><Button type="submit">{t.add}</Button></div>
 	</form>
 </Card>
@@ -100,8 +113,14 @@
 			<li style:--depth={depth}>
 				<span class="name">{c.name}</span>
 				<span class="slug">/{c.slug}</span>
-				<Button variant="ghost" size="sm" onclick={() => ((editing = c), (editOpen = true))}
-					>{t.edit}</Button
+				<Button
+					variant="ghost"
+					size="sm"
+					onclick={() => {
+						editing = c;
+						editPicture = c.image ? { id: c.image.id, url: c.image.url } : null;
+						editOpen = true;
+					}}>{t.edit}</Button
 				>
 				<ConfirmButton size="sm" confirm={t.deleteConfirm} onconfirm={() => remove(c.id)}
 					>{t.delete}</ConfirmButton
@@ -144,6 +163,13 @@
 					error={fields('update')?.name}
 				/>
 				{@render parentSelect(editing)}
+				<ImageField
+					label={t.picture}
+					hint={t.pictureHint}
+					name="image_id"
+					removeLabel={t.removePicture}
+					bind:value={editPicture}
+				/>
 				<NumberField
 					label={t.position}
 					name="position"

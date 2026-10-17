@@ -36,6 +36,8 @@
 
 <form method="get" class="filters" aria-label={t.filters}>
 	{#if filters.q}<input type="hidden" name="q" value={filters.q} />{/if}
+	{#if filters.sale}<input type="hidden" name="sale" value="1" />{/if}
+	{#if filters.featured}<input type="hidden" name="featured" value="1" />{/if}
 	<Input
 		label={t.minPrice}
 		name="min"

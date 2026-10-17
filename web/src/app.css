@@ -1,9 +1,16 @@
-@import '@fontsource-variable/mona-sans';
+@import '@fontsource-variable/familjen-grotesk';
 @import '@fontsource-variable/geist-mono';
 
 :root {
-	--ui-font: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--ui-font: 'Synonym', ui-sans-serif, system-ui, sans-serif;
+	--font-heading: 'Familjen Grotesk Variable', var(--ui-font);
 	--ui-font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-heading);
 }
 
 html {

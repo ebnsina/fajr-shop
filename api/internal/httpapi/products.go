@@ -23,6 +23,8 @@ type productFilter struct {
 	minPrice    *int64
 	maxPrice    *int64
 	inStock     bool
+	featured    bool
+	onSale      bool
 	options     map[string]string
 	sort        string
 	cursor      *string
@@ -55,6 +57,8 @@ func (s *Server) ListProducts(ctx context.Context, req apigen.ListProductsReques
 	if pr.InStock != nil {
 		f.inStock = *pr.InStock
 	}
+	f.featured = pr.Featured != nil && *pr.Featured
+	f.onSale = pr.OnSale != nil && *pr.OnSale
 	if pr.Sort != nil {
 		f.sort = string(*pr.Sort)
 	}
@@ -139,6 +143,12 @@ func (s *Server) listProducts(ctx context.Context, f productFilter) (apigen.Prod
 	}
 	if f.inStock {
 		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.stock > 0)")
+	}
+	if f.featured {
+		where = append(where, "p.featured")
+	}
+	if f.onSale {
+		where = append(where, "EXISTS (SELECT 1 FROM variants v WHERE v.product_id = p.id AND v.compare_at_price IS NOT NULL)")
 	}
 	if len(f.options) > 0 {
 		want, err := json.Marshal(f.options)

@@ -13,6 +13,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type BannerPlacement string
+
+const (
+	BannerPlacementHero BannerPlacement = "hero"
+	BannerPlacementSide BannerPlacement = "side"
+	BannerPlacementWide BannerPlacement = "wide"
+)
+
+func (e *BannerPlacement) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BannerPlacement(s)
+	case string:
+		*e = BannerPlacement(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BannerPlacement: %T", src)
+	}
+	return nil
+}
+
+type NullBannerPlacement struct {
+	BannerPlacement BannerPlacement
+	Valid           bool // Valid is true if BannerPlacement is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBannerPlacement) Scan(value interface{}) error {
+	if value == nil {
+		ns.BannerPlacement, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BannerPlacement.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBannerPlacement) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BannerPlacement), nil
+}
+
 type ProductStatus string
 
 const (
@@ -123,6 +166,17 @@ type AuditLog struct {
 	CreatedAt     pgtype.Timestamptz
 }
 
+type Banner struct {
+	ID        uuid.UUID
+	Placement BannerPlacement
+	UploadID  uuid.UUID
+	Link      *string
+	Alt       string
+	Position  int32
+	Active    bool
+	CreatedAt pgtype.Timestamptz
+}
+
 type Cart struct {
 	ID        uuid.UUID
 	UserID    uuid.NullUUID
@@ -145,6 +199,7 @@ type Category struct {
 	Slug      string
 	Position  int32
 	CreatedAt pgtype.Timestamptz
+	ImageID   uuid.NullUUID
 }
 
 type Product struct {
@@ -159,6 +214,7 @@ type Product struct {
 	PriceMax    int64
 	CreatedAt   pgtype.Timestamptz
 	UpdatedAt   pgtype.Timestamptz
+	Featured    bool
 }
 
 type ProductImage struct {

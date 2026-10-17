@@ -1,15 +1,20 @@
 <script lang="ts">
-	import { Menu01Icon, Search01Icon, ShoppingBag01Icon } from '@hugeicons/core-free-icons';
-	import { onMount } from 'svelte';
+	import {
+		CallIcon,
+		Menu01Icon,
+		Search01Icon,
+		ShoppingBag01Icon
+	} from '@hugeicons/core-free-icons';
+	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
-	import { cart as c, shop as t } from '#lib/copy.js';
+	import { cart as c, storefront as sf, shop as t } from '#lib/copy.js';
+	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import RollingNumber from '#lib/sinaui/ui/RollingNumber.svelte';
 	import { bag } from './bag.svelte';
-	import Button from '#lib/sinaui/ui/Button.svelte';
-	import Dialog from '#lib/sinaui/ui/Dialog.svelte';
-	import { glide } from '#lib/sinaui/ui/glide.js';
-	import Icon from '#lib/sinaui/ui/Icon.svelte';
 
+	// The layout most Bangladeshi shops share: a brand-colored bar with a big search box and the
+	// bag, a category row under it, and a thin hotline bar on top.
 	let {
 		store,
 		nav,
@@ -21,153 +26,215 @@
 	} = $props();
 
 	let menu = $state(false);
-	let scrolled = $state(false);
-	let hover = $state() as HTMLSpanElement;
-
-	onMount(() => {
-		const onScroll = () => (scrolled = scrollY > 8);
-		onScroll();
-		addEventListener('scroll', onScroll, { passive: true });
-		return () => removeEventListener('scroll', onScroll);
-	});
+	const q = $derived(page.url.pathname === '/search' ? (page.url.searchParams.get('q') ?? '') : '');
+	const openBag = (e: MouseEvent) => {
+		e.preventDefault();
+		bag.open = true;
+	};
 </script>
 
-<header class={['header', scrolled && 'scrolled']}>
-	<div class="row">
-		<Button
-			variant="ghost"
-			size="sm"
-			square
-			class="narrow"
-			aria-label={t.menu}
-			onclick={() => (menu = true)}><Icon icon={Menu01Icon} /></Button
-		>
+{#if store.contact_phone || store.contact_email}
+	<div class="topbar">
+		<div class="row">
+			{#if store.contact_phone}
+				<a href="tel:{store.contact_phone}"
+					><Icon icon={CallIcon} size={14} /> {sf.hotline}: {store.contact_phone}</a
+				>
+			{/if}
+			{#if store.contact_email}<a href="mailto:{store.contact_email}">{store.contact_email}</a>{/if}
+		</div>
+	</div>
+{/if}
+
+<header class="header">
+	<div class="row main">
+		<button type="button" class="icon narrow" aria-label={t.menu} onclick={() => (menu = true)}>
+			<Icon icon={Menu01Icon} size={22} />
+		</button>
 		<a class="brand" href="/">
 			{#if store.logo_url}<img src={store.logo_url} alt={store.name} />{:else}{store.name}{/if}
 		</a>
-		<nav
-			aria-label={t.all}
-			onpointerover={(e) => {
-				if (e.pointerType === 'touch') return;
-				glide(hover, (e.target as Element).closest<HTMLElement>('a'), true);
-			}}
-			onpointerleave={() => glide(hover, null, false)}
-		>
-			<span class="hover" aria-hidden="true" bind:this={hover}></span>
-			{#each nav as link (link.href)}<a href={link.href}>{link.label}</a>{/each}
-		</nav>
-		<div class="end">
-			<Button variant="ghost" size="sm" square aria-label={t.search} href="/search">
-				<Icon icon={Search01Icon} size={18} />
-			</Button>
-			<!-- A link to the bag page until scripts load; then it opens the drawer in place. -->
-			<Button
-				variant="secondary"
-				size="sm"
-				href="/cart"
-				aria-label={c.open(count)}
-				onclick={(e: MouseEvent) => {
-					e.preventDefault();
-					bag.open = true;
-				}}
+		<form class="search" method="get" action="/search" role="search">
+			<label class="sr" for="site-search">{sf.searchLabel}</label>
+			<input id="site-search" name="q" type="search" value={q} placeholder={t.searchPlaceholder} />
+			<button type="submit" aria-label={sf.searchButton}
+				><Icon icon={Search01Icon} size={18} /></button
 			>
-				<Icon icon={ShoppingBag01Icon} size={18} />
-				<span class="count" aria-hidden="true"><RollingNumber value={count} /></span>
-			</Button>
-		</div>
+		</form>
+		<a class="bag" href="/cart" aria-label={c.open(count)} onclick={openBag}>
+			<span class="bag-icon">
+				<Icon icon={ShoppingBag01Icon} size={24} />
+				{#if count}<span class="badge" aria-hidden="true"><RollingNumber value={count} /></span
+					>{/if}
+			</span>
+			<span class="label wide">{sf.bag}</span>
+		</a>
 	</div>
 </header>
 
+<nav class="cats" aria-label={sf.categories}>
+	<div class="row">
+		{#each nav as link (link.href)}
+			<a href={link.href} aria-current={page.url.pathname === link.href ? 'page' : undefined}
+				>{link.label}</a
+			>
+		{/each}
+	</div>
+</nav>
+
 <Dialog bind:open={menu} side="start" title={store.name}>
-	<nav class="sheet" aria-label={t.all}>
+	<nav class="sheet" aria-label={sf.categories}>
 		{#each nav as link (link.href)}
 			<a href={link.href} onclick={() => (menu = false)}>{link.label}</a>
 		{/each}
-		<a href="/search" onclick={() => (menu = false)}>{t.search}</a>
+		{#if store.contact_phone}
+			<a href="tel:{store.contact_phone}">{sf.hotline}: {store.contact_phone}</a>
+		{/if}
 	</nav>
 </Dialog>
 
 <style>
+	.row {
+		box-sizing: border-box;
+		inline-size: min(80rem, 100%);
+		margin-inline: auto;
+		padding-inline: 1rem;
+	}
+	.topbar {
+		background: var(--ui-surface);
+		font-size: 0.8125rem;
+	}
+	.topbar .row {
+		display: flex;
+		justify-content: end;
+		gap: 1.5rem;
+		padding-block: 0.375rem;
+	}
+	.topbar a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		color: var(--ui-muted);
+		text-decoration: none;
+	}
 	.header {
 		position: sticky;
 		inset-block-start: 0;
 		z-index: 20;
-		background: color-mix(in srgb, var(--ui-bg) 82%, transparent);
-		backdrop-filter: blur(14px) saturate(1.4);
-		transition: box-shadow var(--ui-dur) var(--ui-ease-out);
+		background: var(--ui-accent);
+		color: var(--ui-on-accent);
 	}
-	.scrolled {
-		box-shadow: 0 1px 0 var(--ui-line);
-	}
-	.row {
-		display: flex;
+	.main {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
 		align-items: center;
-		gap: 1.25rem;
-		box-sizing: border-box;
-		inline-size: min(76rem, 100%);
-		block-size: 4rem;
-		margin-inline: auto;
-		padding-inline: 1rem;
+		gap: 1.5rem;
+		padding-block: 0.875rem;
 	}
 	.brand {
-		display: inline-flex;
-		align-items: center;
-		min-inline-size: 0;
-		color: var(--ui-fg);
-		font-size: 1.0625rem;
-		font-weight: 650;
+		color: inherit;
+		font-family: var(--font-heading);
+		font-size: 1.375rem;
+		font-weight: 700;
 		text-decoration: none;
 		white-space: nowrap;
 	}
 	.brand img {
-		max-block-size: 2.25rem;
-		max-inline-size: 10rem;
+		display: block;
+		max-block-size: 2.75rem;
+		max-inline-size: 11rem;
 		object-fit: contain;
 	}
-	nav:not(.sheet) {
+	.search {
 		position: relative;
 		display: flex;
-		gap: 0.125rem;
-		min-inline-size: 0;
-		overflow: hidden;
+		inline-size: 100%;
+		max-inline-size: 42rem;
+		justify-self: center;
 	}
-	nav:not(.sheet) a {
-		position: relative;
-		padding: 0.375rem 0.75rem;
+	.search input {
+		flex: 1;
+		min-inline-size: 0;
+		block-size: 2.75rem;
+		padding: 0 3rem 0 1rem;
+		border: 0;
 		border-radius: var(--ui-radius-control);
+		background: var(--ui-surface);
+		color: var(--ui-fg);
+		font: 1rem var(--ui-font);
+	}
+	.search input::placeholder {
 		color: var(--ui-muted);
+	}
+	.search button {
+		position: absolute;
+		inset-block: 0.25rem;
+		inset-inline-end: 0.25rem;
+		display: grid;
+		place-items: center;
+		inline-size: 2.25rem;
+		border: 0;
+		border-radius: calc(var(--ui-radius-control) - 0.125rem);
+		background: var(--ui-accent);
+		color: var(--ui-on-accent);
+		cursor: pointer;
+	}
+	.bag,
+	.icon {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.375rem;
+		border: 0;
+		border-radius: var(--ui-radius-control);
+		background: none;
+		color: inherit;
+		font: 600 0.9375rem var(--ui-font);
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.bag-icon {
+		position: relative;
+		display: inline-flex;
+	}
+	.badge {
+		position: absolute;
+		inset-block-start: -0.5rem;
+		inset-inline-end: -0.625rem;
+		display: grid;
+		place-items: center;
+		min-inline-size: 1.25rem;
+		block-size: 1.25rem;
+		padding-inline: 0.25rem;
+		box-sizing: border-box;
+		border-radius: 999px;
+		background: var(--ui-surface);
+		color: var(--ui-fg);
+		font-size: 0.75rem;
+		font-variant-numeric: tabular-nums;
+	}
+	.cats {
+		background: var(--ui-surface);
+		box-shadow: 0 1px 0 var(--ui-line);
+	}
+	.cats .row {
+		display: flex;
+		gap: 0.25rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+	.cats a {
+		flex: none;
+		padding: 0.75rem 0.875rem;
+		color: var(--ui-fg);
 		font-size: 0.875rem;
 		font-weight: 500;
 		text-decoration: none;
 		white-space: nowrap;
-		transition: color var(--ui-dur-press) ease;
 	}
-	@media (hover: hover) {
-		nav:not(.sheet) a:hover {
-			color: var(--ui-fg);
-		}
-	}
-	.hover {
-		position: absolute;
-		top: 0;
-		left: 0;
-		transform-origin: 0 0;
-		border-radius: var(--ui-radius-control);
-		background: var(--ui-subtle);
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity var(--ui-dur-exit) ease;
-	}
-	.end {
-		display: flex;
-		align-items: center;
-		gap: 0.125rem;
-		margin-inline-start: auto;
-	}
-	.count {
-		display: inline-flex;
-		min-inline-size: 1ch;
-		font-variant-numeric: tabular-nums;
+	.cats a:hover,
+	.cats a[aria-current='page'] {
+		color: var(--ui-accent);
 	}
 	.sheet {
 		display: grid;
@@ -180,20 +247,53 @@
 		font: 500 1rem var(--ui-font);
 		text-decoration: none;
 	}
-	a:focus-visible {
-		outline: var(--ui-ring-width) solid var(--ui-ring);
-		outline-offset: var(--ui-ring-offset);
+	a:focus-visible,
+	button:focus-visible,
+	input:focus-visible {
+		outline: var(--ui-ring-width) solid var(--ui-on-accent);
+		outline-offset: 2px;
 	}
-	@media (width < 56rem) {
-		nav:not(.sheet) {
+	.cats a:focus-visible,
+	.sheet a:focus-visible,
+	.topbar a:focus-visible {
+		outline-color: var(--ui-ring);
+	}
+	.sr {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+	@media (width < 48rem) {
+		.topbar {
 			display: none;
 		}
-		.row {
-			gap: 0.5rem;
+		.main {
+			grid-template-columns: auto minmax(0, 1fr) auto;
+			grid-template-areas: 'menu brand bag' 'search search search';
+			gap: 0.625rem 0.5rem;
+			padding-block: 0.625rem;
+		}
+		.narrow {
+			grid-area: menu;
+		}
+		.brand {
+			grid-area: brand;
+		}
+		.bag {
+			grid-area: bag;
+		}
+		.search {
+			grid-area: search;
+			max-inline-size: none;
+		}
+		.wide {
+			display: none;
 		}
 	}
-	@media (width >= 56rem) {
-		.row > :global(.narrow) {
+	@media (width >= 48rem) {
+		.narrow {
 			display: none;
 		}
 	}

@@ -13,6 +13,8 @@ export type Filters = {
 	stock: boolean;
 	sort: NonNullable<Sort>;
 	q: string;
+	sale: boolean;
+	featured: boolean;
 };
 
 const taka = (v: string | null) => {
@@ -42,6 +44,8 @@ export async function listing(
 				min_price: taka(p.get('min')),
 				max_price: taka(p.get('max')),
 				in_stock: p.get('stock') === '1' || undefined,
+				on_sale: p.get('sale') === '1' || undefined,
+				featured: p.get('featured') === '1' || undefined,
 				sort,
 				cursor,
 				limit: 24
@@ -64,7 +68,9 @@ export async function listing(
 			max: p.get('max') ?? '',
 			stock: p.get('stock') === '1',
 			sort,
-			q: scope.q ?? ''
+			q: scope.q ?? '',
+			sale: p.get('sale') === '1',
+			featured: p.get('featured') === '1'
 		},
 		paged: !!cursor
 	};

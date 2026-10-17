@@ -1,8 +1,12 @@
 -- name: ListCategories :many
-SELECT * FROM categories ORDER BY position, name LIMIT 500;
+SELECT c.*, COALESCE(u.key, '')::text AS image_key, COALESCE(u.width, 0)::int AS image_width, COALESCE(u.height, 0)::int AS image_height
+FROM categories c LEFT JOIN uploads u ON u.id = c.image_id
+ORDER BY c.position, c.name LIMIT 500;
 
 -- name: CategoryByID :one
-SELECT * FROM categories WHERE id = $1;
+SELECT c.*, COALESCE(u.key, '')::text AS image_key, COALESCE(u.width, 0)::int AS image_width, COALESCE(u.height, 0)::int AS image_height
+FROM categories c LEFT JOIN uploads u ON u.id = c.image_id
+WHERE c.id = $1;
 
 -- name: CategorySubtree :many
 WITH RECURSIVE tree AS (
@@ -13,10 +17,10 @@ WITH RECURSIVE tree AS (
 SELECT id FROM tree;
 
 -- name: CreateCategory :one
-INSERT INTO categories (parent_id, name, slug, position) VALUES ($1, $2, $3, $4) RETURNING *;
+INSERT INTO categories (parent_id, name, slug, position, image_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: UpdateCategory :one
-UPDATE categories SET parent_id = $2, name = $3, slug = $4, position = $5 WHERE id = $1 RETURNING *;
+UPDATE categories SET parent_id = $2, name = $3, slug = $4, position = $5, image_id = $6 WHERE id = $1 RETURNING *;
 
 -- name: DeleteCategory :one
 DELETE FROM categories WHERE id = $1 RETURNING *;
@@ -47,13 +51,13 @@ SELECT * FROM products WHERE id = $1;
 SELECT * FROM products WHERE slug = $1 AND status = 'active';
 
 -- name: CreateProduct :one
-INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO products (slug, name, description, status, category_id, options, price_min, price_max, featured)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING *;
 
 -- name: UpdateProduct :one
 UPDATE products SET slug = $2, name = $3, description = $4, status = $5, category_id = $6, options = $7,
-    price_min = $8, price_max = $9, updated_at = now()
+    price_min = $8, price_max = $9, featured = $10, updated_at = now()
 WHERE id = $1
 RETURNING *;
 

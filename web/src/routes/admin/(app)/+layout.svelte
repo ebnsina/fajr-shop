@@ -4,6 +4,7 @@
 	import {
 		Activity01Icon,
 		Folder01Icon,
+		Image01Icon,
 		Key01Icon,
 		PackageIcon,
 		Store01Icon
@@ -21,7 +22,8 @@
 			title: nav.catalog,
 			items: [
 				{ label: nav.products, href: '/admin/products', icon: PackageIcon },
-				{ label: nav.categories, href: '/admin/categories', icon: Folder01Icon }
+				{ label: nav.categories, href: '/admin/categories', icon: Folder01Icon },
+				{ label: nav.banners, href: '/admin/banners', icon: Image01Icon }
 			]
 		},
 		{

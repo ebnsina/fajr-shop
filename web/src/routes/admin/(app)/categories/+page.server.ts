@@ -12,7 +12,8 @@ function input(form: FormData) {
 	return {
 		name: String(form.get('name') ?? '').trim(),
 		parent_id: String(form.get('parent_id') ?? '') || null,
-		position: Number(form.get('position') ?? 0) || 0
+		position: Number(form.get('position') ?? 0) || 0,
+		image_id: String(form.get('image_id') ?? '') || null
 	};
 }
 
