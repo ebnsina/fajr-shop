@@ -13,6 +13,9 @@ type Config struct {
 	HTTPAddr    string
 	// CORSOrigins may be empty: the web storefront calls the API server-side and needs none.
 	CORSOrigins []string
+	// MediaDir is where uploaded images are written; MediaURL is where browsers fetch them.
+	MediaDir string
+	MediaURL string
 	// TrustedProxies may set X-Forwarded-For: Caddy and the web app's server. May be empty.
 	TrustedProxies []netip.Prefix
 }
@@ -29,6 +32,8 @@ func Load() (Config, error) {
 	c := Config{
 		DatabaseURL: need("FAJR_DATABASE_URL"),
 		HTTPAddr:    need("FAJR_HTTP_ADDR"),
+		MediaDir:    need("FAJR_MEDIA_DIR"),
+		MediaURL:    strings.TrimRight(need("FAJR_MEDIA_URL"), "/"),
 	}
 	origins, ok := os.LookupEnv("FAJR_CORS_ORIGINS")
 	if !ok {

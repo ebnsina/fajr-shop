@@ -16,7 +16,13 @@ import (
 var migrations embed.FS
 
 func Open(ctx context.Context, url string) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, url)
+	cfg, err := pgxpool.ParseConfig(url)
+	if err != nil {
+		return nil, fmt.Errorf("db: parse url: %w", err)
+	}
+	// Times read back as text (list cursors) then have one format whatever the server's zone.
+	cfg.ConnConfig.RuntimeParams["timezone"] = "UTC"
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("db: open: %w", err)
 	}

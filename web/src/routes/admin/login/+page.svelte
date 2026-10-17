@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { signIn as t } from '#lib/copy.js';
+	import { errorText, signIn as t } from '#lib/copy.js';
+	import { UserFacingError } from '#lib/sinaui/blocks/auth/errors.js';
 	import SignIn from '#lib/sinaui/blocks/auth/SignIn.svelte';
 	import type { PageProps } from './$types';
 
@@ -21,10 +22,7 @@
 		});
 		if (!res.ok) {
 			const { code } = await res.json().catch(() => ({}));
-			// The block words the codes it knows; any other shows its general message.
-			throw Object.assign(new Error(code), {
-				code: code === 'rate_limited' ? 'too_many_attempts' : code
-			});
+			throw new UserFacingError(errorText(code));
 		}
 		await goto(next, { invalidateAll: true });
 	}

@@ -56,6 +56,9 @@ func TestNewToken(t *testing.T) {
 
 func TestUnknownRoleDenies(t *testing.T) {
 	if RolePermissions("owner") != nil || RolePermissions("customer") != nil {
-		t.Error("only admin has permissions today")
+		t.Error("unknown roles and customers must have no permissions")
+	}
+	if Has(RolePermissions("staff"), StoreWrite) || !Has(RolePermissions("staff"), CatalogWrite) {
+		t.Error("staff manage the catalog, not the store settings")
 	}
 }

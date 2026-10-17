@@ -13,6 +13,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ProductStatus string
+
+const (
+	ProductStatusDraft    ProductStatus = "draft"
+	ProductStatusActive   ProductStatus = "active"
+	ProductStatusArchived ProductStatus = "archived"
+)
+
+func (e *ProductStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ProductStatus(s)
+	case string:
+		*e = ProductStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ProductStatus: %T", src)
+	}
+	return nil
+}
+
+type NullProductStatus struct {
+	ProductStatus ProductStatus
+	Valid         bool // Valid is true if ProductStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullProductStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ProductStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ProductStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProductStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ProductStatus), nil
+}
+
 type UserRole string
 
 const (
@@ -80,6 +123,36 @@ type AuditLog struct {
 	CreatedAt     pgtype.Timestamptz
 }
 
+type Category struct {
+	ID        uuid.UUID
+	ParentID  uuid.NullUUID
+	Name      string
+	Slug      string
+	Position  int32
+	CreatedAt pgtype.Timestamptz
+}
+
+type Product struct {
+	ID          uuid.UUID
+	Slug        string
+	Name        string
+	Description string
+	Status      ProductStatus
+	CategoryID  uuid.NullUUID
+	Options     []byte
+	PriceMin    int64
+	PriceMax    int64
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+}
+
+type ProductImage struct {
+	ProductID uuid.UUID
+	UploadID  uuid.UUID
+	Position  int32
+	Alt       string
+}
+
 type Session struct {
 	ID                  uuid.UUID
 	UserID              uuid.UUID
@@ -90,6 +163,17 @@ type Session struct {
 	RefreshExpiresAt    pgtype.Timestamptz
 	CreatedAt           pgtype.Timestamptz
 	RevokedAt           pgtype.Timestamptz
+}
+
+type StockMovement struct {
+	ID            int64
+	VariantID     uuid.UUID
+	Delta         int32
+	Reason        string
+	Note          *string
+	ActorUserID   uuid.NullUUID
+	ActorApiKeyID uuid.NullUUID
+	CreatedAt     pgtype.Timestamptz
 }
 
 type StoreSetting struct {
@@ -107,6 +191,16 @@ type StoreSetting struct {
 	UpdatedAt        pgtype.Timestamptz
 }
 
+type Upload struct {
+	ID          uuid.UUID
+	Key         string
+	ContentType string
+	Width       int32
+	Height      int32
+	Bytes       int32
+	CreatedAt   pgtype.Timestamptz
+}
+
 type User struct {
 	ID           uuid.UUID
 	Role         UserRole
@@ -116,4 +210,15 @@ type User struct {
 	PasswordHash string
 	CreatedAt    pgtype.Timestamptz
 	DisabledAt   pgtype.Timestamptz
+}
+
+type Variant struct {
+	ID             uuid.UUID
+	ProductID      uuid.UUID
+	Sku            *string
+	Price          int64
+	CompareAtPrice pgtype.Int8
+	Stock          int32
+	Options        []byte
+	Position       int32
 }

@@ -17,6 +17,8 @@
 		}) => Promise<unknown> | unknown;
 		providers?: Provider[];
 		onprovider?: (id: string) => void;
+		/** Shows the "Keep me signed in" box. Without it, `remember` is always false. */
+		remember?: boolean;
 		forgotHref?: string;
 		signUpHref?: string;
 		title?: string;
@@ -27,6 +29,7 @@
 		onsubmit,
 		providers,
 		onprovider,
+		remember = true,
 		forgotHref,
 		signUpHref,
 		title = 'Sign in',
@@ -85,7 +88,7 @@
 			<PasswordInput label="Password" name="password" required error={form.errors.password} />
 			{#if forgotHref}<a class="forgot" href={forgotHref}>Forgot password?</a>{/if}
 		</div>
-		<Checkbox name="remember">Keep me signed in</Checkbox>
+		{#if remember}<Checkbox name="remember">Keep me signed in</Checkbox>{/if}
 		<Button type="submit" loading={form.submitting}>Sign in</Button>
 	</form>
 </AuthCard>

@@ -16,6 +16,7 @@ import (
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
 	"github.com/ebnsina/fajr-shop/api/internal/config"
 	"github.com/ebnsina/fajr-shop/api/internal/db/dbq"
+	"github.com/ebnsina/fajr-shop/api/internal/media"
 )
 
 // Server implements every operation in the spec.
@@ -24,6 +25,8 @@ type Server struct {
 	q              *dbq.Queries
 	trustedProxies []netip.Prefix
 	limits         *limiter
+	mediaDir       string
+	mediaURL       string
 }
 
 var _ apigen.StrictServerInterface = (*Server)(nil)
@@ -33,10 +36,13 @@ func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("httpapi: load spec: %w", err)
 	}
-	s := &Server{pool: pool, q: dbq.New(pool), trustedProxies: cfg.TrustedProxies, limits: &limiter{}}
+	s := &Server{
+		pool: pool, q: dbq.New(pool), trustedProxies: cfg.TrustedProxies, limits: &limiter{},
+		mediaDir: cfg.MediaDir, mediaURL: cfg.MediaURL,
+	}
 
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID, recoverer)
+	r.Use(middleware.RequestID, recoverer, limitBody)
 	if len(cfg.CORSOrigins) > 0 {
 		r.Use(cors.Handler(cors.Options{
 			AllowedOrigins:   cfg.CORSOrigins,
@@ -59,8 +65,25 @@ func New(pool *pgxpool.Pool, cfg config.Config) (http.Handler, error) {
 		RequestErrorHandlerFunc:  badRequest,
 		ResponseErrorHandlerFunc: handlerError,
 	})
-	return apigen.HandlerWithOptions(strict, apigen.ChiServerOptions{
+	api := apigen.HandlerWithOptions(strict, apigen.ChiServerOptions{
 		BaseRouter:       r,
 		ErrorHandlerFunc: badRequest,
-	}), nil
+	})
+	// Uploaded images sit outside the spec; in production Caddy serves them and this is unused.
+	mux := http.NewServeMux()
+	mux.Handle("GET /media/", http.StripPrefix("/media/", media.Handler(cfg.MediaDir)))
+	mux.Handle("/", api)
+	return mux, nil
+}
+
+// limitBody caps request bodies: room for one image on uploads, 1 MB everywhere else.
+func limitBody(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		limit := int64(1 << 20)
+		if r.URL.Path == "/v1/admin/uploads" {
+			limit = media.MaxBytes + 1<<20
+		}
+		r.Body = http.MaxBytesReader(w, r.Body, limit)
+		next.ServeHTTP(w, r)
+	})
 }

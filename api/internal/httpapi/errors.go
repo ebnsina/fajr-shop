@@ -65,7 +65,9 @@ func badRequest(w http.ResponseWriter, _ *http.Request, err error) {
 // specError turns a request the spec refuses into our error shape.
 func specError(_ context.Context, err error, w http.ResponseWriter, _ *http.Request, opts nethttpmiddleware.ErrorHandlerOpts) {
 	// The middleware suggests 404 for every route miss, including a known path with the wrong method.
-	switch {
+	switch _, tooBig := errors.AsType[*http.MaxBytesError](err); {
+	case tooBig:
+		writeError(w, http.StatusRequestEntityTooLarge, apigen.TooLarge, "That is too large to send.", nil)
 	case errors.Is(err, routers.ErrMethodNotAllowed):
 		writeError(w, http.StatusMethodNotAllowed, apigen.MethodNotAllowed, "This address does not accept that method.", nil)
 	case opts.StatusCode == http.StatusNotFound:
