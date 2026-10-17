@@ -45,7 +45,7 @@ func newHarness(t *testing.T) *harness {
 	if err := db.Migrate(t.Context(), pool); err != nil {
 		t.Fatal(err)
 	}
-	h, err := httpapi.New(pool, config.Config{})
+	h, err := httpapi.New(pool, config.Config{MediaDir: t.TempDir(), MediaURL: "http://media.test"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +137,10 @@ func (h *harness) register(email string) apigen.Session {
 }
 
 // admin creates an admin directly, as `fajr create-admin` does, and signs in.
-func (h *harness) admin() apigen.Session {
+func (h *harness) admin() apigen.Session { return h.member(dbq.UserRoleAdmin) }
+
+// member creates a user with this role and signs in.
+func (h *harness) member(role dbq.UserRole) apigen.Session {
 	h.t.Helper()
 	email := uniqueEmail()
 	hash, err := auth.HashPassword("admin-password")
@@ -145,7 +148,7 @@ func (h *harness) admin() apigen.Session {
 		h.t.Fatal(err)
 	}
 	if _, err := dbq.New(h.pool).CreateUser(h.t.Context(), dbq.CreateUserParams{
-		Role: dbq.UserRoleAdmin, Name: "Al-Khwarizmi", Email: &email, PasswordHash: hash,
+		Role: role, Name: "Al-Khwarizmi", Email: &email, PasswordHash: hash,
 	}); err != nil {
 		h.t.Fatal(err)
 	}

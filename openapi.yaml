@@ -17,6 +17,7 @@ tags:
   - name: system
   - name: store
   - name: auth
+  - name: catalog
   - name: admin
 
 paths:
@@ -279,6 +280,344 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/categories:
+    get:
+      operationId: listCategories
+      tags: [catalog]
+      summary: Every category, in display order
+      description: A flat list; build the tree from `parent_id`. At most 500.
+      responses:
+        "200":
+          description: Categories
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/products:
+    get:
+      operationId: listProducts
+      tags: [catalog]
+      summary: Products for sale, filtered and sorted
+      parameters:
+        - name: q
+          in: query
+          description: Words to search for in names and descriptions.
+          schema:
+            type: string
+            maxLength: 100
+        - name: category
+          in: query
+          description: A category slug; products in its subcategories are included.
+          schema:
+            type: string
+            maxLength: 100
+        - name: min_price
+          in: query
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: max_price
+          in: query
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: in_stock
+          in: query
+          schema:
+            type: boolean
+        - name: option
+          in: query
+          description: "Only products with a variant having this option, as `Name:Value` (e.g. `Color:Red`). Repeat to require several."
+          style: form
+          explode: true
+          schema:
+            type: array
+            maxItems: 5
+            items:
+              type: string
+              maxLength: 100
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [newest, price_asc, price_desc, name]
+            default: newest
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: A page of products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductPage"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/products/{slug}:
+    get:
+      operationId: getProduct
+      tags: [catalog]
+      summary: One product for sale, with its variants and images
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        "200":
+          description: The product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/categories:
+    post:
+      operationId: createCategory
+      tags: [admin]
+      summary: Add a category
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/categories/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      operationId: updateCategory
+      tags: [admin]
+      summary: Rename, move or reorder a category
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteCategory
+      tags: [admin]
+      summary: Remove a category
+      description: "Needs `catalog:write`. Refused with `in_use` while it has products or subcategories."
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/products:
+    get:
+      operationId: adminListProducts
+      tags: [admin]
+      summary: Every product, drafts and archived included, newest first
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/ProductStatus"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: A page of products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductPage"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createProduct
+      tags: [admin]
+      summary: Add a product
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/products/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      operationId: adminGetProduct
+      tags: [admin]
+      summary: One product, whatever its status
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: The product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      operationId: updateProduct
+      tags: [admin]
+      summary: Replace a product's details, options, variants and images
+      description: |
+        Needs `catalog:write`. Variants are matched by `id`; one left out is removed, one without an
+        `id` is added. An existing variant's `stock` is ignored here: change it with a stock adjustment,
+        so a form opened before a sale can't undo it.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteProduct
+      tags: [admin]
+      summary: Remove a product for good
+      description: Needs `catalog:write`. To hide it but keep it, set its status to `archived`.
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/variants/{id}/stock-adjustments:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      operationId: adjustStock
+      tags: [admin]
+      summary: Add to or take from a variant's stock, saying why
+      description: "Needs `inventory:write`. Refused with `insufficient_stock` if it would go below zero."
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StockAdjustment"
+      responses:
+        "200":
+          description: The variant, with its new stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Variant"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/uploads:
+    post:
+      operationId: uploadImage
+      tags: [admin]
+      summary: Upload a JPEG, PNG or WebP image, up to 10 MB
+      description: Needs `catalog:write` or `store:write`. Use the returned `id` in a product's `image_ids`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Image"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   securitySchemes:
     bearer:
@@ -287,6 +626,13 @@ components:
       description: An access token from sign-in (`fsa_…`) or an API key (`fsk_…`).
 
   parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     Cursor:
       name: cursor
       in: query
@@ -342,6 +688,10 @@ components:
         - forbidden
         - invalid_credentials
         - account_exists
+        - in_use
+        - insufficient_stock
+        - too_large
+        - unsupported_type
         - rate_limited
         - internal
 
@@ -407,12 +757,12 @@ components:
     Permission:
       description: What a user's role or an API key allows.
       type: string
-      enum: [store:write, api_keys:manage, audit:read]
+      enum: [store:write, catalog:write, inventory:write, api_keys:manage, audit:read]
 
     ApiKeyScope:
       description: What an API key may do. Managing keys is for signed-in people only.
       type: string
-      enum: [store:write, audit:read]
+      enum: [store:write, catalog:write, inventory:write, audit:read]
 
     User:
       type: object
@@ -575,3 +925,275 @@ components:
             $ref: "#/components/schemas/AuditEntry"
         next_cursor:
           type: [string, "null"]
+
+    Category:
+      type: object
+      required: [id, name, slug, position]
+      properties:
+        id:
+          type: string
+          format: uuid
+        parent_id:
+          type: [string, "null"]
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        position:
+          description: Order among its siblings, from 0.
+          type: integer
+
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        slug:
+          description: Made from the name when left out.
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          maxLength: 100
+        parent_id:
+          type: [string, "null"]
+          format: uuid
+        position:
+          type: integer
+          minimum: 0
+
+    ProductStatus:
+      description: Only `active` products are for sale.
+      type: string
+      enum: [draft, active, archived]
+
+    Image:
+      type: object
+      required: [id, url, width, height]
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+        alt:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+
+    ProductOption:
+      type: object
+      required: [name, values]
+      properties:
+        name:
+          description: E.g. "Size" or "Color".
+          type: string
+          minLength: 1
+          maxLength: 40
+        values:
+          type: array
+          minItems: 1
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 40
+
+    Variant:
+      type: object
+      required: [id, price, stock, options]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku:
+          type: [string, "null"]
+        price:
+          type: integer
+          format: int64
+        compare_at_price:
+          description: The old price, shown struck through, when on sale.
+          type: [integer, "null"]
+          format: int64
+        stock:
+          type: integer
+        options:
+          description: 'This variant''s value for each of the product''s options, e.g. {"Size": "M"}.'
+          type: object
+          additionalProperties:
+            type: string
+
+    VariantInput:
+      type: object
+      required: [price, options]
+      properties:
+        id:
+          description: An existing variant to keep; leave out to add a new one.
+          type: string
+          format: uuid
+        sku:
+          type: [string, "null"]
+          maxLength: 64
+        price:
+          type: integer
+          format: int64
+          minimum: 0
+        compare_at_price:
+          type: [integer, "null"]
+          format: int64
+          minimum: 0
+        stock:
+          description: Starting stock for a new variant. Ignored for an existing one.
+          type: integer
+          minimum: 0
+        options:
+          type: object
+          additionalProperties:
+            type: string
+
+    Product:
+      type: object
+      required: [id, slug, name, description, status, currency, options, variants, images, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProductStatus"
+        category:
+          oneOf:
+            - $ref: "#/components/schemas/Category"
+            - type: "null"
+        currency:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductOption"
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Variant"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/Image"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProductInput:
+      type: object
+      required: [name, status, options, variants]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        slug:
+          description: Made from the name when left out.
+          type: string
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 20000
+        status:
+          $ref: "#/components/schemas/ProductStatus"
+        category_id:
+          type: [string, "null"]
+          format: uuid
+        options:
+          description: Up to three, e.g. Size and Color. Empty for a product with one variant.
+          type: array
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/ProductOption"
+        variants:
+          description: One per combination of option values you sell.
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/VariantInput"
+        image_ids:
+          description: Uploaded images, in display order; the first is the main one.
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+
+    ProductSummary:
+      type: object
+      required: [id, slug, name, status, price_min, price_max, currency, in_stock]
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProductStatus"
+        price_min:
+          type: integer
+          format: int64
+        price_max:
+          type: integer
+          format: int64
+        compare_at_price:
+          description: The old price of the cheapest variant, when it is on sale.
+          type: [integer, "null"]
+          format: int64
+        currency:
+          type: string
+        in_stock:
+          type: boolean
+        image:
+          oneOf:
+            - $ref: "#/components/schemas/Image"
+            - type: "null"
+
+    ProductPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductSummary"
+        next_cursor:
+          type: [string, "null"]
+
+    StockAdjustment:
+      type: object
+      required: [delta, reason]
+      properties:
+        delta:
+          description: Positive adds, negative takes away. Not zero.
+          type: integer
+          minimum: -100000
+          maximum: 100000
+        reason:
+          type: string
+          enum: [received, damaged, lost, returned, correction]
+        note:
+          type: string
+          maxLength: 200

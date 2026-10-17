@@ -12,8 +12,21 @@ export const messages: Record<string, { field?: string; message: string }> = {
 	too_many_attempts: { message: 'Too many tries. Wait a few minutes, then try again.' }
 };
 
+/** Opt-in for APIs whose copy is already written for people: `message` and `fields` show word for word.
+ *  Construct it only from your API's user-facing text, never from a caught exception. */
+export class UserFacingError extends Error {
+	fields: Record<string, string>;
+	constructor(message: string, fields: Record<string, string> = {}) {
+		super(message);
+		this.name = 'UserFacingError';
+		this.fields = fields;
+	}
+}
+
 /** An error thrown by a callback, as messages for the form: by field where it belongs to one. */
 export function toErrors(error: unknown): Errors {
+	if (error instanceof UserFacingError)
+		return { ...error.fields, form: error.message || undefined };
 	const code = (error as { code?: unknown } | null)?.code;
 	const known = typeof code === 'string' ? messages[code] : undefined;
 	if (!known) return { form: 'Something went wrong. Try again.' };

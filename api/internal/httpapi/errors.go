@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -65,7 +67,9 @@ func badRequest(w http.ResponseWriter, _ *http.Request, err error) {
 // specError turns a request the spec refuses into our error shape.
 func specError(_ context.Context, err error, w http.ResponseWriter, _ *http.Request, opts nethttpmiddleware.ErrorHandlerOpts) {
 	// The middleware suggests 404 for every route miss, including a known path with the wrong method.
-	switch {
+	switch _, tooBig := errors.AsType[*http.MaxBytesError](err); {
+	case tooBig:
+		writeError(w, http.StatusRequestEntityTooLarge, apigen.TooLarge, "That is too large to send.", nil)
 	case errors.Is(err, routers.ErrMethodNotAllowed):
 		writeError(w, http.StatusMethodNotAllowed, apigen.MethodNotAllowed, "This address does not accept that method.", nil)
 	case opts.StatusCode == http.StatusNotFound:
@@ -80,17 +84,68 @@ func fieldsOf(err error) map[string]string {
 	if !ok {
 		return nil
 	}
-	reason := reqErr.Reason
 	if schemaErr, ok := errors.AsType[*openapi3.SchemaError](err); ok {
-		reason = schemaErr.Reason
-		if ptr := schemaErr.JSONPointer(); len(ptr) > 0 {
-			return map[string]string{strings.Join(ptr, "."): reason}
+		path := schemaErr.JSONPointer()
+		// Point a missing property's error at the property, not its parent.
+		if m := missingProperty.FindStringSubmatch(schemaErr.Reason); m != nil && (len(path) == 0 || path[len(path)-1] != m[1]) {
+			path = append(path, m[1])
 		}
+		field := strings.Join(path, ".")
+		if field == "" {
+			field = "body"
+		}
+		return map[string]string{field: plainReason(schemaErr)}
 	}
 	if reqErr.Parameter != nil {
-		return map[string]string{reqErr.Parameter.Name: reason}
+		return map[string]string{reqErr.Parameter.Name: "Check this value."}
 	}
-	return map[string]string{"body": reason}
+	return map[string]string{"body": "Check what you sent."}
+}
+
+var missingProperty = regexp.MustCompile(`property "([^"]+)" is missing`)
+
+// plainReason says what a value must be in words a shop owner can act on; the validator's own
+// reasons are written for developers.
+func plainReason(e *openapi3.SchemaError) string {
+	s := e.Schema
+	switch e.SchemaField {
+	case "required", "nullable":
+		return "Fill this in."
+	case "minimum":
+		if s != nil && s.Min != nil {
+			return fmt.Sprintf("Must be %v or more.", *s.Min)
+		}
+	case "maximum":
+		if s != nil && s.Max != nil {
+			return fmt.Sprintf("Must be %v or less.", *s.Max)
+		}
+	case "minLength":
+		if s != nil && s.MinLength > 1 {
+			return fmt.Sprintf("Use at least %d characters.", s.MinLength)
+		}
+		return "Fill this in."
+	case "maxLength":
+		if s != nil && s.MaxLength != nil {
+			return fmt.Sprintf("Use %d characters or fewer.", *s.MaxLength)
+		}
+	case "minItems":
+		if s != nil {
+			return fmt.Sprintf("Add at least %d.", s.MinItems)
+		}
+	case "maxItems":
+		if s != nil && s.MaxItems != nil {
+			return fmt.Sprintf("Use %d or fewer.", *s.MaxItems)
+		}
+	case "uniqueItems":
+		return "Each one must be different."
+	case "enum":
+		return "Choose one of the options given."
+	case "pattern", "format":
+		return "This isn't in the right format."
+	case "type":
+		return "This isn't a valid value."
+	}
+	return "Check this value."
 }
 
 func recoverer(next http.Handler) http.Handler {

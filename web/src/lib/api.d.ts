@@ -218,6 +218,204 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every category, in display order
+         * @description A flat list; build the tree from `parent_id`. At most 500.
+         */
+        get: operations["listCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Products for sale, filtered and sorted */
+        get: operations["listProducts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/products/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One product for sale, with its variants and images */
+        get: operations["getProduct"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a category
+         * @description Needs `catalog:write`.
+         */
+        post: operations["createCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rename, move or reorder a category
+         * @description Needs `catalog:write`.
+         */
+        put: operations["updateCategory"];
+        post?: never;
+        /**
+         * Remove a category
+         * @description Needs `catalog:write`. Refused with `in_use` while it has products or subcategories.
+         */
+        delete: operations["deleteCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every product, drafts and archived included, newest first
+         * @description Needs `catalog:write`.
+         */
+        get: operations["adminListProducts"];
+        put?: never;
+        /**
+         * Add a product
+         * @description Needs `catalog:write`.
+         */
+        post: operations["createProduct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        /**
+         * One product, whatever its status
+         * @description Needs `catalog:write`.
+         */
+        get: operations["adminGetProduct"];
+        /**
+         * Replace a product's details, options, variants and images
+         * @description Needs `catalog:write`. Variants are matched by `id`; one left out is removed, one without an
+         *     `id` is added. An existing variant's `stock` is ignored here: change it with a stock adjustment,
+         *     so a form opened before a sale can't undo it.
+         */
+        put: operations["updateProduct"];
+        post?: never;
+        /**
+         * Remove a product for good
+         * @description Needs `catalog:write`. To hide it but keep it, set its status to `archived`.
+         */
+        delete: operations["deleteProduct"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/variants/{id}/stock-adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add to or take from a variant's stock, saying why
+         * @description Needs `inventory:write`. Refused with `insufficient_stock` if it would go below zero.
+         */
+        post: operations["adjustStock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a JPEG, PNG or WebP image, up to 10 MB
+         * @description Needs `catalog:write` or `store:write`. Use the returned `id` in a product's `image_ids`.
+         */
+        post: operations["uploadImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -233,7 +431,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "rate_limited" | "internal";
+        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
         Health: {
             /** @enum {string} */
             status: "ok";
@@ -264,12 +462,12 @@ export interface components {
          * @description What a user's role or an API key allows.
          * @enum {string}
          */
-        Permission: "store:write" | "api_keys:manage" | "audit:read";
+        Permission: "store:write" | "catalog:write" | "inventory:write" | "api_keys:manage" | "audit:read";
         /**
          * @description What an API key may do. Managing keys is for signed-in people only.
          * @enum {string}
          */
-        ApiKeyScope: "store:write" | "audit:read";
+        ApiKeyScope: "store:write" | "catalog:write" | "inventory:write" | "audit:read";
         User: {
             /** Format: uuid */
             id: string;
@@ -341,6 +539,138 @@ export interface components {
             items: components["schemas"]["AuditEntry"][];
             next_cursor?: string | null;
         };
+        Category: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parent_id?: string | null;
+            name: string;
+            slug: string;
+            /** @description Order among its siblings, from 0. */
+            position: number;
+        };
+        CategoryInput: {
+            name: string;
+            /** @description Made from the name when left out. */
+            slug?: string;
+            /** Format: uuid */
+            parent_id?: string | null;
+            position?: number;
+        };
+        /**
+         * @description Only `active` products are for sale.
+         * @enum {string}
+         */
+        ProductStatus: "draft" | "active" | "archived";
+        Image: {
+            /** Format: uuid */
+            id: string;
+            url: string;
+            alt?: string;
+            width: number;
+            height: number;
+        };
+        ProductOption: {
+            /** @description E.g. "Size" or "Color". */
+            name: string;
+            values: string[];
+        };
+        Variant: {
+            /** Format: uuid */
+            id: string;
+            sku?: string | null;
+            /** Format: int64 */
+            price: number;
+            /**
+             * Format: int64
+             * @description The old price, shown struck through, when on sale.
+             */
+            compare_at_price?: number | null;
+            stock: number;
+            /** @description This variant's value for each of the product's options, e.g. {"Size": "M"}. */
+            options: {
+                [key: string]: string;
+            };
+        };
+        VariantInput: {
+            /**
+             * Format: uuid
+             * @description An existing variant to keep; leave out to add a new one.
+             */
+            id?: string;
+            sku?: string | null;
+            /** Format: int64 */
+            price: number;
+            /** Format: int64 */
+            compare_at_price?: number | null;
+            /** @description Starting stock for a new variant. Ignored for an existing one. */
+            stock?: number;
+            options: {
+                [key: string]: string;
+            };
+        };
+        Product: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description: string;
+            status: components["schemas"]["ProductStatus"];
+            category?: components["schemas"]["Category"] | null;
+            currency: string;
+            options: components["schemas"]["ProductOption"][];
+            variants: components["schemas"]["Variant"][];
+            images: components["schemas"]["Image"][];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ProductInput: {
+            name: string;
+            /** @description Made from the name when left out. */
+            slug?: string;
+            description?: string;
+            status: components["schemas"]["ProductStatus"];
+            /** Format: uuid */
+            category_id?: string | null;
+            /** @description Up to three, e.g. Size and Color. Empty for a product with one variant. */
+            options: components["schemas"]["ProductOption"][];
+            /** @description One per combination of option values you sell. */
+            variants: components["schemas"]["VariantInput"][];
+            /** @description Uploaded images, in display order; the first is the main one. */
+            image_ids?: string[];
+        };
+        ProductSummary: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            status: components["schemas"]["ProductStatus"];
+            /** Format: int64 */
+            price_min: number;
+            /** Format: int64 */
+            price_max: number;
+            /**
+             * Format: int64
+             * @description The old price of the cheapest variant, when it is on sale.
+             */
+            compare_at_price?: number | null;
+            currency: string;
+            in_stock: boolean;
+            image?: components["schemas"]["Image"] | null;
+        };
+        ProductPage: {
+            items: components["schemas"]["ProductSummary"][];
+            next_cursor?: string | null;
+        };
+        StockAdjustment: {
+            /** @description Positive adds, negative takes away. Not zero. */
+            delta: number;
+            /** @enum {string} */
+            reason: "received" | "damaged" | "lost" | "returned" | "correction";
+            note?: string;
+        };
     };
     responses: {
         /** @description Something went wrong; `error.code` says what */
@@ -354,6 +684,7 @@ export interface components {
         };
     };
     parameters: {
+        Id: string;
         /** @description `next_cursor` from the previous page. */
         Cursor: string;
         Limit: number;
@@ -646,6 +977,339 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Categories */
+            200: {
+                headers: {
+                    "Cache-Control": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Category"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listProducts: {
+        parameters: {
+            query?: {
+                /** @description Words to search for in names and descriptions. */
+                q?: string;
+                /** @description A category slug; products in its subcategories are included. */
+                category?: string;
+                min_price?: number;
+                max_price?: number;
+                in_stock?: boolean;
+                /** @description Only products with a variant having this option, as `Name:Value` (e.g. `Color:Red`). Repeat to require several. */
+                option?: string[];
+                sort?: "newest" | "price_asc" | "price_desc" | "name";
+                /** @description `next_cursor` from the previous page. */
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of products */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The product */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Category"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Category"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListProducts: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: components["schemas"]["ProductStatus"];
+                /** @description `next_cursor` from the previous page. */
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of products */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductPage"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminGetProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The product */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Product"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteProduct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adjustStock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockAdjustment"];
+            };
+        };
+        responses: {
+            /** @description The variant, with its new stock */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Variant"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    uploadImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Image"];
                 };
             };
             default: components["responses"]["Error"];

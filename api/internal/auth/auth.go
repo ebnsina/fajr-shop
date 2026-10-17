@@ -106,19 +106,22 @@ func NormalizePhone(s string) (string, bool) {
 type Permission string
 
 const (
-	StoreWrite    Permission = "store:write"
-	APIKeysManage Permission = "api_keys:manage"
-	AuditRead     Permission = "audit:read"
+	StoreWrite     Permission = "store:write"
+	CatalogWrite   Permission = "catalog:write"
+	InventoryWrite Permission = "inventory:write"
+	APIKeysManage  Permission = "api_keys:manage"
+	AuditRead      Permission = "audit:read"
 )
 
-// AllPermissions is every permission an API key may be given.
-var AllPermissions = []Permission{StoreWrite, APIKeysManage, AuditRead}
+var allPermissions = []Permission{StoreWrite, CatalogWrite, InventoryWrite, APIKeysManage, AuditRead}
 
 // RolePermissions says what each role may do. An unknown role may do nothing.
 func RolePermissions(role string) []Permission {
 	switch role {
 	case "admin":
-		return AllPermissions
+		return allPermissions
+	case "staff":
+		return []Permission{CatalogWrite, InventoryWrite}
 	default:
 		return nil
 	}

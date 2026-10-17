@@ -6,6 +6,8 @@
 
 	interface Props {
 		label: string;
+		/** Keeps the label for screen readers only. */
+		hideLabel?: boolean;
 		value?: number;
 		min?: number;
 		max?: number;
@@ -23,6 +25,7 @@
 
 	let {
 		label,
+		hideLabel = false,
 		value = $bindable(),
 		min,
 		max,
@@ -123,7 +126,7 @@
 </script>
 
 <div class="field" style:--chars="{chars}ch">
-	<label for="{id}-input">{label}</label>
+	<label for="{id}-input" class:sr-only={hideLabel}>{label}</label>
 	<div class="control">
 		<button
 			type="button"
@@ -323,5 +326,13 @@
 	}
 	.error {
 		color: var(--ui-danger);
+	}
+	.sr-only {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 </style>

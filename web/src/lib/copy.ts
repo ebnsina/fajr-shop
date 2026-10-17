@@ -15,6 +15,10 @@ export const errors: Record<ErrorCode, string> = {
 	account_exists: 'There’s already an account with this email or phone. Try signing in.',
 	rate_limited: 'Too many tries. Wait a minute, then try again.',
 	internal: 'Something went wrong on our side. Try again in a moment.',
+	in_use: 'This is still in use. Move what’s in it first.',
+	insufficient_stock: 'There isn’t that much in stock to take away.',
+	too_large: 'That image is over 10 MB. Try a smaller one.',
+	unsupported_type: 'Upload a JPEG, PNG or WebP image.',
 	not_staff: 'This account can’t open the shop dashboard.'
 };
 
@@ -28,6 +32,11 @@ export const permissions: Record<Permission, { label: string; hint: string }> = 
 		label: 'Change store settings',
 		hint: 'Name, contact details, colors and VAT.'
 	},
+	'catalog:write': {
+		label: 'Manage products',
+		hint: 'Add and change products, categories and images.'
+	},
+	'inventory:write': { label: 'Change stock', hint: 'Add or take away stock, with a reason.' },
 	'api_keys:manage': {
 		label: 'Manage API keys',
 		hint: 'Create and revoke keys.'
@@ -39,17 +48,31 @@ export const permissions: Record<Permission, { label: string; hint: string }> = 
 };
 
 /** What an API key may be given. Managing keys is for signed-in people only. */
-export const keyScopes: components['schemas']['ApiKeyScope'][] = ['store:write', 'audit:read'];
+export const keyScopes: components['schemas']['ApiKeyScope'][] = [
+	'catalog:write',
+	'inventory:write',
+	'store:write',
+	'audit:read'
+];
 
 export const activity: Record<string, string> = {
 	'store.update': 'Changed the store settings',
 	'api_key.create': 'Created an API key',
-	'api_key.revoke': 'Revoked an API key'
+	'api_key.revoke': 'Revoked an API key',
+	'category.create': 'Added a category',
+	'category.update': 'Changed a category',
+	'category.delete': 'Removed a category',
+	'product.create': 'Added a product',
+	'product.update': 'Changed a product',
+	'product.delete': 'Removed a product'
 };
 
 export const nav = {
 	label: 'Shop dashboard',
 	shop: 'Shop',
+	catalog: 'Catalog',
+	products: 'Products',
+	categories: 'Categories',
 	storeSettings: 'Store settings',
 	activity: 'Activity',
 	developers: 'Developers',
@@ -67,6 +90,10 @@ export const storeSettings = {
 	description: 'How your shop appears to customers. Changes show on your shop within a minute.',
 	identity: 'Your shop',
 	name: 'Shop name',
+	logo: 'Logo',
+	logoHint: 'Shown at the top of your shop. A wide image on a clear background works best.',
+	logoUpload: 'Upload a logo',
+	logoRemove: 'Remove logo',
 	accent: 'Brand color',
 	accentHint: 'Used for buttons and links.',
 	contactPhone: 'Phone',
@@ -132,4 +159,160 @@ export const errorPage = {
 	other: 'Something went wrong',
 	otherBody: 'Try again in a moment.',
 	home: 'Go to the home page'
+};
+
+export const productStatus = {
+	draft: 'Draft',
+	active: 'For sale',
+	archived: 'Archived'
+} as const;
+
+export const products = {
+	title: 'Products',
+	description: 'Everything in your shop. Only products marked “For sale” appear to customers.',
+	add: 'Add a product',
+	search: 'Search products',
+	filter: 'Show',
+	all: 'All',
+	caption: 'Products',
+	columns: { product: 'Product', status: 'Status', price: 'Price', stock: 'Stock' },
+	inStock: 'In stock',
+	outOfStock: 'Out of stock',
+	next: 'Next page',
+	first: 'Back to the first page',
+	emptyTitle: 'No products yet',
+	emptyBody: 'Add your first product and it will appear here.',
+	noMatchTitle: 'No products match',
+	noMatchBody: 'Try other words, or show all products.'
+};
+
+export const productEditor = {
+	newTitle: 'Add a product',
+	back: 'All products',
+	details: 'Details',
+	name: 'Name',
+	description: 'Description',
+	descriptionHint: 'What it is, what it’s made of, how it fits. Customers read this before buying.',
+	status: 'Status',
+	category: 'Category',
+	noCategory: 'No category',
+	images: 'Photos',
+	imagesHint:
+		'JPEG, PNG or WebP, up to 10 MB each. The first photo is the main one; drag to reorder.',
+	addImages: 'Add photos',
+	uploading: 'Uploading…',
+	removeImage: 'Remove photo',
+	imageOrder: 'Photo order',
+	options: 'Options',
+	optionsHint: 'Sizes, colors or other choices. Leave empty if there’s only one kind.',
+	optionName: 'Option name',
+	optionNamePlaceholder: 'Size',
+	optionValues: 'Values',
+	optionValuesPlaceholder: 'Type a value and press Enter',
+	addOption: 'Add an option',
+	removeOption: 'Remove option',
+	variants: 'Prices and stock',
+	variantsHint: 'One row for each combination you sell.',
+	only: 'This product',
+	price: 'Price',
+	compareAt: 'Old price',
+	compareAtHint: 'Shown crossed out, for a sale.',
+	sku: 'SKU',
+	stock: 'Stock',
+	startingStock: 'Starting stock',
+	adjust: 'Adjust',
+	save: 'Save product',
+	saved: 'Product saved',
+	delete: 'Delete product',
+	deleteConfirm: 'Delete for good?',
+	deleted: 'Product deleted',
+	view: 'View in shop',
+	adjustTitle: 'Adjust stock',
+	adjustDescription: 'Add stock you received, or take away what was damaged or lost.',
+	delta: 'Change',
+	deltaHint: 'Use a minus sign to take away, like -2.',
+	reason: 'Reason',
+	reasons: {
+		received: 'Received new stock',
+		returned: 'Customer returned it',
+		damaged: 'Damaged',
+		lost: 'Lost',
+		correction: 'Correcting a miscount'
+	},
+	note: 'Note',
+	adjustSave: 'Save',
+	adjusted: 'Stock updated'
+};
+
+export const categories = {
+	title: 'Categories',
+	description: 'Group your products so customers can browse them.',
+	add: 'Add a category',
+	name: 'Name',
+	parent: 'Inside',
+	topLevel: 'Top level',
+	position: 'Order',
+	positionHint: 'Lower numbers come first.',
+	edit: 'Edit',
+	editTitle: 'Edit category',
+	save: 'Save',
+	saved: 'Category saved',
+	delete: 'Delete',
+	deleteConfirm: 'Delete it?',
+	deleted: 'Category deleted',
+	caption: 'Categories',
+	emptyTitle: 'No categories yet',
+	emptyBody: 'Add one, such as “Men” or “Saree”.'
+};
+
+export const shop = {
+	skip: 'Skip to content',
+	menu: 'Open menu',
+	all: 'Shop all',
+	search: 'Search',
+	searchPlaceholder: 'Search the shop',
+	home: 'Home',
+	newest: 'New in',
+	seeAll: 'See everything',
+	soldOut: 'Sold out',
+	sale: 'Sale',
+	from: 'From',
+	was: 'was',
+	noPhoto: 'no photo yet',
+	inStock: 'In stock',
+	onlyLeft: (n: number) => `Only ${n} left`,
+	filters: 'Filters',
+	minPrice: 'Lowest price',
+	maxPrice: 'Highest price',
+	inStockOnly: 'In stock only',
+	apply: 'Apply',
+	clear: 'Clear filters',
+	sort: 'Sort by',
+	sorts: {
+		newest: 'Newest',
+		price_asc: 'Price, low to high',
+		price_desc: 'Price, high to low',
+		name: 'Name, A to Z'
+	},
+	next: 'More products',
+	first: 'Back to the start',
+	emptyTitle: 'Nothing here yet',
+	emptyBody: 'New products will appear here soon.',
+	noMatchTitle: 'Nothing matches those filters',
+	noMatchBody: 'Try a wider price range, or clear the filters.',
+	searchTitle: 'Search',
+	searchResults: (q: string) => `Results for “${q}”`,
+	searchEmpty: 'Type what you’re looking for.',
+	searchNone: (q: string) => `Nothing found for “${q}”. Try other words.`,
+	pictures: 'Pictures',
+	picture: (i: number, n: number) => `Picture ${i} of ${n}`,
+	contact: 'Contact',
+	vatIncluded: 'Price includes VAT.',
+	vatAdded: (rate: string) => `VAT (${rate}) is added at checkout.`
+};
+
+export const productPage = {
+	soldOut: 'Sold out',
+	notOffered: 'Not available in this combination',
+	description: 'About this product'
 };
