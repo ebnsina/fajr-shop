@@ -18,6 +18,7 @@ tags:
   - name: store
   - name: auth
   - name: catalog
+  - name: cart
   - name: admin
 
 paths:
@@ -618,6 +619,100 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: The shopper's cart
+      description: |
+        A signed-in customer's cart comes from their access token. A guest's comes from the
+        `X-Cart-Token` they were given; without one (or with one that has expired) the cart is empty.
+        Prices are always today's, so a cart can change between visits.
+      security:
+        - {}
+        - bearer: []
+      parameters:
+        - $ref: "#/components/parameters/CartToken"
+      responses:
+        "200":
+          description: The cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/cart/items/{variant_id}:
+    parameters:
+      - name: variant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: "#/components/parameters/CartToken"
+    put:
+      operationId: setCartItem
+      tags: [cart]
+      summary: Set how many of a variant are in the cart
+      description: |
+        `0` removes it. A guest with no cart gets one, and its token comes back in `token` once:
+        keep it and send it as `X-Cart-Token`. Refused with `insufficient_stock` beyond what's in stock.
+      security:
+        - {}
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+                  maximum: 99
+      responses:
+        "200":
+          description: The cart after the change
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/cart/merge:
+    post:
+      operationId: mergeCart
+      tags: [cart]
+      summary: Move a guest cart into the signed-in customer's cart
+      description: Call right after sign-in. Quantities of the same variant add up, to at most 99.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cart_token]
+              properties:
+                cart_token:
+                  type: string
+                  maxLength: 200
+      responses:
+        "200":
+          description: The customer's cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   securitySchemes:
     bearer:
@@ -626,6 +721,14 @@ components:
       description: An access token from sign-in (`fsa_…`) or an API key (`fsk_…`).
 
   parameters:
+    CartToken:
+      name: X-Cart-Token
+      in: header
+      required: false
+      description: A guest's cart, from an earlier `token`.
+      schema:
+        type: string
+        maxLength: 200
     Id:
       name: id
       in: path
@@ -1197,3 +1300,63 @@ components:
         note:
           type: string
           maxLength: 200
+
+    CartItem:
+      type: object
+      required: [variant_id, product_id, slug, name, options, unit_price, quantity, line_total, stock, purchasable]
+      properties:
+        variant_id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        options:
+          type: object
+          additionalProperties:
+            type: string
+        image:
+          oneOf:
+            - $ref: "#/components/schemas/Image"
+            - type: "null"
+        unit_price:
+          type: integer
+          format: int64
+        compare_at_price:
+          type: [integer, "null"]
+          format: int64
+        quantity:
+          type: integer
+        line_total:
+          type: integer
+          format: int64
+        stock:
+          description: How many are in stock now.
+          type: integer
+        purchasable:
+          description: False when the product is no longer for sale or there isn't enough stock for this quantity.
+          type: boolean
+
+    Cart:
+      type: object
+      required: [items, item_count, subtotal, currency]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        item_count:
+          type: integer
+        subtotal:
+          description: Sum of the purchasable lines, before shipping, discounts and any VAT added on top.
+          type: integer
+          format: int64
+        currency:
+          type: string
+        token:
+          description: Only when this response created a guest cart. Send it back as X-Cart-Token.
+          type: [string, "null"]

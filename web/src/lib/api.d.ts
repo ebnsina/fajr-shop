@@ -416,6 +416,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/cart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The shopper's cart
+         * @description A signed-in customer's cart comes from their access token. A guest's comes from the
+         *     `X-Cart-Token` they were given; without one (or with one that has expired) the cart is empty.
+         *     Prices are always today's, so a cart can change between visits.
+         */
+        get: operations["getCart"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cart/items/{variant_id}": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path: {
+                variant_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set how many of a variant are in the cart
+         * @description `0` removes it. A guest with no cart gets one, and its token comes back in `token` once:
+         *     keep it and send it as `X-Cart-Token`. Refused with `insufficient_stock` beyond what's in stock.
+         */
+        put: operations["setCartItem"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cart/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move a guest cart into the signed-in customer's cart
+         * @description Call right after sign-in. Quantities of the same variant add up, to at most 99.
+         */
+        post: operations["mergeCart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -671,6 +739,41 @@ export interface components {
             reason: "received" | "damaged" | "lost" | "returned" | "correction";
             note?: string;
         };
+        CartItem: {
+            /** Format: uuid */
+            variant_id: string;
+            /** Format: uuid */
+            product_id: string;
+            slug: string;
+            name: string;
+            options: {
+                [key: string]: string;
+            };
+            image?: components["schemas"]["Image"] | null;
+            /** Format: int64 */
+            unit_price: number;
+            /** Format: int64 */
+            compare_at_price?: number | null;
+            quantity: number;
+            /** Format: int64 */
+            line_total: number;
+            /** @description How many are in stock now. */
+            stock: number;
+            /** @description False when the product is no longer for sale or there isn't enough stock for this quantity. */
+            purchasable: boolean;
+        };
+        Cart: {
+            items: components["schemas"]["CartItem"][];
+            item_count: number;
+            /**
+             * Format: int64
+             * @description Sum of the purchasable lines, before shipping, discounts and any VAT added on top.
+             */
+            subtotal: number;
+            currency: string;
+            /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
+            token?: string | null;
+        };
     };
     responses: {
         /** @description Something went wrong; `error.code` says what */
@@ -684,6 +787,8 @@ export interface components {
         };
     };
     parameters: {
+        /** @description A guest's cart, from an earlier `token`. */
+        CartToken: string;
         Id: string;
         /** @description `next_cursor` from the previous page. */
         Cursor: string;
@@ -1310,6 +1415,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Image"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getCart: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The cart */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    setCartItem: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path: {
+                variant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    quantity: number;
+                };
+            };
+        };
+        responses: {
+            /** @description The cart after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    mergeCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    cart_token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The customer's cart */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Cart"];
                 };
             };
             default: components["responses"]["Error"];
