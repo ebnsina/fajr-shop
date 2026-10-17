@@ -1362,6 +1362,11 @@ export interface components {
             rating_count: number;
             /** @description Average stars of the visible reviews; null with none. */
             rating_average?: number | null;
+            /**
+             * Format: uuid
+             * @description The variant to add to the cart straight from a list, when the product has only one.
+             */
+            single_variant_id?: string | null;
             /** Format: uuid */
             id: string;
             slug: string;

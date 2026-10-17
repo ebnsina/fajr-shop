@@ -4,6 +4,7 @@
 	import { cart as c, errorText, shop as t } from '#lib/copy.js';
 	import { toast, Toaster } from '#lib/sinaui/ui/toast/index.js';
 	import BagDrawer from '#lib/shop/BagDrawer.svelte';
+	import { bag } from '#lib/shop/bag.svelte.js';
 	import BackToTop from '#lib/shop/BackToTop.svelte';
 	import BottomNav from '#lib/shop/BottomNav.svelte';
 	import SiteFooter from '#lib/shop/SiteFooter.svelte';
@@ -45,6 +46,23 @@
 <BackToTop />
 <BottomNav count={data.cart.item_count} signedIn={!!data.me} />
 <BagDrawer cart={data.cart} {vatNote} />
+<!-- A product card's bag button adds its one variant through this form (see ProductCard). -->
+<form
+	id="bag-form"
+	method="POST"
+	action="/cart?/add"
+	hidden
+	use:enhance={() =>
+		async ({ result }) => {
+			if (result.type === 'failure')
+				toast.error(String(result.data?.message ?? errorText('internal')));
+			await invalidateAll();
+			if (result.type === 'success') {
+				toast.success(String(result.data?.added ?? ''));
+				bag.open = true;
+			}
+		}}
+></form>
 <!-- Every heart on the page submits this one form (see SaveButton). -->
 <form
 	id="wishlist-form"

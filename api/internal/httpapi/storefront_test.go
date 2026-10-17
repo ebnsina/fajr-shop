@@ -109,6 +109,12 @@ func TestFacetsAndMultiFilters(t *testing.T) {
 	if len(all.Brands) != 2 || all.Brands[0].Name != "Ecstasy" || all.Brands[0].Count != 2 {
 		t.Errorf("brands %+v", all.Brands)
 	}
+	// Only a product with one variant (Beta: S in Blue) can go straight to the bag from a list.
+	for _, p := range decode[apigen.ProductPage](t, h.call("GET", "/v1/products?"+in, "", nil)).Items {
+		if (p.SingleVariantId != nil) != (p.Name == "Beta" || p.Name == "Gamma") {
+			t.Errorf("%s: single variant %v", p.Name, p.SingleVariantId)
+		}
+	}
 	if all.Total != 3 {
 		t.Errorf("total %d, want 3", all.Total)
 	}

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Product cards redesigned: a soft picture panel with the discount ("−20%") or "Sold out" as a
+  pill, the star rating in its corner when there are reviews, and a cut-out corner holding
+  Save and Bag buttons. Bag adds one-variant products straight away (and opens the bag);
+  others open the product to choose. Product lists from the API say `single_variant_id`.
+- Filters fold away under a button on phones; In stock and On sale each on their own line.
 - Dashboard: search orders by number, phone (any 4+ digits, however typed) or name; the
   Overview starts with orders to confirm, orders to ship, and sales today and over 7 days
   (Dhaka time), each linking to the orders behind it.

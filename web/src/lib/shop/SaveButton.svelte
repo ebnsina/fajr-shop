@@ -5,7 +5,12 @@
 	import { wishlist as w } from '#lib/copy.js';
 
 	// The heart that saves a product to the wishlist. Signed out, it leads to sign-in and back.
-	let { id, name, label = false }: { id: string; name: string; label?: boolean } = $props();
+	let {
+		id,
+		name,
+		label = false,
+		tile = false
+	}: { id: string; name: string; label?: boolean; tile?: boolean } = $props();
 
 	const saved = $derived(((page.data.saved as string[] | undefined) ?? []).includes(id));
 	const next = $derived(encodeURIComponent(page.url.pathname + page.url.search));
@@ -18,7 +23,7 @@
 		form="wishlist-form"
 		name="toggle"
 		value="{id}:{saved ? '0' : '1'}"
-		class={['heart', label && 'labelled', saved && 'on']}
+		class={['heart', label && 'labelled', tile && 'tile', saved && 'on']}
 		aria-pressed={saved}
 		aria-label={saved ? w.unsave(name) : w.save(name)}
 	>
@@ -27,7 +32,7 @@
 	</button>
 {:else}
 	<a
-		class={['heart', label && 'labelled']}
+		class={['heart', label && 'labelled', tile && 'tile']}
 		href="/account/login?next={next}"
 		aria-label={w.signIn}
 		title={w.signIn}
@@ -61,6 +66,24 @@
 		padding-inline: 0.875rem;
 		border-radius: var(--ui-radius-control);
 		block-size: 2.5rem;
+	}
+	/* A square in a product card's cut-out corner. */
+	.tile {
+		inline-size: 2.75rem;
+		block-size: 2.75rem;
+		border: 0;
+		border-radius: 0.875rem;
+		background: var(--bg-subtle);
+		color: var(--text-primary);
+	}
+	.tile.on {
+		color: var(--brand-700);
+	}
+	@media (width < 40rem) {
+		.tile {
+			inline-size: 2.375rem;
+			block-size: 2.375rem;
+		}
 	}
 	.heart:hover {
 		border-color: var(--brand-600);

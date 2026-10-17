@@ -50,6 +50,12 @@ func TestGuestCart(t *testing.T) {
 		t.Fatalf("no cart yet: %+v", empty)
 	}
 
+	// A one-variant product says which variant a list can add straight to the bag.
+	listed := decode[apigen.ProductPage](t, h.call("GET", "/v1/products?category="+cat.Slug+"&sort=name", "", nil)).Items
+	if len(listed) != 2 || listed[1].SingleVariantId == nil || listed[1].SingleVariantId.String() != oud {
+		t.Errorf("single variant: %+v", listed)
+	}
+
 	first := h.setItem("", "", oud, 2)
 	if first.Token == nil {
 		t.Fatal("a new guest cart must hand back its token")

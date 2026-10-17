@@ -2344,6 +2344,10 @@ components:
         rating_average:
           description: Average stars of the visible reviews; null with none.
           type: [number, "null"]
+        single_variant_id:
+          description: The variant to add to the cart straight from a list, when the product has only one.
+          type: [string, "null"]
+          format: uuid
         id:
           type: string
           format: uuid

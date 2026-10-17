@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Cancel01Icon, FilterHorizontalIcon } from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
-	import { tick, type Snippet } from 'svelte';
+	import { onMount, tick, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
 	import { shop as t } from '#lib/copy.js';
@@ -31,6 +31,12 @@
 		/** The page's title; gets how many products match, formatted, or null if unknown. */
 		heading: Snippet<[string | null]>;
 	} = $props();
+
+	// Open beside the results; folded under a "Filters" button on phones, where it would push them down.
+	let filtersOpen = $state(true);
+	onMount(() => {
+		if (matchMedia('(width < 56rem)').matches) filtersOpen = false;
+	});
 
 	type Choice = { value: string; label: string; count: number; on: boolean };
 	const SHOWN = 8;
@@ -131,7 +137,7 @@
 	{#if filters.category}<input type="hidden" name="category" value={filters.category} />{/if}
 	{#if filters.featured}<input type="hidden" name="featured" value="1" />{/if}
 
-	<details class="filters" open>
+	<details class="filters" bind:open={filtersOpen}>
 		<summary class="toggle"><Icon icon={FilterHorizontalIcon} size={16} /> {t.filters}</summary>
 		<div class="card">
 			<Accordion.Root>
@@ -209,8 +215,10 @@
 				{/each}
 
 				<Accordion.Item title={t.availability} open>
-					<Checkbox name="stock" value="1" checked={filters.stock}>{t.inStockOnly}</Checkbox>
-					<Checkbox name="sale" value="1" checked={filters.sale}>{t.onSaleOnly}</Checkbox>
+					<div class="list">
+						<Checkbox name="stock" value="1" checked={filters.stock}>{t.inStockOnly}</Checkbox>
+						<Checkbox name="sale" value="1" checked={filters.sale}>{t.onSaleOnly}</Checkbox>
+					</div>
 				</Accordion.Item>
 			</Accordion.Root>
 		</div>
