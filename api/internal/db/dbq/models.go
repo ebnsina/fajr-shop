@@ -317,6 +317,14 @@ type OrderItem struct {
 	LineTotal int64
 }
 
+type PhoneCheck struct {
+	Phone     string
+	Provider  string
+	Delivered int32
+	Cancelled int32
+	CheckedAt pgtype.Timestamptz
+}
+
 type Product struct {
 	ID          uuid.UUID
 	Slug        string

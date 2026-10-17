@@ -872,6 +872,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/orders/{number}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * How the customer's past parcels went, before sending cash on delivery
+         * @description Needs `orders:write`. This shop's own orders to the same phone, plus each switched-on courier
+         *     that can look it up (Steadfast with its merchant panel sign-in, Pathao), kept for a day. A
+         *     courier that can't be reached says so in `error` and never holds the rest up. `verdict` sums
+         *     it all: `new` with nothing to go on, else `good` (80% or more delivered), `mixed` (50–80%) or
+         *     `risky`.
+         */
+        get: operations["orderDeliveryHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/orders/{number}/shipment": {
         parameters: {
             query?: never;
@@ -1748,6 +1774,30 @@ export interface components {
             currency: string;
             /** Format: date-time */
             created_at: string;
+        };
+        DeliveryHistory: {
+            /** @enum {string} */
+            verdict: "new" | "good" | "mixed" | "risky";
+            /** @description Across the shop and every courier that answered. */
+            delivered: number;
+            cancelled: number;
+            shop: {
+                delivered: number;
+                cancelled: number;
+                /** @description Other orders still on their way through. */
+                open: number;
+            };
+            couriers: components["schemas"]["CourierRecord"][];
+        };
+        CourierRecord: {
+            code: string;
+            name: string;
+            delivered?: number;
+            cancelled?: number;
+            /** Format: date-time */
+            checked_at?: string;
+            /** @description Why this courier couldn't be checked, in plain words. */
+            error?: string;
         };
         Shipment: {
             provider: string;
@@ -3501,6 +3551,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    orderDeliveryHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The phone number's record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeliveryHistory"];
                 };
             };
             default: components["responses"]["Error"];

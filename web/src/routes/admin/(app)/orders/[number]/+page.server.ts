@@ -21,7 +21,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	});
 	if (!data) error(response.status, errorText(err?.error.code));
 	const couriers = await locals.api.GET('/v1/admin/couriers');
-	return { order: data, couriers: couriers.data?.items ?? [] };
+	// Not awaited: the page shows at once and the couriers' answers stream in.
+	const history = locals.api
+		.GET('/v1/admin/orders/{number}/history', { params: { path: { number: data.number } } })
+		.then(
+			(r) => r.data ?? null,
+			() => null
+		);
+	return { order: data, couriers: couriers.data?.items ?? [], history };
 };
 
 export const actions: Actions = {

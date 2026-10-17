@@ -116,3 +116,17 @@ SELECT * FROM shipments WHERE order_id = $1;
 
 -- name: SetShipmentStatus :one
 UPDATE shipments SET courier_status = $2, updated_at = now() WHERE order_id = $1 RETURNING *;
+
+-- name: PhoneHistory :one
+-- The shop's own record with a phone number, leaving out the order being looked at.
+SELECT count(*) FILTER (WHERE status = 'delivered')::int AS delivered,
+       count(*) FILTER (WHERE status = 'cancelled')::int AS cancelled,
+       count(*) FILTER (WHERE status NOT IN ('delivered', 'cancelled'))::int AS open
+FROM orders WHERE phone = sqlc.arg(phone) AND id <> sqlc.arg(except_id);
+
+-- name: RecentPhoneChecks :many
+SELECT * FROM phone_checks WHERE phone = $1 AND checked_at > now() - interval '1 day';
+
+-- name: SavePhoneCheck :exec
+INSERT INTO phone_checks (phone, provider, delivered, cancelled) VALUES ($1, $2, $3, $4)
+ON CONFLICT (phone, provider) DO UPDATE SET delivered = EXCLUDED.delivered, cancelled = EXCLUDED.cancelled, checked_at = now();

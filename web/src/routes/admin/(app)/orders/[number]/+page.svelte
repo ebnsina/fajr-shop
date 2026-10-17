@@ -1,4 +1,5 @@
 <script lang="ts">
+	import DeliveryHistory from '#lib/admin/DeliveryHistory.svelte';
 	import RowMenu from '#lib/admin/RowMenu.svelte';
 	import StepForm from '#lib/admin/StepForm.svelte';
 	import { runAction } from '#lib/admin/actions.js';
@@ -81,7 +82,9 @@
 </div>
 {#if !order.next_statuses.length}<p class="done">{t.done}</p>{/if}
 
-<OrderView {order} />
+<OrderView {order}>
+	{#snippet aside()}<DeliveryHistory history={data.history} />{/snippet}
+</OrderView>
 
 {#key to}
 	<StepForm

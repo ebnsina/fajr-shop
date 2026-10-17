@@ -30,6 +30,9 @@ var All = []Provider{
 	{"steadfast", Courier, "Steadfast", []Field{
 		{Key: "api_key", Label: "API key", Secret: true},
 		{Key: "secret_key", Label: "Secret key", Secret: true},
+		// The merchant panel's own sign-in, for looking up a customer's past parcels.
+		{Key: "panel_email", Label: "Merchant panel email (for delivery history)", Optional: true},
+		{Key: "panel_password", Label: "Merchant panel password", Secret: true, Optional: true},
 	}},
 	{"pathao", Courier, "Pathao", []Field{
 		{Key: "client_id", Label: "Client ID"},

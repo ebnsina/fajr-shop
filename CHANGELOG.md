@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Orders: a "Delivery history" card before sending cash on delivery. It shows how many of the
+  phone number's past parcels were delivered or returned at this shop, at Steadfast (with the
+  merchant panel sign-in added in Integrations) and at Pathao, and sums it up as new customer,
+  good, mixed or risky. Couriers' answers are kept a day; one that can't be reached says so and
+  never holds the page up. RedX isn't included: its panel needs a one-time code to sign in.
+  (`GET /v1/admin/orders/{number}/history`; run `fajr migrate` for `00015_phone_checks`.)
 - Orders: "Send with courier" books a confirmed or packed order with Steadfast (switched on in
   Integrations): the rider collects the order total, the order moves to on the way, and the
   tracking code shows on the order for the shop and the customer. "Check parcel status" asks

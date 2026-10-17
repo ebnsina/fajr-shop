@@ -818,6 +818,26 @@ export const questionAdmin = {
 	emptyBody: 'Questions appear here as customers ask them.'
 };
 
+export const historyCopy = {
+	title: 'Delivery history',
+	verdicts: {
+		new: 'New customer',
+		good: 'Good record',
+		mixed: 'Mixed record',
+		risky: 'Risky: call before sending'
+	},
+	summary: (delivered: number, total: number, pct: string) =>
+		`${delivered} of ${total} past parcels delivered (${pct}).`,
+	nothing: 'No past parcels to go on yet.',
+	shop: 'This shop',
+	counts: (delivered: number, cancelled: number) =>
+		`${delivered} delivered · ${cancelled} returned`,
+	open: (n: number) => `${n} open`,
+	addCourier:
+		'Switch on Steadfast or Pathao in Integrations to see this customer’s record with them too.',
+	failed: 'Couldn’t load the delivery history. Refresh to try again.'
+};
+
 export const parcelCopy = {
 	title: 'Parcel',
 	with: (courier: string) => `With ${courier}`,

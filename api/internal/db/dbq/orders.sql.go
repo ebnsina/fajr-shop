@@ -665,6 +665,62 @@ func (q *Queries) OrderStockMovement(ctx context.Context, arg OrderStockMovement
 	return err
 }
 
+const phoneHistory = `-- name: PhoneHistory :one
+SELECT count(*) FILTER (WHERE status = 'delivered')::int AS delivered,
+       count(*) FILTER (WHERE status = 'cancelled')::int AS cancelled,
+       count(*) FILTER (WHERE status NOT IN ('delivered', 'cancelled'))::int AS open
+FROM orders WHERE phone = $1 AND id <> $2
+`
+
+type PhoneHistoryParams struct {
+	Phone    string
+	ExceptID uuid.UUID
+}
+
+type PhoneHistoryRow struct {
+	Delivered int32
+	Cancelled int32
+	Open      int32
+}
+
+// The shop's own record with a phone number, leaving out the order being looked at.
+func (q *Queries) PhoneHistory(ctx context.Context, arg PhoneHistoryParams) (PhoneHistoryRow, error) {
+	row := q.db.QueryRow(ctx, phoneHistory, arg.Phone, arg.ExceptID)
+	var i PhoneHistoryRow
+	err := row.Scan(&i.Delivered, &i.Cancelled, &i.Open)
+	return i, err
+}
+
+const recentPhoneChecks = `-- name: RecentPhoneChecks :many
+SELECT phone, provider, delivered, cancelled, checked_at FROM phone_checks WHERE phone = $1 AND checked_at > now() - interval '1 day'
+`
+
+func (q *Queries) RecentPhoneChecks(ctx context.Context, phone string) ([]PhoneCheck, error) {
+	rows, err := q.db.Query(ctx, recentPhoneChecks, phone)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PhoneCheck
+	for rows.Next() {
+		var i PhoneCheck
+		if err := rows.Scan(
+			&i.Phone,
+			&i.Provider,
+			&i.Delivered,
+			&i.Cancelled,
+			&i.CheckedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const reserveShipment = `-- name: ReserveShipment :one
 INSERT INTO shipments (order_id, provider, cod_amount) VALUES ($1, $2, $3)
 ON CONFLICT (order_id) DO NOTHING
@@ -704,6 +760,28 @@ type ReturnStockParams struct {
 
 func (q *Queries) ReturnStock(ctx context.Context, arg ReturnStockParams) error {
 	_, err := q.db.Exec(ctx, returnStock, arg.Quantity, arg.ID)
+	return err
+}
+
+const savePhoneCheck = `-- name: SavePhoneCheck :exec
+INSERT INTO phone_checks (phone, provider, delivered, cancelled) VALUES ($1, $2, $3, $4)
+ON CONFLICT (phone, provider) DO UPDATE SET delivered = EXCLUDED.delivered, cancelled = EXCLUDED.cancelled, checked_at = now()
+`
+
+type SavePhoneCheckParams struct {
+	Phone     string
+	Provider  string
+	Delivered int32
+	Cancelled int32
+}
+
+func (q *Queries) SavePhoneCheck(ctx context.Context, arg SavePhoneCheckParams) error {
+	_, err := q.db.Exec(ctx, savePhoneCheck,
+		arg.Phone,
+		arg.Provider,
+		arg.Delivered,
+		arg.Cancelled,
+	)
 	return err
 }
 

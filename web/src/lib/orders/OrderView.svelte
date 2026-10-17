@@ -7,7 +7,14 @@
 	import StatusBadge from './StatusBadge.svelte';
 
 	// An order's lines, totals, address and timeline: the same for its customer and for the shop.
-	let { order: o }: { order: components['schemas']['Order'] } = $props();
+	let {
+		order: o,
+		aside
+	}: {
+		order: components['schemas']['Order'];
+		/** Shop-only panels at the top of the side column. */
+		aside?: import('svelte').Snippet;
+	} = $props();
 
 	const when = new Intl.DateTimeFormat('en-BD', {
 		dateStyle: 'medium',
@@ -57,6 +64,7 @@
 	</Card>
 
 	<div class="side">
+		{@render aside?.()}
 		<Card title={t.deliverTo} level={2}>
 			<div class="stack">
 				<p><strong>{o.customer_name}</strong></p>
