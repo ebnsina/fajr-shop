@@ -1835,6 +1835,14 @@ export interface components {
             low_stock: components["schemas"]["LowStockItem"][];
         };
         OrderStats: {
+            /** @description The last 14 days (Dhaka), oldest first, each with its orders and sales; cancelled left out. */
+            days: {
+                /** Format: date */
+                day: string;
+                orders: number;
+                /** Format: int64 */
+                sales: number;
+            }[];
             /** @description Placed and not yet confirmed. */
             waiting: number;
             /** @description Confirmed or packed, not yet shipped. */

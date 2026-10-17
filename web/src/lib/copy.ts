@@ -571,6 +571,17 @@ export const home = {
 export const overview = {
 	title: 'Overview',
 	description: 'How your shop is doing at a glance.',
+	greeting: (part: string, name: string) => `Good ${part}, ${name.split(' ')[0]}`,
+	salesChart: 'Sales, last 14 days',
+	salesChartAbout: (total: string, orders: number) =>
+		`${total} from ${orders} ${orders === 1 ? 'order' : 'orders'} over the last two weeks.`,
+	day: 'Day',
+	sales: 'Sales (৳)',
+	latestOrders: 'Latest orders',
+	allOrders: 'All orders',
+	noOrders: 'No orders yet.',
+	view: 'View order',
+	call: 'Call customer',
 	addProduct: 'Add a product',
 	addBanner: 'Add a banner',
 	waiting: 'Orders to confirm',

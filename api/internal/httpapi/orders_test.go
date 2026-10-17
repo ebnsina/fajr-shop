@@ -161,6 +161,9 @@ func TestCheckoutAndOrders(t *testing.T) {
 	if ov.Orders == nil || ov.Orders.TodayOrders < 1 || ov.Orders.TodaySales < mine.Total {
 		t.Errorf("overview orders: %+v", ov.Orders)
 	}
+	if d := ov.Orders.Days; len(d) != 14 || d[13].Orders < 1 || d[13].Sales < mine.Total || !d[0].Day.Before(d[13].Day.Time) {
+		t.Errorf("days: %+v", d)
+	}
 }
 
 func TestCheckoutVat(t *testing.T) {

@@ -3202,8 +3202,23 @@ components:
 
     OrderStats:
       type: object
-      required: [waiting, to_ship, today_orders, today_sales, week_orders, week_sales]
+      required: [waiting, to_ship, today_orders, today_sales, week_orders, week_sales, days]
       properties:
+        days:
+          description: The last 14 days (Dhaka), oldest first, each with its orders and sales; cancelled left out.
+          type: array
+          items:
+            type: object
+            required: [day, orders, sales]
+            properties:
+              day:
+                type: string
+                format: date
+              orders:
+                type: integer
+              sales:
+                type: integer
+                format: int64
         waiting:
           description: Placed and not yet confirmed.
           type: integer

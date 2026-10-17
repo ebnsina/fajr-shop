@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dashboard overview: a greeting and today's date, figures four across, a 14-day sales chart,
+  the latest orders with a row menu, beside what's running low and recent activity. The API's
+  overview includes `orders.days`.
 - Dashboard activity reads as sentences that name what changed ("Confirmed order #10001",
   "Added Nusrat Jahan to the team") and link to it, on the Activity page and the Overview;
   times in Dhaka time. Products list shows each product's brand.

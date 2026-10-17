@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
+	openapi_types "github.com/oapi-codegen/runtime/types"
 
 	"github.com/ebnsina/fajr-shop/api/internal/apigen"
 	"github.com/ebnsina/fajr-shop/api/internal/auth"
@@ -56,11 +59,29 @@ func (s *Server) AdminOverview(ctx context.Context, _ apigen.AdminOverviewReques
 	if p := caller(ctx); p != nil && auth.Has(p.perms, auth.OrdersWrite) {
 		err := s.scoped(ctx, func(q *dbq.Queries) error {
 			st, err := q.OrderStats(ctx)
+			if err != nil {
+				return err
+			}
+			days, err := q.DailySales(ctx)
+			if err != nil {
+				return err
+			}
 			out.Orders = &apigen.OrderStats{
 				Waiting: int(st.Waiting), ToShip: int(st.ToShip), TodayOrders: int(st.TodayOrders),
 				TodaySales: st.TodaySales, WeekOrders: int(st.WeekOrders), WeekSales: st.WeekSales,
 			}
-			return err
+			for _, d := range days {
+				day, err := time.Parse(time.DateOnly, d.Day)
+				if err != nil {
+					return err
+				}
+				out.Orders.Days = append(out.Orders.Days, struct {
+					Day    openapi_types.Date `json:"day"`
+					Orders int                `json:"orders"`
+					Sales  int64              `json:"sales"`
+				}{Day: openapi_types.Date{Time: day}, Orders: int(d.Orders), Sales: d.Sales})
+			}
+			return nil
 		})
 		if err != nil {
 			return nil, fmt.Errorf("overview: orders: %w", err)

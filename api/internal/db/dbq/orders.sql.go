@@ -263,6 +263,45 @@ func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order
 	return i, err
 }
 
+const dailySales = `-- name: DailySales :many
+WITH start AS (SELECT date_trunc('day', now() AT TIME ZONE 'Asia/Dhaka') AT TIME ZONE 'Asia/Dhaka' AS today),
+days AS (SELECT generate_series(today - interval '13 days', today, interval '1 day') AS d FROM start)
+SELECT to_char(days.d AT TIME ZONE 'Asia/Dhaka', 'YYYY-MM-DD') AS day,
+    count(o.id)::int AS orders,
+    coalesce(sum(o.total), 0)::bigint AS sales
+FROM days LEFT JOIN orders o
+    ON o.created_at >= days.d AND o.created_at < days.d + interval '1 day' AND o.status <> 'cancelled'
+GROUP BY days.d
+ORDER BY days.d
+`
+
+type DailySalesRow struct {
+	Day    string
+	Orders int32
+	Sales  int64
+}
+
+// The last 14 days in Dhaka, oldest first, every day present even with no orders.
+func (q *Queries) DailySales(ctx context.Context) ([]DailySalesRow, error) {
+	rows, err := q.db.Query(ctx, dailySales)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []DailySalesRow
+	for rows.Next() {
+		var i DailySalesRow
+		if err := rows.Scan(&i.Day, &i.Orders, &i.Sales); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const emptyCart = `-- name: EmptyCart :exec
 WITH gone AS (DELETE FROM cart_items WHERE cart_id = $1)
 UPDATE carts SET discount_id = NULL, updated_at = now() WHERE id = $1

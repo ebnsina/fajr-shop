@@ -85,3 +85,15 @@ SELECT
     count(*) FILTER (WHERE o.created_at >= day.start - interval '6 days' AND o.status <> 'cancelled')::int AS week_orders,
     coalesce(sum(o.total) FILTER (WHERE o.created_at >= day.start - interval '6 days' AND o.status <> 'cancelled'), 0)::bigint AS week_sales
 FROM orders o, day;
+
+-- name: DailySales :many
+-- The last 14 days in Dhaka, oldest first, every day present even with no orders.
+WITH start AS (SELECT date_trunc('day', now() AT TIME ZONE 'Asia/Dhaka') AT TIME ZONE 'Asia/Dhaka' AS today),
+days AS (SELECT generate_series(today - interval '13 days', today, interval '1 day') AS d FROM start)
+SELECT to_char(days.d AT TIME ZONE 'Asia/Dhaka', 'YYYY-MM-DD') AS day,
+    count(o.id)::int AS orders,
+    coalesce(sum(o.total), 0)::bigint AS sales
+FROM days LEFT JOIN orders o
+    ON o.created_at >= days.d AND o.created_at < days.d + interval '1 day' AND o.status <> 'cancelled'
+GROUP BY days.d
+ORDER BY days.d;

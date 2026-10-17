@@ -10,8 +10,15 @@
 		PencilEdit02Icon
 	} from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
+	import { barY, defineChart } from '@tanstack/charts';
+	import { scaleBand } from '@tanstack/charts/scales/band';
+	import { scaleLinear } from '@tanstack/charts/scales/linear';
+	import { tooltip } from '@tanstack/charts/tooltip';
+	import RowMenu from '#lib/admin/RowMenu.svelte';
+	import StatusBadge from '#lib/orders/StatusBadge.svelte';
+	import Chart from '#lib/sinaui/ui/Chart.svelte';
 	import { formatMoney } from '#lib/money.js';
-	import { overview as t } from '#lib/copy.js';
+	import { orderCopy as oc, overview as t } from '#lib/copy.js';
 	import { describe } from '#lib/admin/activity.js';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
@@ -19,6 +26,42 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+	const dhaka = { timeZone: 'Asia/Dhaka' } as const;
+	const today = new Intl.DateTimeFormat('en-BD', { ...dhaka, dateStyle: 'full' }).format(
+		new Date()
+	);
+	const hour = Number(
+		new Intl.DateTimeFormat('en-GB', { ...dhaka, hour: 'numeric', hourCycle: 'h23' }).format(
+			new Date()
+		)
+	);
+	const partOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+	const short = new Intl.DateTimeFormat('en-BD', {
+		day: 'numeric',
+		month: 'short',
+		timeZone: 'UTC'
+	});
+	// One bar per day, in taka.
+	const chart = $derived.by(() => {
+		const days = data.overview.orders?.days;
+		if (!days?.length) return null;
+		const rows = days.map((d) => ({ day: short.format(new Date(d.day)), sales: d.sales / 100 }));
+		return defineChart({
+			marks: [barY(rows, { x: 'day', y: 'sales', radius: 4 })],
+			scales: {
+				x: { scale: () => scaleBand<string>().padding(0.3), axis: { label: t.day } },
+				y: {
+					scale: scaleLinear,
+					nice: true,
+					grid: true,
+					axis: { label: t.sales, ticks: { count: 4 } }
+				}
+			},
+			tooltip
+		});
+	});
+	const weekTotal = $derived((data.overview.orders?.days ?? []).reduce((a, d) => a + d.sales, 0));
+	const weekOrders = $derived((data.overview.orders?.days ?? []).reduce((a, d) => a + d.orders, 0));
 	const o = $derived(data.overview);
 	const n = new Intl.NumberFormat('en-BD');
 	const when = new Intl.DateTimeFormat('en-BD', {
@@ -90,14 +133,17 @@
 
 <svelte:head><title>{t.title} · {data.store.name}</title></svelte:head>
 
-<div class="head">
+<div class="hello">
 	<div>
-		<h1>{t.title}</h1>
+		<h1>{t.greeting(partOfDay, data.user.name)}</h1>
 		<p>{t.description}</p>
 	</div>
-	<div class="actions">
-		<Button variant="secondary" href="/admin/banners">{t.addBanner}</Button>
-		<Button href="/admin/products/new">{t.addProduct}</Button>
+	<div class="right">
+		<time datetime={new Date().toISOString().slice(0, 10)}>{today}</time>
+		<div class="actions">
+			<Button variant="secondary" href="/admin/banners">{t.addBanner}</Button>
+			<Button href="/admin/products/new">{t.addProduct}</Button>
+		</div>
 	</div>
 </div>
 
@@ -114,63 +160,140 @@
 </ul>
 
 <div class="grid">
-	<section class="panel" aria-labelledby="low">
-		<h2 id="low">{t.lowStock}</h2>
-		{#if o.low_stock.length}
-			<Table caption={t.lowStock} hideCaption>
-				<thead><tr><th>{t.product}</th><th class="num">{t.left}</th></tr></thead>
-				<tbody>
-					{#each o.low_stock as l (l.variant_id)}
-						<tr>
-							<td>
-								<a href="/admin/products/{l.product_id}">{l.name}</a>
-								{#if Object.keys(l.options).length}<span class="opt"
-										>{Object.values(l.options).join(' / ')}</span
-									>{/if}
-							</td>
-							<td class="num">{l.stock}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</Table>
-		{:else}
-			<EmptyState title={t.lowStockNone} />
+	<div class="col">
+		{#if o.orders && chart}
+			<section class="panel">
+				<Chart
+					title={t.salesChart}
+					description={t.salesChartAbout(formatMoney(weekTotal), weekOrders)}
+					definition={chart}
+					height={260}
+				/>
+			</section>
 		{/if}
-	</section>
-
-	{#if data.activity}
-		<section class="panel" aria-labelledby="recent">
-			<div class="panel-head">
-				<h2 id="recent">{t.recent}</h2>
-				<a href="/admin/activity">{t.allActivity}</a>
-			</div>
-			{#if data.activity.length}
-				<ul class="feed">
-					{#each data.activity as e (e.id)}{@const d = describe(e)}
-						<li>
-							<span
-								>{#if d.href}<a href={d.href}>{d.text}</a>{:else}{d.text}{/if}</span
-							>
-							<span class="meta">{e.actor ?? t.system} · {when.format(new Date(e.created_at))}</span
-							>
-						</li>
-					{/each}
-				</ul>
+		{#if data.orders}
+			<section class="panel" aria-labelledby="latest">
+				<div class="panel-head">
+					<h2 id="latest">{t.latestOrders}</h2>
+					<a href="/admin/orders">{t.allOrders}</a>
+				</div>
+				{#if data.orders.length}
+					<table class="orders">
+						<tbody>
+							{#each data.orders as x (x.id)}
+								<tr>
+									<td><a href="/admin/orders/{x.number}">#{x.number}</a></td>
+									<td
+										>{x.customer_name}<span class="opt"
+											>{x.phone.replace(/^\+88/, '')} · {x.district}</span
+										></td
+									>
+									<td class="num">{formatMoney(x.total)}</td>
+									<td><StatusBadge status={x.status} /></td>
+									<td class="menu"
+										><RowMenu
+											label={oc.number(x.number)}
+											actions={[
+												{ label: t.view, href: `/admin/orders/${x.number}` },
+												{ label: t.call, href: `tel:${x.phone}` }
+											]}
+										/></td
+									>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				{:else}
+					<EmptyState title={t.noOrders} />
+				{/if}
+			</section>
+		{/if}
+	</div>
+	<div class="col">
+		<section class="panel" aria-labelledby="low">
+			<h2 id="low">{t.lowStock}</h2>
+			{#if o.low_stock.length}
+				<Table caption={t.lowStock} hideCaption>
+					<thead><tr><th>{t.product}</th><th class="num">{t.left}</th></tr></thead>
+					<tbody>
+						{#each o.low_stock as l (l.variant_id)}
+							<tr>
+								<td>
+									<a href="/admin/products/{l.product_id}">{l.name}</a>
+									{#if Object.keys(l.options).length}<span class="opt"
+											>{Object.values(l.options).join(' / ')}</span
+										>{/if}
+								</td>
+								<td class="num">{l.stock}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</Table>
 			{:else}
-				<EmptyState title={t.recentNone} />
+				<EmptyState title={t.lowStockNone} />
 			{/if}
 		</section>
-	{/if}
+		{#if data.activity}
+			<section class="panel" aria-labelledby="recent">
+				<div class="panel-head">
+					<h2 id="recent">{t.recent}</h2>
+					<a href="/admin/activity">{t.allActivity}</a>
+				</div>
+				{#if data.activity.length}
+					<ul class="feed">
+						{#each data.activity as e (e.id)}{@const d = describe(e)}
+							<li>
+								<span
+									>{#if d.href}<a href={d.href}>{d.text}</a>{:else}{d.text}{/if}</span
+								>
+								<span class="meta"
+									>{e.actor ?? t.system} · {when.format(new Date(e.created_at))}</span
+								>
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<EmptyState title={t.recentNone} />
+				{/if}
+			</section>
+		{/if}
+	</div>
 </div>
 
 <style>
+	.hello {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: end;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-block-end: 1.5rem;
+	}
+	.hello h1 {
+		margin: 0 0 0.25rem;
+		font-size: 1.625rem;
+	}
+	.hello p {
+		margin: 0;
+		color: var(--text-secondary);
+	}
+	.right {
+		display: grid;
+		justify-items: end;
+		gap: 0.625rem;
+	}
+	time {
+		color: var(--text-secondary);
+		font-weight: 500;
+	}
 	.actions {
 		display: flex;
 		gap: 0.5rem;
 	}
+	/* Four across; two on a tablet, one on a phone. */
 	.stats {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 1rem;
 		margin: 0 0 1.5rem;
 		padding: 0;
@@ -218,11 +341,56 @@
 		color: var(--ui-muted);
 		font-size: 0.8125rem;
 	}
+	/* Two columns that stack on their own, so a tall panel never leaves a gap beside it. */
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+		grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 		gap: 1.5rem;
 		align-items: start;
+	}
+	.col {
+		display: grid;
+		gap: 1.5rem;
+	}
+	.orders {
+		inline-size: 100%;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+	}
+	.orders td {
+		padding: 0.625rem 0.5rem;
+		border-block-end: 1px solid var(--border);
+		vertical-align: middle;
+	}
+	.orders tr:last-child td {
+		border-block-end: 0;
+	}
+	.orders a {
+		color: var(--brand-700);
+		font-weight: 600;
+	}
+	.orders .num {
+		text-align: end;
+		font-variant-numeric: tabular-nums;
+	}
+	.menu {
+		inline-size: 1%;
+	}
+	@media (width < 72rem) {
+		.stats {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+		.grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+	@media (width < 36rem) {
+		.stats {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.right {
+			justify-items: start;
+		}
 	}
 	.panel {
 		padding: 1.25rem;
