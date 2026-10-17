@@ -13,7 +13,10 @@ const noCart: components['schemas']['Cart'] = {
 	currency: 'BDT'
 };
 
-export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders }) => {
+// Pages about one person's order are never cached, whoever is looking.
+const private_ = /^\/(orders|checkout)(\/|$)/;
+
+export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders, url }) => {
 	// Only someone with a cart or a session costs these lookups, and only their pages turn private.
 	const s = readSession(cookies);
 	const signedIn = !!(s.access || s.refresh);
@@ -26,9 +29,10 @@ export const load: LayoutServerLoad = async ({ locals, cookies, setHeaders }) =>
 	]);
 	if (!cats.data) error(cats.response.status, errorText(cats.error?.error.code));
 	setHeaders({
-		'cache-control': personal
-			? 'private, no-store'
-			: 'public, max-age=60, stale-while-revalidate=300'
+		'cache-control':
+			personal || private_.test(url.pathname)
+				? 'private, no-store'
+				: 'public, max-age=60, stale-while-revalidate=300'
 	});
 	return {
 		categories: cats.data.items,

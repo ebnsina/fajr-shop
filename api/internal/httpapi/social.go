@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
@@ -21,9 +22,14 @@ import (
 )
 
 // scoped runs fn in a transaction that Postgres row-level security sees as the caller: their user
-// id, and whether they may moderate. Every query on wishlists, reviews and questions goes through it.
+// id and what they may handle. Every query on customers' own rows goes through it.
 func (s *Server) scoped(ctx context.Context, fn func(q *dbq.Queries) error) error {
-	var user, moderator string
+	return s.scopedAs(ctx, nil, fn)
+}
+
+// scopedAs is scoped, also holding an order's link (its token digest), as a guest does.
+func (s *Server) scopedAs(ctx context.Context, orderToken []byte, fn func(q *dbq.Queries) error) error {
+	var user, moderator, orders string
 	if p := caller(ctx); p != nil {
 		if p.sessionID != uuid.Nil {
 			user = p.userID.String()
@@ -31,9 +37,14 @@ func (s *Server) scoped(ctx context.Context, fn func(q *dbq.Queries) error) erro
 		if slices.Contains(p.perms, auth.CatalogWrite) {
 			moderator = "on"
 		}
+		if slices.Contains(p.perms, auth.OrdersWrite) {
+			orders = "on"
+		}
 	}
 	return pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, `SELECT set_config('app.user_id', $1, true), set_config('app.moderator', $2, true)`, user, moderator); err != nil {
+		if _, err := tx.Exec(ctx, `SELECT set_config('app.user_id', $1, true), set_config('app.moderator', $2, true),
+			set_config('app.orders', $3, true), set_config('app.order_token', $4, true)`,
+			user, moderator, orders, hex.EncodeToString(orderToken)); err != nil {
 			return err
 		}
 		return fn(s.q.WithTx(tx))

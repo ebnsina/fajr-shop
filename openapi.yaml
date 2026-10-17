@@ -22,6 +22,7 @@ tags:
   - name: shipping
   - name: discounts
   - name: reviews
+  - name: orders
   - name: admin
 
 paths:
@@ -1160,6 +1161,203 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/checkout:
+    post:
+      operationId: placeOrder
+      tags: [orders]
+      summary: Place an order from the cart
+      description: |
+        Prices, discount, delivery and VAT are worked out here from the cart as it is now; nothing is
+        taken from the request but who and where. Stock is taken in the same step. Refused with
+        `cart_empty`, `cart_changed` (a line can no longer be bought, or the discount no longer
+        applies: look at the cart again), `insufficient_stock` or `not_deliverable`. The response's
+        `token` is the order's private link for a guest; it is shown once.
+      security:
+        - {}
+        - bearer: []
+      parameters:
+        - $ref: "#/components/parameters/CartToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutInput"
+      responses:
+        "201":
+          description: Placed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [order, token]
+                properties:
+                  order:
+                    $ref: "#/components/schemas/Order"
+                  token:
+                    type: string
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/orders:
+    get:
+      operationId: listMyOrders
+      tags: [orders]
+      summary: The signed-in customer's orders, newest first
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OrderSummary"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/orders/{number}:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: One order, for its customer or whoever holds its link
+      security:
+        - {}
+        - bearer: []
+      parameters:
+        - name: token
+          in: query
+          description: The order's link token, from placing it.
+          schema:
+            type: string
+            maxLength: 200
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/orders:
+    get:
+      operationId: adminListOrders
+      tags: [admin, orders]
+      summary: Orders, newest first
+      description: Needs `orders:write`.
+      security:
+        - bearer: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OrderSummary"
+                  next_cursor:
+                    type: [string, "null"]
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/orders/{number}:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    get:
+      operationId: adminGetOrder
+      tags: [admin, orders]
+      summary: One order
+      description: Needs `orders:write`.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/orders/{number}/status:
+    parameters:
+      - name: number
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    post:
+      operationId: setOrderStatus
+      tags: [admin, orders]
+      summary: Move an order on (confirm, pack, ship, deliver) or cancel it
+      description: |
+        Needs `orders:write`. Only the moves in the order's `next_statuses` are allowed; `from` must be
+        the status you saw, else `status_changed` (someone else moved it first). Cancelling puts the
+        stock back.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, to]
+              properties:
+                from:
+                  $ref: "#/components/schemas/OrderStatus"
+                to:
+                  $ref: "#/components/schemas/OrderStatus"
+                note:
+                  type: string
+                  maxLength: 300
+      responses:
+        "200":
+          description: The order after the move
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        default:
+          $ref: "#/components/responses/Error"
+
   /v1/banners:
     get:
       operationId: listBanners
@@ -1637,6 +1835,9 @@ components:
         - account_exists
         - in_use
         - not_deliverable
+        - cart_empty
+        - cart_changed
+        - status_changed
         - insufficient_stock
         - too_large
         - unsupported_type
@@ -1715,12 +1916,12 @@ components:
     Permission:
       description: What a user's role or an API key allows.
       type: string
-      enum: [store:write, catalog:write, inventory:write, api_keys:manage, audit:read]
+      enum: [store:write, catalog:write, inventory:write, orders:write, api_keys:manage, audit:read]
 
     ApiKeyScope:
       description: What an API key may do. Managing keys is for signed-in people only.
       type: string
-      enum: [store:write, catalog:write, inventory:write, audit:read]
+      enum: [store:write, catalog:write, inventory:write, orders:write, audit:read]
 
     User:
       type: object
@@ -2265,6 +2466,174 @@ components:
         token:
           description: Only when this response created a guest cart. Send it back as X-Cart-Token.
           type: [string, "null"]
+
+    OrderStatus:
+      type: string
+      enum: [pending, confirmed, packed, shipped, delivered, cancelled]
+
+    PaymentMethod:
+      description: "`cod`: cash on delivery. Online payments come later."
+      type: string
+      enum: [cod]
+
+    CheckoutInput:
+      type: object
+      required: [name, phone, district, area, address, payment_method]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        phone:
+          description: A Bangladeshi mobile number, in any common form (01712345678, +880 1712-345678).
+          type: string
+          minLength: 10
+          maxLength: 20
+        email:
+          type: [string, "null"]
+          format: email
+          maxLength: 254
+        district:
+          type: string
+          maxLength: 40
+        area:
+          description: Thana or area, e.g. "Mirpur 10".
+          type: string
+          minLength: 1
+          maxLength: 80
+        address:
+          description: House, road, landmark.
+          type: string
+          minLength: 1
+          maxLength: 300
+        note:
+          type: [string, "null"]
+          maxLength: 500
+        payment_method:
+          $ref: "#/components/schemas/PaymentMethod"
+
+    OrderSummary:
+      type: object
+      required: [id, number, status, customer_name, phone, district, payment_method, item_count, total, currency, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: integer
+          format: int64
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        customer_name:
+          type: string
+        phone:
+          type: string
+        district:
+          type: string
+        payment_method:
+          $ref: "#/components/schemas/PaymentMethod"
+        item_count:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        currency:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Order:
+      allOf:
+        - $ref: "#/components/schemas/OrderSummary"
+        - type: object
+          required: [area, address, subtotal, discount_total, zone_name, delivery_days, delivery_charge, vat_rate_bp, vat_included, vat_total, items, events, next_statuses]
+          properties:
+            email:
+              type: [string, "null"]
+            area:
+              type: string
+            address:
+              type: string
+            note:
+              type: [string, "null"]
+            subtotal:
+              type: integer
+              format: int64
+            discount_code:
+              type: [string, "null"]
+            discount_total:
+              type: integer
+              format: int64
+            zone_name:
+              type: string
+            delivery_days:
+              type: string
+            delivery_charge:
+              type: integer
+              format: int64
+            vat_rate_bp:
+              type: integer
+            vat_included:
+              description: True when the prices already included VAT (vat_total is then the part of them that was VAT).
+              type: boolean
+            vat_total:
+              type: integer
+              format: int64
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderItem"
+            events:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderEvent"
+            next_statuses:
+              description: Where the shop can move it next.
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderStatus"
+
+    OrderItem:
+      type: object
+      required: [slug, name, options, unit_price, quantity, line_total]
+      properties:
+        product_id:
+          type: [string, "null"]
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        options:
+          type: object
+          additionalProperties:
+            type: string
+        sku:
+          type: [string, "null"]
+        unit_price:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+        line_total:
+          type: integer
+          format: int64
+
+    OrderEvent:
+      type: object
+      required: [status, created_at]
+      properties:
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        note:
+          type: [string, "null"]
+        actor:
+          description: Who on the shop's side made the change; null for the customer placing it.
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
 
     ProductRef:
       type: object

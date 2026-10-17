@@ -56,6 +56,52 @@ func (ns NullBannerPlacement) Value() (driver.Value, error) {
 	return string(ns.BannerPlacement), nil
 }
 
+type OrderStatus string
+
+const (
+	OrderStatusPending   OrderStatus = "pending"
+	OrderStatusConfirmed OrderStatus = "confirmed"
+	OrderStatusPacked    OrderStatus = "packed"
+	OrderStatusShipped   OrderStatus = "shipped"
+	OrderStatusDelivered OrderStatus = "delivered"
+	OrderStatusCancelled OrderStatus = "cancelled"
+)
+
+func (e *OrderStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderStatus(s)
+	case string:
+		*e = OrderStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderStatus: %T", src)
+	}
+	return nil
+}
+
+type NullOrderStatus struct {
+	OrderStatus OrderStatus
+	Valid       bool // Valid is true if OrderStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderStatus), nil
+}
+
 type ProductStatus string
 
 const (
@@ -219,6 +265,58 @@ type Discount struct {
 	CreatedAt   pgtype.Timestamptz
 }
 
+type Order struct {
+	ID             uuid.UUID
+	Number         int64
+	UserID         uuid.NullUUID
+	TokenHash      []byte
+	Status         OrderStatus
+	PaymentMethod  string
+	CustomerName   string
+	Phone          string
+	Email          *string
+	District       string
+	Area           string
+	Address        string
+	Note           *string
+	Subtotal       int64
+	DiscountCode   *string
+	DiscountTotal  int64
+	ZoneName       string
+	DeliveryDays   string
+	DeliveryCharge int64
+	VatRateBp      int32
+	VatIncluded    bool
+	VatTotal       int64
+	Total          int64
+	Currency       string
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+}
+
+type OrderEvent struct {
+	ID          int64
+	OrderID     uuid.UUID
+	Status      OrderStatus
+	Note        *string
+	ActorUserID uuid.NullUUID
+	CreatedAt   pgtype.Timestamptz
+}
+
+type OrderItem struct {
+	OrderID   uuid.UUID
+	Position  int32
+	VariantID uuid.NullUUID
+	ProductID uuid.NullUUID
+	Slug      string
+	Name      string
+	Options   []byte
+	Sku       *string
+	UnitPrice int64
+	Quantity  int32
+	LineTotal int64
+}
+
 type Product struct {
 	ID          uuid.UUID
 	Slug        string
@@ -301,6 +399,7 @@ type StockMovement struct {
 	ActorUserID   uuid.NullUUID
 	ActorApiKeyID uuid.NullUUID
 	CreatedAt     pgtype.Timestamptz
+	OrderID       uuid.NullUUID
 }
 
 type StoreSetting struct {

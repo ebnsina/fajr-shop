@@ -47,9 +47,11 @@
 	--badge-out-bg: #e5e7eb;
 	--badge-out-text: #374151;
 
-	--footer-bg: #0f172a;
-	--footer-text: #cbd5e1;
-	--footer-line: #1e293b;
+	/* Footer: a light cyan, near white, with dark text. */
+	--footer-bg: #ecfeff;
+	--footer-text: #475569;
+	--footer-heading: #0f172a;
+	--footer-line: #cffafe;
 	--on-dark: #ffffff;
 
 	/* WhatsApp's own green, so shoppers recognize the button. */

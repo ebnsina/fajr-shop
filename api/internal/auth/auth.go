@@ -70,6 +70,7 @@ const (
 	PrefixRefresh = "fsr_"
 	PrefixAPIKey  = "fsk_"
 	PrefixCart    = "fsc_"
+	PrefixOrder   = "fso_"
 )
 
 // NewToken returns a random 256-bit token and the digest to store in its place.
@@ -110,11 +111,12 @@ const (
 	StoreWrite     Permission = "store:write"
 	CatalogWrite   Permission = "catalog:write"
 	InventoryWrite Permission = "inventory:write"
+	OrdersWrite    Permission = "orders:write"
 	APIKeysManage  Permission = "api_keys:manage"
 	AuditRead      Permission = "audit:read"
 )
 
-var allPermissions = []Permission{StoreWrite, CatalogWrite, InventoryWrite, APIKeysManage, AuditRead}
+var allPermissions = []Permission{StoreWrite, CatalogWrite, InventoryWrite, OrdersWrite, APIKeysManage, AuditRead}
 
 // RolePermissions says what each role may do. An unknown role may do nothing.
 func RolePermissions(role string) []Permission {
@@ -122,7 +124,7 @@ func RolePermissions(role string) []Permission {
 	case "admin":
 		return allPermissions
 	case "staff":
-		return []Permission{CatalogWrite, InventoryWrite}
+		return []Permission{CatalogWrite, InventoryWrite, OrdersWrite}
 	default:
 		return nil
 	}

@@ -63,10 +63,9 @@ export const actions: Actions = {
 		}
 		return result;
 	},
-	// ponytail: goes to the bag until checkout exists; point it at /checkout then.
 	buy: async ({ request, locals, cookies }) => {
 		const result = await add(locals.api, cookies, await request.formData());
-		if ('cart' in result) redirect(303, '/cart');
+		if ('cart' in result) redirect(303, '/checkout');
 		return result;
 	},
 	set: async ({ request, locals, cookies }) => {

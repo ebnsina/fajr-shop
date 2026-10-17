@@ -12,6 +12,7 @@
 		Image01Icon,
 		Key01Icon,
 		PackageIcon,
+		ShoppingBag01Icon,
 		Store01Icon
 	} from '@hugeicons/core-free-icons';
 	import { nav } from '#lib/copy.js';
@@ -23,7 +24,12 @@
 	let { data, children }: LayoutProps = $props();
 
 	const groups: SidebarGroup[] = [
-		{ items: [{ label: nav.overview, href: '/admin', icon: DashboardSquare01Icon }] },
+		{
+			items: [
+				{ label: nav.overview, href: '/admin', icon: DashboardSquare01Icon },
+				{ label: nav.orders, href: '/admin/orders', icon: ShoppingBag01Icon }
+			]
+		},
 		{
 			title: nav.catalog,
 			items: [

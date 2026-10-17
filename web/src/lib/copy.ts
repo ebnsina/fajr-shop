@@ -17,6 +17,9 @@ export const errors: Record<ErrorCode, string> = {
 	internal: 'Something went wrong on our side. Try again in a moment.',
 	in_use: 'This is still in use. Move what’s in it first.',
 	not_deliverable: 'We don’t deliver to that district yet.',
+	cart_empty: 'Your bag is empty.',
+	cart_changed: 'Something in your bag changed. Check your bag and try again.',
+	status_changed: 'Someone else changed this order first. Look at it again.',
 	insufficient_stock: 'There isn’t that much in stock to take away.',
 	too_large: 'That image is over 10 MB. Try a smaller one.',
 	unsupported_type: 'Upload a JPEG, PNG or WebP image.',
@@ -38,6 +41,10 @@ export const permissions: Record<Permission, { label: string; hint: string }> = 
 		hint: 'Add and change products, categories and images.'
 	},
 	'inventory:write': { label: 'Change stock', hint: 'Add or take away stock, with a reason.' },
+	'orders:write': {
+		label: 'Handle orders',
+		hint: 'See orders and move them on: confirm, ship, cancel.'
+	},
 	'api_keys:manage': {
 		label: 'Manage API keys',
 		hint: 'Create and revoke keys.'
@@ -77,6 +84,7 @@ export const activity: Record<string, string> = {
 export const nav = {
 	label: 'Shop dashboard',
 	overview: 'Overview',
+	orders: 'Orders',
 	shop: 'Shop',
 	catalog: 'Catalog',
 	products: 'Products',
@@ -464,6 +472,7 @@ export const cart = {
 	each: (price: string) => `${price} each`,
 	summary: 'Order summary',
 	keepShopping: 'Continue shopping',
+	checkout: 'Checkout',
 	items: (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`,
 	code: 'Discount code',
 	codePlaceholder: 'Enter a code',
@@ -561,7 +570,6 @@ export const account = {
 	createOne: 'Create an account',
 	signInInstead: 'Sign in',
 	details: 'Your details',
-	ordersSoon: 'Your orders will appear here after you buy something.',
 	shopNow: 'Start shopping',
 	hello: (name: string) => `Hello, ${name.split(' ')[0]}`
 };
@@ -710,6 +718,99 @@ export const questionAdmin = {
 	emptyWaiting: 'No questions waiting',
 	emptyAll: 'No questions yet',
 	emptyBody: 'Questions appear here as customers ask them.'
+};
+
+export const orderCopy = {
+	statuses: {
+		pending: 'Placed',
+		confirmed: 'Confirmed',
+		packed: 'Packed',
+		shipped: 'On the way',
+		delivered: 'Delivered',
+		cancelled: 'Cancelled'
+	} as Record<string, string>,
+	/** What the shop presses to move an order on. */
+	moves: {
+		confirmed: 'Confirm',
+		packed: 'Mark packed',
+		shipped: 'Mark shipped',
+		delivered: 'Mark delivered',
+		cancelled: 'Cancel order'
+	} as Record<string, string>,
+	number: (n: number) => `Order #${n}`,
+	thanks: 'Thank you! Your order is placed.',
+	thanksBody: 'We’ll call you to confirm it. You pay when it arrives.',
+	keepLink: 'Keep this page’s link to check your order later.',
+	items: 'Items',
+	deliverTo: 'Deliver to',
+	payment: 'Payment',
+	cod: 'Cash on delivery',
+	timeline: 'Order updates',
+	subtotal: 'Subtotal',
+	discount: (code: string) => `Discount (${code})`,
+	delivery: (zone: string) => `Delivery · ${zone}`,
+	vatAdded: (rate: string) => `VAT ${rate}`,
+	vatIncluded: (rate: string, amount: string) => `Includes VAT ${rate}: ${amount}`,
+	total: 'Total',
+	qty: (n: number) => `× ${n}`,
+	placedOn: (d: string) => `Placed on ${d}`,
+	myOrders: 'My orders',
+	noOrders: 'No orders yet',
+	noOrdersBody: 'Your orders will show here once you place one.',
+	itemCount: (n: number) => `${n} ${n === 1 ? 'item' : 'items'}`,
+	view: 'View'
+};
+
+export const orderAdmin = {
+	title: 'Orders',
+	description:
+		'Every order, newest first. Call to confirm, then move it on as it’s packed, shipped and delivered.',
+	all: 'All',
+	customer: 'Customer',
+	placed: 'Placed',
+	items: 'Items',
+	total: 'Total',
+	status: 'Status',
+	more: 'Older orders',
+	back: 'All orders',
+	note: 'Note (optional)',
+	notePlaceholder: 'Called the customer, confirmed the address.',
+	moved: (status: string) => `Order is now ${status.toLowerCase()}`,
+	cancelConfirm: 'Cancel it?',
+	done: 'Nothing more to do: this order is finished.',
+	call: 'Call',
+	emptyTitle: 'No orders here',
+	emptyBody: 'Orders appear here as customers place them.'
+};
+
+export const checkoutCopy = {
+	title: 'Checkout',
+	contact: 'Who receives it',
+	name: 'Full name',
+	namePlaceholder: 'Rahim Uddin',
+	phone: 'Mobile number',
+	phoneHint: 'The delivery person calls this number.',
+	email: 'Email (optional)',
+	emailHint: 'For a copy of your order.',
+	address: 'Where to deliver',
+	district: 'District',
+	districtPlaceholder: 'Choose your district',
+	searchDistricts: 'Search districts',
+	noDistrict: 'No district by that name',
+	area: 'Thana or area',
+	areaPlaceholder: 'Mirpur 10',
+	street: 'House, road and a landmark',
+	streetPlaceholder: 'House 12, Road 3, near the school',
+	note: 'Note for the shop (optional)',
+	notePlaceholder: 'Call before coming; the gate is on the left.',
+	payment: 'Payment',
+	cod: 'Cash on delivery',
+	codHint: 'Pay the delivery person when your order arrives.',
+	summary: 'Your order',
+	pickDistrict: 'Choose your district to see the delivery charge.',
+	place: 'Place order',
+	agree: 'By placing the order you agree to pay the total on delivery.',
+	backToBag: 'Back to your bag'
 };
 
 export const delivery = {

@@ -770,6 +770,132 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Place an order from the cart
+         * @description Prices, discount, delivery and VAT are worked out here from the cart as it is now; nothing is
+         *     taken from the request but who and where. Stock is taken in the same step. Refused with
+         *     `cart_empty`, `cart_changed` (a line can no longer be bought, or the discount no longer
+         *     applies: look at the cart again), `insufficient_stock` or `not_deliverable`. The response's
+         *     `token` is the order's private link for a guest; it is shown once.
+         */
+        post: operations["placeOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in customer's orders, newest first */
+        get: operations["listMyOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/orders/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        /** One order, for its customer or whoever holds its link */
+        get: operations["getOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Orders, newest first
+         * @description Needs `orders:write`.
+         */
+        get: operations["adminListOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/orders/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * One order
+         * @description Needs `orders:write`.
+         */
+        get: operations["adminGetOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/orders/{number}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move an order on (confirm, pack, ship, deliver) or cancel it
+         * @description Needs `orders:write`. Only the moves in the order's `next_statuses` are allowed; `from` must be
+         *     the status you saw, else `status_changed` (someone else moved it first). Cancelling puts the
+         *     stock back.
+         */
+        post: operations["setOrderStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/banners": {
         parameters: {
             query?: never;
@@ -1000,7 +1126,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "not_deliverable" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
+        ErrorCode: "validation" | "not_found" | "method_not_allowed" | "unauthenticated" | "session_expired" | "forbidden" | "invalid_credentials" | "account_exists" | "in_use" | "not_deliverable" | "cart_empty" | "cart_changed" | "status_changed" | "insufficient_stock" | "too_large" | "unsupported_type" | "rate_limited" | "internal";
         Health: {
             /** @enum {string} */
             status: "ok";
@@ -1035,12 +1161,12 @@ export interface components {
          * @description What a user's role or an API key allows.
          * @enum {string}
          */
-        Permission: "store:write" | "catalog:write" | "inventory:write" | "api_keys:manage" | "audit:read";
+        Permission: "store:write" | "catalog:write" | "inventory:write" | "orders:write" | "api_keys:manage" | "audit:read";
         /**
          * @description What an API key may do. Managing keys is for signed-in people only.
          * @enum {string}
          */
-        ApiKeyScope: "store:write" | "catalog:write" | "inventory:write" | "audit:read";
+        ApiKeyScope: "store:write" | "catalog:write" | "inventory:write" | "orders:write" | "audit:read";
         User: {
             /** Format: uuid */
             id: string;
@@ -1311,6 +1437,91 @@ export interface components {
             currency: string;
             /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
             token?: string | null;
+        };
+        /** @enum {string} */
+        OrderStatus: "pending" | "confirmed" | "packed" | "shipped" | "delivered" | "cancelled";
+        /**
+         * @description `cod`: cash on delivery. Online payments come later.
+         * @enum {string}
+         */
+        PaymentMethod: "cod";
+        CheckoutInput: {
+            name: string;
+            /** @description A Bangladeshi mobile number, in any common form (01712345678, +880 1712-345678). */
+            phone: string;
+            /** Format: email */
+            email?: string | null;
+            district: string;
+            /** @description Thana or area, e.g. "Mirpur 10". */
+            area: string;
+            /** @description House, road, landmark. */
+            address: string;
+            note?: string | null;
+            payment_method: components["schemas"]["PaymentMethod"];
+        };
+        OrderSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: int64 */
+            number: number;
+            status: components["schemas"]["OrderStatus"];
+            customer_name: string;
+            phone: string;
+            district: string;
+            payment_method: components["schemas"]["PaymentMethod"];
+            item_count: number;
+            /** Format: int64 */
+            total: number;
+            currency: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        Order: components["schemas"]["OrderSummary"] & {
+            email?: string | null;
+            area: string;
+            address: string;
+            note?: string | null;
+            /** Format: int64 */
+            subtotal: number;
+            discount_code?: string | null;
+            /** Format: int64 */
+            discount_total: number;
+            zone_name: string;
+            delivery_days: string;
+            /** Format: int64 */
+            delivery_charge: number;
+            vat_rate_bp: number;
+            /** @description True when the prices already included VAT (vat_total is then the part of them that was VAT). */
+            vat_included: boolean;
+            /** Format: int64 */
+            vat_total: number;
+            items: components["schemas"]["OrderItem"][];
+            events: components["schemas"]["OrderEvent"][];
+            /** @description Where the shop can move it next. */
+            next_statuses: components["schemas"]["OrderStatus"][];
+        };
+        OrderItem: {
+            /** Format: uuid */
+            product_id?: string | null;
+            slug: string;
+            name: string;
+            options: {
+                [key: string]: string;
+            };
+            sku?: string | null;
+            /** Format: int64 */
+            unit_price: number;
+            quantity: number;
+            /** Format: int64 */
+            line_total: number;
+        };
+        OrderEvent: {
+            status: components["schemas"]["OrderStatus"];
+            note?: string | null;
+            /** @description Who on the shop's side made the change; null for the customer placing it. */
+            actor?: string | null;
+            /** Format: date-time */
+            created_at: string;
         };
         ProductRef: {
             /** Format: uuid */
@@ -2838,6 +3049,169 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Question"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    placeOrder: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description A guest's cart, from an earlier `token`. */
+                "X-Cart-Token"?: components["parameters"]["CartToken"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutInput"];
+            };
+        };
+        responses: {
+            /** @description Placed */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        order: components["schemas"]["Order"];
+                        token: string;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listMyOrders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Orders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OrderSummary"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getOrder: {
+        parameters: {
+            query?: {
+                /** @description The order's link token, from placing it. */
+                token?: string;
+            };
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListOrders: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["OrderStatus"];
+                /** @description `next_cursor` from the previous page. */
+                cursor?: components["parameters"]["Cursor"];
+                limit?: components["parameters"]["Limit"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Orders */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OrderSummary"][];
+                        next_cursor?: string | null;
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminGetOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    setOrderStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    from: components["schemas"]["OrderStatus"];
+                    to: components["schemas"]["OrderStatus"];
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The order after the move */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
                 };
             };
             default: components["responses"]["Error"];

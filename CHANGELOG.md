@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Checkout and orders: guests and customers check out with name, mobile number, district, area,
+  address and a note; cash on delivery. Prices, discount, delivery and VAT are worked out on the
+  server; stock is taken and the discount's use counted in the same step, and the bag empties.
+  The order page (a private link for guests) shows the lines, totals, address and its timeline;
+  customers see their orders in their account. "Buy now" and the bag's Checkout lead here.
+- Dashboard → Orders: filter by status, open an order, confirm, pack, ship, deliver or cancel
+  (which puts the stock back), with a note; each move is on the order's timeline and audited.
+  New `orders:write` permission, which staff have.
+- Orders are under Postgres row-level security: a customer sees their own, a guest only with
+  the order's link, staff all of them. Order pages are never cached.
+- Footer: light cyan with rounded top corners.
 - Wishlist: a heart on every product card and product page, a heart with a count in the header,
   and a Saved items page. Signed out, the heart leads to sign-in and back.
 - Reviews: customers rate 1–5 stars with optional words, edit or delete their own; product pages

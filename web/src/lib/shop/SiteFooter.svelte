@@ -55,11 +55,11 @@
 <style>
 	.footer {
 		margin-block-start: 4rem;
+		border-start-start-radius: 2rem;
+		border-start-end-radius: 2rem;
 		background: var(--footer-bg);
 		color: var(--footer-text);
 		font-size: 0.875rem;
-		/* Rings on the dark footer are white. */
-		--ui-ring: var(--on-dark);
 	}
 	.cols,
 	.bottom {
@@ -87,7 +87,7 @@
 	}
 	.name {
 		margin: 0;
-		color: var(--on-dark);
+		color: var(--footer-heading);
 		font-size: 1.25rem;
 		font-weight: 700;
 	}
@@ -95,13 +95,13 @@
 		margin: 0.5rem 0 0;
 	}
 	.phone {
-		color: var(--on-dark);
+		color: var(--footer-heading);
 		font-size: 1.25rem;
 		font-weight: 700;
 	}
 	h2 {
 		margin: 0 0 0.25rem;
-		color: var(--on-dark);
+		color: var(--footer-heading);
 		font-size: 0.8125rem;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
@@ -110,7 +110,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		color: var(--on-dark);
+		color: var(--footer-heading);
 		text-decoration: none;
 	}
 	a:hover {

@@ -124,6 +124,14 @@
 					<span>{d.total}</span>
 					<strong>{formatMoney(cart.total + (data.quote?.charge ?? 0))}</strong>
 				</p>
+				<span class="cta"
+					><Button
+						href={data.district
+							? `/checkout?district=${encodeURIComponent(data.district)}`
+							: '/checkout'}
+						size="lg">{t.checkout}</Button
+					></span
+				>
 				<p class="note">
 					{vat.enabled && !vat.prices_include_vat ? `${t.vatNote(rate)} ` : ''}{data.quote
 						? ''
@@ -262,6 +270,11 @@
 	}
 	.total strong {
 		font-weight: 700;
+	}
+	.cta {
+		--ui-accent: var(--text-primary);
+		--ui-on-accent: var(--on-dark);
+		display: grid;
 	}
 	.note {
 		margin: 0;
