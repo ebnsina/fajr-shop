@@ -14,7 +14,7 @@
 </svelte:head>
 
 <section class="site-container top">
-	<h1 class="site-title">{data.q ? t.searchResults(data.q) : t.searchTitle}</h1>
+	{#if !data.page}<h1 class="site-title">{t.searchTitle}</h1>{/if}
 	<form method="get" role="search" class="search">
 		<SearchField
 			label={t.search}
@@ -30,13 +30,15 @@
 <section class="site-container">
 	{#if data.page && data.filters}
 		{#if data.page.items.length || data.paged}
-			<Listing
-				products={data.page}
-				facets={data.facets}
-				filters={data.filters}
-				paged={data.paged}
-			/>
+			<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged}>
+				{#snippet heading(count: string | null)}
+					<h1 class="site-title">
+						{t.searchResults(data.q)}{#if count}<span class="count"> ({count})</span>{/if}
+					</h1>
+				{/snippet}
+			</Listing>
 		{:else}
+			<h1 class="site-title">{t.searchResults(data.q)}</h1>
 			<p class="note">{t.searchNone(data.q)}</p>
 		{/if}
 	{:else}

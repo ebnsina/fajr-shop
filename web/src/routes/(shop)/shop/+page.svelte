@@ -19,10 +19,15 @@
 
 <section class="site-container top">
 	<nav class="site-crumbs" aria-label="Breadcrumb"><a href="/">{t.home}</a></nav>
-	<h1 class="site-title">{title}</h1>
 </section>
 <section class="site-container">
-	<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged} />
+	<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged}>
+		{#snippet heading(count: string | null)}
+			<h1 class="site-title">
+				{title}{#if count}<span class="count"> ({count})</span>{/if}
+			</h1>
+		{/snippet}
+	</Listing>
 </section>
 
 <style>

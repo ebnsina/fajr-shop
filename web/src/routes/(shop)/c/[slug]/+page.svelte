@@ -24,15 +24,20 @@
 		{/if}
 		<span aria-current="page">{data.category.name}</span>
 	</nav>
-	<h1 class="site-title">{data.category.name}</h1>
-	{#if data.children.length}
-		<ul class="subs">
-			{#each data.children as c (c.id)}<li><a href="/c/{c.slug}">{c.name}</a></li>{/each}
-		</ul>
-	{/if}
 </section>
 <section class="site-container">
-	<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged} />
+	<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged}>
+		{#snippet heading(count: string | null)}
+			<h1 class="site-title">
+				{data.category.name}{#if count}<span class="count"> ({count})</span>{/if}
+			</h1>
+			{#if data.children.length}
+				<ul class="subs">
+					{#each data.children as c (c.id)}<li><a href="/c/{c.slug}">{c.name}</a></li>{/each}
+				</ul>
+			{/if}
+		{/snippet}
+	</Listing>
 </section>
 
 <style>

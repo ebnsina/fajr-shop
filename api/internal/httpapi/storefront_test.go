@@ -109,6 +109,9 @@ func TestFacetsAndMultiFilters(t *testing.T) {
 	if len(all.Brands) != 2 || all.Brands[0].Name != "Ecstasy" || all.Brands[0].Count != 2 {
 		t.Errorf("brands %+v", all.Brands)
 	}
+	if all.Total != 3 {
+		t.Errorf("total %d, want 3", all.Total)
+	}
 	if count(all, "Size", "L") != 2 || count(all, "Color", "Blue") != 2 || all.Price.Min != 50000 || all.Price.Max != 90000 {
 		t.Errorf("all facets %+v", all)
 	}

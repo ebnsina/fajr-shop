@@ -3085,8 +3085,11 @@ components:
 
     Facets:
       type: object
-      required: [categories, brands, options]
+      required: [total, categories, brands, options]
       properties:
+        total:
+          description: How many products match all the filters.
+          type: integer
         categories:
           type: array
           items:

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Shop, category and search pages: the title shows how many products match, "Shop all
+  (3,223)", with the sort on the right of it; the "Showing 24 products" line is gone. The API's
+  facets now include `total`.
+- Header back to sky-600 with white text; its sign-in links are bold.
 - Header in the lighter sky-400 with dark text and icons (white on it would be too faint).
 - Brand color experiment: Tailwind sky (sky-600 header, sky-700 buttons and links).
 - Brand color is Svelte's orange (#ff3e00) for the header, borders and icons, with a darker

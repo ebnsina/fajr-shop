@@ -240,6 +240,7 @@
 	}
 	.action a {
 		color: inherit;
+		font-weight: 600;
 		text-decoration: none;
 	}
 	.action a:hover {

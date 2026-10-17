@@ -112,6 +112,13 @@
 		letter-spacing: -0.02em;
 		text-wrap: balance;
 	}
+	/* "Shop all (3,396)": the count quieter than the title. */
+	.site :global(.site-title .count) {
+		margin-inline-start: 0.3em;
+		color: var(--text-secondary);
+		font-size: 0.6em;
+		font-weight: 500;
+	}
 	.site :global(.site-grid) {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(11.5rem, 100%), 1fr));

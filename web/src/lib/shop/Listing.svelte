@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Cancel01Icon, FilterHorizontalIcon } from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
-	import { tick } from 'svelte';
+	import { tick, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
 	import { shop as t } from '#lib/copy.js';
@@ -15,18 +15,21 @@
 	import CustomSelect from '#lib/sinaui/ui/CustomSelect.svelte';
 	import ProductCard from './ProductCard.svelte';
 
-	// Filters in a side card, sorting above the results. It's one plain GET form, so a filtered
-	// list works without JavaScript and every filtered page has its own address.
+	// The page's heading with the sort at its right, filters in a side card. It's one plain GET
+	// form, so a filtered list works without JavaScript and every filtered page has its own address.
 	let {
 		products,
 		facets,
 		filters,
-		paged
+		paged,
+		heading
 	}: {
 		products: components['schemas']['ProductPage'];
 		facets: Facets | null;
 		filters: Filters;
 		paged: boolean;
+		/** The page's title; gets how many products match, formatted, or null if unknown. */
+		heading: Snippet<[string | null]>;
 	} = $props();
 
 	type Choice = { value: string; label: string; count: number; on: boolean };
@@ -110,6 +113,20 @@
 {/snippet}
 
 <form method="get" class="listing" {onchange} bind:this={form}>
+	<div class="pagehead">
+		<div class="title">{@render heading(facets ? num.format(facets.total) : null)}</div>
+		<div class="sort">
+			<CustomSelect
+				label={t.sort}
+				hideLabel
+				name="sort"
+				value={filters.sort}
+				options={Object.entries(t.sorts).map(([value, label]) => ({ value, label }))}
+				onchange={() => tick().then(() => form?.requestSubmit())}
+			/>
+		</div>
+	</div>
+
 	{#if filters.q}<input type="hidden" name="q" value={filters.q} />{/if}
 	{#if filters.category}<input type="hidden" name="category" value={filters.category} />{/if}
 	{#if filters.featured}<input type="hidden" name="featured" value="1" />{/if}
@@ -200,20 +217,6 @@
 	</details>
 
 	<div class="results">
-		<div class="bar">
-			<p class="count">{t.showing(products.items.length, !!products.next_cursor)}</p>
-			<div class="sort">
-				<CustomSelect
-					label={t.sort}
-					hideLabel
-					name="sort"
-					value={filters.sort}
-					options={Object.entries(t.sorts).map(([value, label]) => ({ value, label }))}
-					onchange={() => tick().then(() => form?.requestSubmit())}
-				/>
-			</div>
-		</div>
-
 		{#if filtered}
 			<ul class="chips" aria-label={t.active}>
 				{#each chips as c (c.href)}
@@ -337,17 +340,18 @@
 		gap: 0.375rem;
 		color: var(--ui-muted);
 	}
-	.bar {
+	.pagehead {
+		grid-column: 1 / -1;
 		display: flex;
-		align-items: center;
+		flex-wrap: wrap;
+		align-items: end;
 		justify-content: space-between;
-		gap: 1rem;
-		margin-block-end: 1rem;
+		gap: 0.75rem 1.5rem;
 	}
-	.count {
-		margin: 0;
-		color: var(--ui-muted);
-		font-size: 0.875rem;
+	.title {
+		display: grid;
+		gap: 0.75rem;
+		min-inline-size: 0;
 	}
 	.sort {
 		inline-size: 12rem;

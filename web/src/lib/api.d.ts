@@ -1774,6 +1774,8 @@ export interface components {
             subtotal: number;
         };
         Facets: {
+            /** @description How many products match all the filters. */
+            total: number;
             categories: components["schemas"]["CategoryFacet"][];
             brands: components["schemas"]["BrandFacet"][];
             /** @description Each option name with its values, most products first. */

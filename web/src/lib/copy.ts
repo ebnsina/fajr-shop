@@ -333,8 +333,6 @@ export const shop = {
 	maxPlaceholder: 'Max ৳',
 	priceRange: 'Price',
 	availability: 'Availability',
-	showing: (n: number, more: boolean) =>
-		more ? `Showing ${n} products, more below` : `${n} ${n === 1 ? 'product' : 'products'}`,
 	inStockOnly: 'In stock only',
 	onSaleOnly: 'On sale',
 	category: 'Category',

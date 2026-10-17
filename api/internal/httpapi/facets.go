@@ -32,8 +32,18 @@ func (s *Server) ListProductFacets(ctx context.Context, req apigen.ListProductFa
 		return s.pool.Query(ctx, strings.ReplaceAll(sql, "{where}", where), args...)
 	}
 
+	rows, err := query("", `SELECT count(*)::int FROM products p WHERE {where}`)
+	if err != nil {
+		return nil, fmt.Errorf("facets: total: %w", err)
+	}
+	total, err := pgx.CollectExactlyOneRow(rows, pgx.RowTo[int32])
+	if err != nil {
+		return nil, fmt.Errorf("facets: total: %w", err)
+	}
+	out.Total = int(total)
+
 	// Categories keep the category filter, so a department lists only its own subcategories.
-	rows, err := query("", `SELECT c.slug, c.name, count(*)::int FROM products p JOIN categories c ON c.id = p.category_id
+	rows, err = query("", `SELECT c.slug, c.name, count(*)::int FROM products p JOIN categories c ON c.id = p.category_id
 		WHERE {where} GROUP BY c.slug, c.name ORDER BY count(*) DESC, c.name LIMIT 100`)
 	if err != nil {
 		return nil, fmt.Errorf("facets: categories: %w", err)
