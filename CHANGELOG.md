@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Search page: no second search box (the header's is the one search). Header search button in onyx.
 - Shop, category and search pages: the title shows how many products match, "Shop all
   (3,223)", with the sort on the right of it; the "Showing 24 products" line is gone. The API's
   facets now include `total`.

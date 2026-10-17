@@ -216,12 +216,12 @@
 		inline-size: 2.25rem;
 		border: 0;
 		border-radius: calc(var(--ui-radius-control) - 0.125rem);
-		background: var(--brand-800);
+		background: var(--text-primary);
 		color: var(--on-dark);
 		cursor: pointer;
 	}
 	.search button:hover {
-		background: var(--brand-700);
+		background: color-mix(in srgb, var(--text-primary) 85%, var(--on-dark));
 	}
 	.actions {
 		display: flex;
