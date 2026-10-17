@@ -6,6 +6,7 @@
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 
@@ -20,31 +21,33 @@
 
 <div class="questions">
 	{#if page.data.me}
-		<form
-			method="POST"
-			action="?/ask"
-			class="ask"
-			use:enhance={() =>
-				async ({ result, update }) => {
-					await update();
-					if (result.type === 'success') toast.success(q.sent);
-				}}
-		>
-			{#if form?.action === 'ask' && form.message}<Alert
-					tone="danger"
-					title={form.message}
-					live
-				/>{/if}
-			<Textarea
-				label={q.label}
-				name="body"
-				placeholder={q.placeholder}
-				maxlength={500}
-				required
-				error={form?.action === 'ask' ? form.fields?.body : undefined}
-			/>
-			<div><Button type="submit">{q.send}</Button></div>
-		</form>
+		<Card title={q.ask} level={3}>
+			<form
+				method="POST"
+				action="?/ask"
+				class="stack"
+				use:enhance={() =>
+					async ({ result, update }) => {
+						await update();
+						if (result.type === 'success') toast.success(q.sent);
+					}}
+			>
+				{#if form?.action === 'ask' && form.message}<Alert
+						tone="danger"
+						title={form.message}
+						live
+					/>{/if}
+				<Textarea
+					label={q.label}
+					name="body"
+					placeholder={q.placeholder}
+					maxlength={500}
+					required
+					error={form?.action === 'ask' ? form.fields?.body : undefined}
+				/>
+				<div><Button type="submit">{q.send}</Button></div>
+			</form>
+		</Card>
 	{:else}
 		<div><Button variant="secondary" href="/account/login?next={next}">{q.signIn}</Button></div>
 	{/if}
@@ -56,10 +59,7 @@
 					<p class="q"><span class="mark" aria-hidden="true">Q</span> {x.body}</p>
 					<p class="meta">{q.asked(x.author, day.format(new Date(x.created_at)))}</p>
 					{#if x.answer}
-						<div class="a">
-							<p class="label">{q.answer}</p>
-							<p>{x.answer}</p>
-						</div>
+						<div class="answer"><Alert tone="info" title={q.answer}>{x.answer}</Alert></div>
 					{:else}
 						<Badge tone="warning">{q.waiting}</Badge>
 					{/if}
@@ -78,13 +78,9 @@
 		max-inline-size: 48rem;
 		padding-block: 1.25rem 0;
 	}
-	.ask {
+	.stack {
 		display: grid;
 		gap: 0.75rem;
-		padding: 1rem;
-		border: 1px solid var(--border);
-		border-radius: var(--ui-radius);
-		background: var(--bg-surface);
 	}
 	ul {
 		display: grid;
@@ -114,19 +110,7 @@
 		color: var(--text-secondary);
 		font-size: 0.8125rem;
 	}
-	.a {
-		display: grid;
-		gap: 0.25rem;
+	.answer {
 		justify-self: stretch;
-		padding: 0.75rem 1rem;
-		border-inline-start: 3px solid var(--brand-600);
-		border-radius: 0 var(--ui-radius) var(--ui-radius) 0;
-		background: var(--brand-50);
-		line-height: 1.6;
-	}
-	.label {
-		color: var(--brand-700);
-		font-size: 0.8125rem;
-		font-weight: 600;
 	}
 </style>

@@ -147,14 +147,6 @@
 		padding: 0;
 		list-style: none;
 	}
-	.site :global(.site-crumbs) {
-		color: var(--text-secondary);
-		font-size: 0.875rem;
-	}
-	.site :global(.site-crumbs a) {
-		color: var(--brand-700);
-		text-decoration: underline;
-	}
 	@media (width < 40rem) {
 		.site :global(.site-grid) {
 			grid-template-columns: repeat(2, minmax(0, 1fr));

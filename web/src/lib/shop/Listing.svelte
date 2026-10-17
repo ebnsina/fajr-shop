@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Cancel01Icon, FilterHorizontalIcon } from '@hugeicons/core-free-icons';
+	import { FilterHorizontalIcon } from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { onMount, tick, type Snippet } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import type { components } from '#lib/api.js';
 	import { shop as t } from '#lib/copy.js';
@@ -13,6 +14,7 @@
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import CustomSelect from '#lib/sinaui/ui/CustomSelect.svelte';
+	import TagGroup from '#lib/sinaui/ui/TagGroup.svelte';
 	import ProductCard from './ProductCard.svelte';
 
 	// The page's heading with the sort at its right, filters in a side card. It's one plain GET
@@ -226,16 +228,14 @@
 
 	<div class="results">
 		{#if filtered}
-			<ul class="chips" aria-label={t.active}>
-				{#each chips as c (c.href)}
-					<li>
-						<a href={c.href} aria-label={t.remove(c.label)}
-							>{c.label} <Icon icon={Cancel01Icon} size={14} /></a
-						>
-					</li>
-				{/each}
-				<li><a class="all" href={cleared}>{t.clearAll}</a></li>
-			</ul>
+			<div class="chips">
+				<TagGroup
+					label={t.active}
+					tags={chips.map((c) => ({ id: c.href, label: c.label }))}
+					onremove={(tag) => goto(tag.id, { reset: false })}
+				/>
+				<a class="all" href={cleared}>{t.clearAll}</a>
+			</div>
 		{/if}
 
 		{#if products.items.length}
@@ -316,7 +316,7 @@
 		font-variant-numeric: tabular-nums;
 	}
 	.cats a:focus-visible,
-	.chips a:focus-visible {
+	.all:focus-visible {
 		outline: var(--ui-ring-width) solid var(--ui-ring);
 		outline-offset: var(--ui-ring-offset);
 		border-radius: 2px;
@@ -368,29 +368,12 @@
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.375rem;
+		gap: 0.5rem 0.75rem;
 		margin: -0.25rem 0 1rem;
-		padding: 0;
-		list-style: none;
 	}
-	.chips a {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		padding: 0.25rem 0.5rem 0.25rem 0.625rem;
-		border-radius: 999px;
-		background: color-mix(in oklab, var(--ui-accent) 10%, transparent);
-		color: var(--ui-accent);
+	.all {
+		color: var(--text-secondary);
 		font-size: 0.8125rem;
-		text-decoration: none;
-	}
-	.chips a:hover {
-		background: color-mix(in oklab, var(--ui-accent) 18%, transparent);
-	}
-	.chips .all {
-		background: none;
-		color: var(--ui-muted);
-		text-decoration: underline;
 	}
 	.grid {
 		display: grid;

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { DeliveryTruck01Icon, StarIcon, WhatsappIcon } from '@hugeicons/core-free-icons';
+	import Breadcrumb from '#lib/sinaui/ui/Breadcrumb.svelte';
+	import { StarIcon, WhatsappIcon } from '@hugeicons/core-free-icons';
 	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
@@ -22,6 +23,7 @@
 	import OptionChips from '#lib/shop/OptionChips.svelte';
 	import Price from '#lib/shop/Price.svelte';
 	import Gallery from '#lib/shop/Gallery.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import ProductRow from '#lib/shop/ProductRow.svelte';
 	import Questions from '#lib/shop/Questions.svelte';
 	import Reviews from '#lib/shop/Reviews.svelte';
@@ -156,13 +158,13 @@
 </svelte:head>
 
 <section class="site-container top">
-	<nav class="site-crumbs" aria-label="Breadcrumb">
-		<a href="/">{t.home}</a> <span aria-hidden="true">/</span>
-		{#if p.category}
-			<a href="/c/{p.category.slug}">{p.category.name}</a> <span aria-hidden="true">/</span>
-		{/if}
-		<span aria-current="page">{p.name}</span>
-	</nav>
+	<Breadcrumb
+		items={[
+			{ label: t.home, href: '/' },
+			...(p.category ? [{ label: p.category.name, href: `/c/${p.category.slug}` }] : []),
+			{ label: p.name }
+		]}
+	/>
 </section>
 
 <section class="site-container product">
@@ -279,18 +281,16 @@
 		{/if}
 
 		{#if features.length}
-			<div class="panel">
-				<p class="ptitle">{pt.keyFeatures}</p>
+			<Card title={pt.keyFeatures} level={2}>
 				<ul class="features">
 					{#each features as f, i (i)}<li>{f}</li>{/each}
 				</ul>
-			</div>
+			</Card>
 		{/if}
 
 		{#if data.zones.length}
-			<div class="delivery">
-				<p class="dtitle"><Icon icon={DeliveryTruck01Icon} size={18} /> {dl.zones}</p>
-				<ul>
+			<Card title={dl.zones} level={2}>
+				<ul class="zones">
 					{#each data.zones as z (z.id)}
 						<li>
 							<span>{z.name}</span><span
@@ -299,7 +299,7 @@
 						</li>
 					{/each}
 				</ul>
-			</div>
+			</Card>
 		{/if}
 
 		{#if data.store.highlights?.length}
@@ -485,18 +485,6 @@
 		color: var(--ui-muted);
 		line-height: 1.6;
 	}
-	.delivery,
-	.panel {
-		padding: 0.875rem 1rem;
-		border: 1px solid var(--border);
-		border-radius: var(--ui-radius);
-		background: var(--bg-surface);
-		font-size: 0.875rem;
-	}
-	.ptitle {
-		margin: 0 0 0.5rem;
-		font-weight: 600;
-	}
 	.features {
 		display: grid;
 		gap: 0.375rem;
@@ -522,31 +510,23 @@
 	.promises :global(svg) {
 		flex: none;
 	}
-	.dtitle {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin: 0 0 0.5rem;
-		font-weight: 600;
-	}
-	.delivery ul {
+	.zones {
 		display: grid;
 		gap: 0.25rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
-	.delivery li {
+	.zones li {
 		display: flex;
 		justify-content: space-between;
 		gap: 1rem;
 		color: var(--text-secondary);
 	}
-	.delivery li strong {
+	.zones li strong {
 		color: var(--text-primary);
 		font-weight: 600;
 	}
-	.dtitle :global(svg),
 	.promises :global(svg) {
 		color: var(--brand-700);
 	}

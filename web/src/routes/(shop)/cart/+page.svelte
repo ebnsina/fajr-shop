@@ -10,6 +10,7 @@
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
 	import Input from '#lib/sinaui/ui/Input.svelte';
 	import CartLines from '#lib/shop/CartLines.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -48,95 +49,98 @@
 
 	{#if cart.items.length}
 		<div class="layout">
-			<div class="card lines"><CartLines items={cart.items} /></div>
+			<Card><CartLines items={cart.items} /></Card>
 
-			<aside class="card summary" aria-labelledby="summary">
-				<h2 id="summary">{t.summary}</h2>
-				<p class="row">
-					<span>{t.subtotal(cart.item_count)}</span>
-					<strong>{formatMoney(cart.subtotal)}</strong>
-				</p>
-
-				{#if code}
-					<div class="row">
-						<span class="code">
-							{t.discountLine(code.code)}
-							<form method="post" action="?/uncode" use:enhance class="inline">
-								<button type="submit" class="remove" aria-label={t.removeCode(code.code)}
-									><Icon icon={Cancel01Icon} size={14} /></button
-								>
-							</form>
-						</span>
-						<strong class={[code.applies && 'saving']}
-							>{code.applies ? `−${formatMoney(code.amount)}` : '—'}</strong
-						>
-					</div>
-					{#if code.description}<p class="note">{code.description}</p>{/if}
-					{#if code.reason}
-						<p class="note warn">
-							{t.codeWaits[code.reason](formatMoney(code.min_subtotal - cart.subtotal))}
+			<aside class="summary">
+				<Card title={t.summary} level={2}>
+					<div class="stack">
+						<p class="row">
+							<span>{t.subtotal(cart.item_count)}</span>
+							<strong>{formatMoney(cart.subtotal)}</strong>
 						</p>
-					{/if}
-				{:else}
-					<form method="post" action="?/code" use:enhance class="apply">
-						<Input
-							label={t.code}
-							hideLabel
-							name="code"
-							autocomplete="off"
-							autocapitalize="characters"
-							maxlength={30}
-							placeholder={t.codePlaceholder}
-							value={form && 'code' in form ? form.code : ''}
-							error={codeError}
-						/>
-						<Button type="submit" variant="secondary">{t.useCode}</Button>
-					</form>
-				{/if}
 
-				<hr />
+						{#if code}
+							<div class="row">
+								<span class="code">
+									{t.discountLine(code.code)}
+									<form method="post" action="?/uncode" use:enhance class="inline">
+										<button type="submit" class="remove" aria-label={t.removeCode(code.code)}
+											><Icon icon={Cancel01Icon} size={14} /></button
+										>
+									</form>
+								</span>
+								<strong class={[code.applies && 'saving']}
+									>{code.applies ? `−${formatMoney(code.amount)}` : '—'}</strong
+								>
+							</div>
+							{#if code.description}<p class="note">{code.description}</p>{/if}
+							{#if code.reason}
+								<p class="note warn">
+									{t.codeWaits[code.reason](formatMoney(code.min_subtotal - cart.subtotal))}
+								</p>
+							{/if}
+						{:else}
+							<form method="post" action="?/code" use:enhance class="apply">
+								<Input
+									label={t.code}
+									hideLabel
+									name="code"
+									autocomplete="off"
+									autocapitalize="characters"
+									maxlength={30}
+									placeholder={t.codePlaceholder}
+									value={form && 'code' in form ? form.code : ''}
+									error={codeError}
+								/>
+								<Button type="submit" variant="secondary">{t.useCode}</Button>
+							</form>
+						{/if}
 
-				<form method="get" class="estimate">
-					<CustomSelect
-						label={d.to}
-						name="district"
-						options={districts}
-						value={data.district}
-						placeholder={d.choose}
-						searchable
-						searchLabel={d.search}
-						empty={d.noMatch}
-						onchange={pick}
-					/>
-					<noscript><Button type="submit" variant="secondary">{d.check}</Button></noscript>
-				</form>
-				{#if data.quote}
-					<p class="row">
-						<span>{d.charge}</span>
-						<strong>{data.quote.free ? d.free : formatMoney(data.quote.charge)}</strong>
-					</p>
-					<p class="note">{d.days(data.quote.delivery_days)} · {data.quote.zone_name}</p>
-				{:else if data.quoteError}
-					<p class="error" role="alert">{data.quoteError}</p>
-				{/if}
+						<hr />
 
-				<p class="row total">
-					<span>{d.total}</span>
-					<strong>{formatMoney(cart.total + (data.quote?.charge ?? 0))}</strong>
-				</p>
-				<span class="cta"
-					><Button
-						href={data.district
-							? `/checkout?district=${encodeURIComponent(data.district)}`
-							: '/checkout'}
-						size="lg">{t.checkout}</Button
-					></span
-				>
-				<p class="note">
-					{vat.enabled && !vat.prices_include_vat ? `${t.vatNote(rate)} ` : ''}{data.quote
-						? ''
-						: t.note}
-				</p>
+						<form method="get" class="estimate">
+							<CustomSelect
+								label={d.to}
+								name="district"
+								options={districts}
+								value={data.district}
+								placeholder={d.choose}
+								searchable
+								searchLabel={d.search}
+								empty={d.noMatch}
+								onchange={pick}
+							/>
+							<noscript><Button type="submit" variant="secondary">{d.check}</Button></noscript>
+						</form>
+						{#if data.quote}
+							<p class="row">
+								<span>{d.charge}</span>
+								<strong>{data.quote.free ? d.free : formatMoney(data.quote.charge)}</strong>
+							</p>
+							<p class="note">{d.days(data.quote.delivery_days)} · {data.quote.zone_name}</p>
+						{:else if data.quoteError}
+							<p class="error" role="alert">{data.quoteError}</p>
+						{/if}
+
+						<p class="row total">
+							<span>{d.total}</span>
+							<strong>{formatMoney(cart.total + (data.quote?.charge ?? 0))}</strong>
+						</p>
+						<span class="cta"
+							><Button
+								href={data.district
+									? `/checkout?district=${encodeURIComponent(data.district)}`
+									: '/checkout'}
+								size="lg">{t.checkout}</Button
+							></span
+						>
+						<p class="note">
+							{vat.enabled && !vat.prices_include_vat ? `${t.vatNote(rate)} ` : ''}{data.quote
+								? ''
+								: t.note}
+						</p>
+					</div>
+				</Card>
 			</aside>
 		</div>
 	{:else}
@@ -186,22 +190,13 @@
 		align-items: start;
 		gap: 1.5rem;
 	}
-	.card {
-		padding: 1.25rem;
-		border-radius: calc(var(--ui-radius) * 1.5);
-		background: var(--ui-surface);
-		border: 1px solid var(--border);
-	}
 	.summary {
 		position: sticky;
 		inset-block-start: var(--site-sticky);
+	}
+	.stack {
 		display: grid;
 		gap: 0.625rem;
-	}
-	h2 {
-		margin: 0 0 0.25rem;
-		font-size: 1.0625rem;
-		font-weight: 600;
 	}
 	.row {
 		display: flex;

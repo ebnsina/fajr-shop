@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Breadcrumb from '#lib/sinaui/ui/Breadcrumb.svelte';
 	import { page } from '$app/state';
 	import { shop as t } from '#lib/copy.js';
 	import Listing from '#lib/shop/Listing.svelte';
@@ -16,14 +17,15 @@
 </svelte:head>
 
 <section class="site-container top">
-	<nav class="site-crumbs" aria-label="Breadcrumb">
-		<a href="/">{t.home}</a> <span aria-hidden="true">/</span>
-		{#if data.parentCategory}
-			<a href="/c/{data.parentCategory.slug}">{data.parentCategory.name}</a>
-			<span aria-hidden="true">/</span>
-		{/if}
-		<span aria-current="page">{data.category.name}</span>
-	</nav>
+	<Breadcrumb
+		items={[
+			{ label: t.home, href: '/' },
+			...(data.parentCategory
+				? [{ label: data.parentCategory.name, href: `/c/${data.parentCategory.slug}` }]
+				: []),
+			{ label: data.category.name }
+		]}
+	/>
 </section>
 <section class="site-container">
 	<Listing products={data.page} facets={data.facets} filters={data.filters} paged={data.paged}>

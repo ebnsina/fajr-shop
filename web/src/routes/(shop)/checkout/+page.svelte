@@ -14,6 +14,7 @@
 	import RadioCards from '#lib/sinaui/ui/RadioCards.svelte';
 	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
 	import ProductImage from '#lib/shop/ProductImage.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -83,95 +84,97 @@
 				</Alert>
 			{/if}
 
-			<fieldset class="card">
-				<legend>{t.contact}</legend>
-				<Input
-					label={t.name}
-					name="name"
-					bind:value={name}
-					placeholder={t.namePlaceholder}
-					autocomplete="name"
-					required
-					maxlength={80}
-					error={fields.name}
-				/>
-				<div class="two">
+			<Card title={t.contact} level={2}>
+				<div class="stack">
 					<Input
-						label={t.phone}
-						name="phone"
-						type="tel"
-						inputmode="tel"
-						bind:value={phone}
-						placeholder="01712345678"
-						autocomplete="tel"
-						required
-						maxlength={20}
-						hint={t.phoneHint}
-						error={fields.phone}
-					/>
-					<Input
-						label={t.email}
-						name="email"
-						type="email"
-						bind:value={email}
-						placeholder="you@example.com"
-						autocomplete="email"
-						maxlength={254}
-						hint={t.emailHint}
-						error={fields.email}
-					/>
-				</div>
-			</fieldset>
-
-			<fieldset class="card">
-				<legend>{t.address}</legend>
-				<div class="two">
-					<CustomSelect
-						label={t.district}
-						name="district"
-						options={districts}
-						bind:value={district}
-						placeholder={t.districtPlaceholder}
-						searchable
-						searchLabel={t.searchDistricts}
-						empty={t.noDistrict}
-						required
-						error={fields.district}
-						onchange={pick}
-					/>
-					<Input
-						label={t.area}
-						name="area"
-						bind:value={area}
-						placeholder={t.areaPlaceholder}
-						autocomplete="address-level2"
+						label={t.name}
+						name="name"
+						bind:value={name}
+						placeholder={t.namePlaceholder}
+						autocomplete="name"
 						required
 						maxlength={80}
-						error={fields.area}
+						error={fields.name}
+					/>
+					<div class="two">
+						<Input
+							label={t.phone}
+							name="phone"
+							type="tel"
+							inputmode="tel"
+							bind:value={phone}
+							placeholder="01712345678"
+							autocomplete="tel"
+							required
+							maxlength={20}
+							hint={t.phoneHint}
+							error={fields.phone}
+						/>
+						<Input
+							label={t.email}
+							name="email"
+							type="email"
+							bind:value={email}
+							placeholder="you@example.com"
+							autocomplete="email"
+							maxlength={254}
+							hint={t.emailHint}
+							error={fields.email}
+						/>
+					</div>
+				</div>
+			</Card>
+
+			<Card title={t.address} level={2}>
+				<div class="stack">
+					<div class="two">
+						<CustomSelect
+							label={t.district}
+							name="district"
+							options={districts}
+							bind:value={district}
+							placeholder={t.districtPlaceholder}
+							searchable
+							searchLabel={t.searchDistricts}
+							empty={t.noDistrict}
+							required
+							error={fields.district}
+							onchange={pick}
+						/>
+						<Input
+							label={t.area}
+							name="area"
+							bind:value={area}
+							placeholder={t.areaPlaceholder}
+							autocomplete="address-level2"
+							required
+							maxlength={80}
+							error={fields.area}
+						/>
+					</div>
+					<Textarea
+						label={t.street}
+						name="address"
+						bind:value={address}
+						placeholder={t.streetPlaceholder}
+						autocomplete="street-address"
+						required
+						maxlength={300}
+						error={fields.address}
+					/>
+					<Textarea
+						label={t.note}
+						name="note"
+						bind:value={note}
+						placeholder={t.notePlaceholder}
+						maxlength={500}
+						error={fields.note}
 					/>
 				</div>
-				<Textarea
-					label={t.street}
-					name="address"
-					bind:value={address}
-					placeholder={t.streetPlaceholder}
-					autocomplete="street-address"
-					required
-					maxlength={300}
-					error={fields.address}
-				/>
-				<Textarea
-					label={t.note}
-					name="note"
-					bind:value={note}
-					placeholder={t.notePlaceholder}
-					maxlength={500}
-					error={fields.note}
-				/>
-			</fieldset>
+			</Card>
 
 			<!-- RadioCards' own legend titles this card; no second heading. -->
-			<div class="card">
+			<Card>
 				<RadioCards
 					legend={t.payment}
 					name="payment_method"
@@ -187,58 +190,62 @@
 						}
 					]}
 				/>
-			</div>
+			</Card>
 		</div>
 
-		<aside class="card summary" aria-labelledby="summary">
-			<h2 id="summary">{t.summary}</h2>
-			<ul class="lines">
-				{#each cart.items as it (it.variant_id)}
-					<li>
-						<span class="thumb"
-							><ProductImage src={it.image?.url} alt="" ratio="1" icon={16} /></span
-						>
-						<span class="name"
-							>{it.name}
-							{#if Object.keys(it.options).length}<span class="muted"
-									>{Object.values(it.options).join(' / ')}</span
-								>{/if}
-							<span class="muted">× {it.quantity}</span></span
-						>
-						<strong>{formatMoney(it.line_total)}</strong>
-					</li>
-				{/each}
-			</ul>
-			<p class="row">
-				<span>{c.subtotal(cart.item_count)}</span><strong>{formatMoney(cart.subtotal)}</strong>
-			</p>
-			{#if cart.discount?.applies}
-				<p class="row">
-					<span>{c.discountLine(cart.discount.code)}</span><strong
-						>−{formatMoney(cart.discount_total)}</strong
+		<aside class="summary">
+			<Card title={t.summary} level={2}>
+				<div class="stack">
+					<ul class="lines">
+						{#each cart.items as it (it.variant_id)}
+							<li>
+								<span class="thumb"
+									><ProductImage src={it.image?.url} alt="" ratio="1" icon={16} /></span
+								>
+								<span class="name"
+									>{it.name}
+									{#if Object.keys(it.options).length}<span class="muted"
+											>{Object.values(it.options).join(' / ')}</span
+										>{/if}
+									<span class="muted">× {it.quantity}</span></span
+								>
+								<strong>{formatMoney(it.line_total)}</strong>
+							</li>
+						{/each}
+					</ul>
+					<p class="row">
+						<span>{c.subtotal(cart.item_count)}</span><strong>{formatMoney(cart.subtotal)}</strong>
+					</p>
+					{#if cart.discount?.applies}
+						<p class="row">
+							<span>{c.discountLine(cart.discount.code)}</span><strong
+								>−{formatMoney(cart.discount_total)}</strong
+							>
+						</p>
+					{/if}
+					{#if data.quote}
+						<p class="row">
+							<span>{d.charge} · {data.quote.zone_name}</span><strong
+								>{data.quote.free ? d.free : formatMoney(data.quote.charge)}</strong
+							>
+						</p>
+					{:else if data.quoteError}
+						<p class="error">{data.quoteError}</p>
+					{:else}
+						<p class="muted">{t.pickDistrict}</p>
+					{/if}
+					{#if vatOnTop}
+						<p class="row"><span>VAT {rate}</span><strong>{formatMoney(vatOnTop)}</strong></p>
+					{/if}
+					<p class="row total"><span>{d.total}</span><strong>{formatMoney(total)}</strong></p>
+					<span class="cta"
+						><Button type="submit" size="lg" loading={placing} disabled={!data.quote}
+							>{t.place}</Button
+						></span
 					>
-				</p>
-			{/if}
-			{#if data.quote}
-				<p class="row">
-					<span>{d.charge} · {data.quote.zone_name}</span><strong
-						>{data.quote.free ? d.free : formatMoney(data.quote.charge)}</strong
-					>
-				</p>
-			{:else if data.quoteError}
-				<p class="error">{data.quoteError}</p>
-			{:else}
-				<p class="muted">{t.pickDistrict}</p>
-			{/if}
-			{#if vatOnTop}
-				<p class="row"><span>VAT {rate}</span><strong>{formatMoney(vatOnTop)}</strong></p>
-			{/if}
-			<p class="row total"><span>{d.total}</span><strong>{formatMoney(total)}</strong></p>
-			<span class="cta"
-				><Button type="submit" size="lg" loading={placing} disabled={!data.quote}>{t.place}</Button
-				></span
-			>
-			<p class="muted">{t.agree}</p>
+					<p class="muted">{t.agree}</p>
+				</div>
+			</Card>
 		</aside>
 	</form>
 </section>
@@ -278,25 +285,6 @@
 		display: grid;
 		gap: 1.25rem;
 	}
-	.card {
-		display: grid;
-		gap: 1rem;
-		margin: 0;
-		padding: 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: calc(var(--ui-radius) * 1.5);
-		background: var(--bg-surface);
-	}
-	legend {
-		float: left;
-		margin-block-end: 0.25rem;
-		padding: 0;
-		font-size: 1.0625rem;
-		font-weight: 600;
-	}
-	legend + :global(*) {
-		clear: both;
-	}
 	.two {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
@@ -306,12 +294,13 @@
 	.summary {
 		position: sticky;
 		inset-block-start: var(--site-sticky);
-		gap: 0.625rem;
 	}
-	h2 {
-		margin: 0;
-		font-size: 1.0625rem;
-		font-weight: 600;
+	.stack {
+		display: grid;
+		gap: 1rem;
+	}
+	.summary .stack {
+		gap: 0.625rem;
 	}
 	.lines {
 		display: grid;

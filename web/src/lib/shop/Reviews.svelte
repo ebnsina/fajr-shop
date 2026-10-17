@@ -7,6 +7,8 @@
 	import { reviewCopy as r } from '#lib/copy.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
+	import Avatar from '#lib/sinaui/ui/Avatar.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import ConfirmButton from '#lib/sinaui/ui/ConfirmButton.svelte';
 	import Meter from '#lib/sinaui/ui/Meter.svelte';
 	import Textarea from '#lib/sinaui/ui/Textarea.svelte';
@@ -48,9 +50,10 @@
 {#snippet item(x: Review)}
 	<article class="review">
 		<header>
+			<Avatar name={x.author} size="sm" decorative />
+			<strong>{x.author}</strong>
 			{@render stars(x.rating)}
 			<span class="sr">{r.starsLabel(x.rating)}</span>
-			<strong>{x.author}</strong>
 			<time datetime={x.created_at}>{day.format(new Date(x.created_at))}</time>
 			{#if x.updated_at !== x.created_at}<span class="muted">· {r.edited}</span>{/if}
 		</header>
@@ -84,65 +87,68 @@
 		{#if !page.data.me}
 			<Button variant="secondary" href="/account/login?next={next}">{r.signIn}</Button>
 		{:else if mine && !editing}
-			<div class="mine">
-				<p class="label">{r.yours}</p>
-				{#if mine.hidden}<Alert tone="warning" title={r.hidden} />{/if}
-				{@render item(mine)}
-				<div class="buttons">
-					<Button variant="secondary" size="sm" onclick={() => (editing = true)}>{r.edit}</Button>
-					<form
-						method="POST"
-						action="?/unreview"
-						bind:this={removeForm}
-						use:enhance={() =>
-							async ({ result, update }) => {
-								await update();
-								if (result.type === 'success') toast.success(r.deleted);
-							}}
-					>
-						<ConfirmButton
-							size="sm"
-							confirm={r.deleteConfirm}
-							onconfirm={() => removeForm?.requestSubmit()}>{r.delete}</ConfirmButton
+			<Card title={r.yours} level={3}>
+				<div class="stack">
+					{#if mine.hidden}<Alert tone="warning" title={r.hidden} />{/if}
+					{@render item(mine)}
+					<div class="buttons">
+						<Button variant="secondary" size="sm" onclick={() => (editing = true)}>{r.edit}</Button>
+						<form
+							method="POST"
+							action="?/unreview"
+							bind:this={removeForm}
+							use:enhance={() =>
+								async ({ result, update }) => {
+									await update();
+									if (result.type === 'success') toast.success(r.deleted);
+								}}
 						>
-					</form>
+							<ConfirmButton
+								size="sm"
+								confirm={r.deleteConfirm}
+								onconfirm={() => removeForm?.requestSubmit()}>{r.delete}</ConfirmButton
+							>
+						</form>
+					</div>
 				</div>
-			</div>
+			</Card>
 		{:else}
-			<form
-				method="POST"
-				action="?/review"
-				class="write"
-				use:enhance={() =>
-					async ({ result, update }) => {
-						await update({ reset: false });
-						if (result.type === 'success') {
-							editing = false;
-							toast.success(r.saved);
-						}
-					}}
-			>
-				<p class="label">{mine ? r.edit : r.write}</p>
-				{#if form?.action === 'review' && form.message}<Alert
-						tone="danger"
-						title={form.message}
-						live
-					/>{/if}
-				<StarInput name="rating" value={mine?.rating ?? 0} error={fields.rating} />
-				<Textarea
-					label={r.body}
-					name="body"
-					value={mine?.body ?? ''}
-					placeholder={r.bodyPlaceholder}
-					maxlength={2000}
-					error={fields.body}
-				/>
-				<div class="buttons">
-					<Button type="submit">{mine ? r.update : r.save}</Button>
-					{#if editing}<Button variant="ghost" onclick={() => (editing = false)}>{r.cancel}</Button
-						>{/if}
-				</div>
-			</form>
+			<Card title={mine ? r.edit : r.write} level={3}>
+				<form
+					method="POST"
+					action="?/review"
+					class="stack"
+					use:enhance={() =>
+						async ({ result, update }) => {
+							await update({ reset: false });
+							if (result.type === 'success') {
+								editing = false;
+								toast.success(r.saved);
+							}
+						}}
+				>
+					{#if form?.action === 'review' && form.message}<Alert
+							tone="danger"
+							title={form.message}
+							live
+						/>{/if}
+					<StarInput name="rating" value={mine?.rating ?? 0} error={fields.rating} />
+					<Textarea
+						label={r.body}
+						name="body"
+						value={mine?.body ?? ''}
+						placeholder={r.bodyPlaceholder}
+						maxlength={2000}
+						error={fields.body}
+					/>
+					<div class="buttons">
+						<Button type="submit">{mine ? r.update : r.save}</Button>
+						{#if editing}<Button variant="ghost" onclick={() => (editing = false)}
+								>{r.cancel}</Button
+							>{/if}
+					</div>
+				</form>
+			</Card>
 		{/if}
 	</div>
 
@@ -183,18 +189,9 @@
 		display: grid;
 		align-content: start;
 	}
-	.mine,
-	.write {
+	.stack {
 		display: grid;
 		gap: 0.75rem;
-		padding: 1rem;
-		border: 1px solid var(--border);
-		border-radius: var(--ui-radius);
-		background: var(--bg-surface);
-	}
-	.label {
-		margin: 0;
-		font-weight: 600;
 	}
 	.buttons {
 		display: flex;

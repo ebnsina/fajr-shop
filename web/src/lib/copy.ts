@@ -748,6 +748,7 @@ export const orderCopy = {
 	payment: 'Payment',
 	cod: 'Cash on delivery',
 	timeline: 'Order updates',
+	customerNote: 'Note from the customer',
 	subtotal: 'Subtotal',
 	discount: (code: string) => `Discount (${code})`,
 	delivery: (zone: string) => `Delivery · ${zone}`,

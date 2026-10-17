@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Shop uses sinaui's own pieces where it had look-alikes: answers and the order "thank you" are
+  callouts (Alert), panels are Cards, breadcrumbs are Breadcrumb, active filters are a removable
+  TagGroup, and reviews show the author's avatar.
 - Dashboard overview: a greeting and today's date, figures four across, a 14-day sales chart,
   the latest orders with a row menu, beside what's running low and recent activity. The API's
   overview includes `orders.days`.

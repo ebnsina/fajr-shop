@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { CheckmarkCircle02Icon } from '@hugeicons/core-free-icons';
-	import Icon from '#lib/sinaui/ui/Icon.svelte';
+	import Alert from '#lib/sinaui/ui/Alert.svelte';
 	import { orderCopy as t } from '#lib/copy.js';
 	import OrderView from '#lib/orders/OrderView.svelte';
 	import StatusBadge from '#lib/orders/StatusBadge.svelte';
@@ -18,14 +17,10 @@
 
 <section class="site-container page">
 	{#if data.placed}
-		<div class="thanks" role="status">
-			<Icon icon={CheckmarkCircle02Icon} size={28} aria-hidden="true" />
-			<div>
-				<p class="big">{t.thanks}</p>
-				<p>{t.thanksBody}</p>
-				{#if data.guestLink && !data.me}<p class="muted">{t.keepLink}</p>{/if}
-			</div>
-		</div>
+		<Alert tone="success" title={t.thanks} live>
+			{t.thanksBody}
+			{#if data.guestLink && !data.me}<br />{t.keepLink}{/if}
+		</Alert>
 	{/if}
 	<div class="top">
 		<h1 class="site-title">{t.number(o.number)}</h1>
@@ -40,22 +35,6 @@
 		display: grid;
 		gap: 1.25rem;
 		padding-block: 2rem 3rem;
-	}
-	.thanks {
-		display: flex;
-		gap: 1rem;
-		padding: 1.25rem;
-		border: 1px solid var(--success-700);
-		border-radius: calc(var(--ui-radius) * 1.5);
-		background: var(--success-bg);
-		color: var(--success-text);
-	}
-	.thanks p {
-		margin: 0;
-	}
-	.big {
-		font-size: 1.125rem;
-		font-weight: 700;
 	}
 	.top {
 		display: flex;

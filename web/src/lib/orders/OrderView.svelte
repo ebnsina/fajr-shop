@@ -2,6 +2,8 @@
 	import type { components } from '#lib/api.js';
 	import { orderCopy as t } from '#lib/copy.js';
 	import { formatMoney } from '#lib/money.js';
+	import Alert from '#lib/sinaui/ui/Alert.svelte';
+	import Card from '#lib/sinaui/ui/Card.svelte';
 	import StatusBadge from './StatusBadge.svelte';
 
 	// An order's lines, totals, address and timeline: the same for its customer and for the shop.
@@ -18,9 +20,8 @@
 </script>
 
 <div class="order">
-	<section class="card lines" aria-labelledby="items-{o.number}">
-		<h2 id="items-{o.number}">{t.items}</h2>
-		<ul>
+	<Card title={t.items} level={2}>
+		<ul class="lines">
 			{#each o.items as it, i (i)}
 				<li>
 					<span class="name">
@@ -53,23 +54,23 @@
 		{#if o.vat_total && o.vat_included}<p class="muted">
 				{t.vatIncluded(rate, formatMoney(o.vat_total))}
 			</p>{/if}
-	</section>
+	</Card>
 
 	<div class="side">
-		<section class="card" aria-labelledby="to-{o.number}">
-			<h2 id="to-{o.number}">{t.deliverTo}</h2>
-			<p><strong>{o.customer_name}</strong></p>
-			<p><a href="tel:{o.phone}">{phone}</a></p>
-			{#if o.email}<p>{o.email}</p>{/if}
-			<p>{o.address}<br />{o.area}, {o.district}</p>
-			<p class="muted">{o.delivery_days}</p>
-			{#if o.note}<p class="note">{o.note}</p>{/if}
-			<h2>{t.payment}</h2>
-			<p>{t.cod}</p>
-		</section>
+		<Card title={t.deliverTo} level={2}>
+			<div class="stack">
+				<p><strong>{o.customer_name}</strong></p>
+				<p><a href="tel:{o.phone}">{phone}</a></p>
+				{#if o.email}<p>{o.email}</p>{/if}
+				<p>{o.address}<br />{o.area}, {o.district}</p>
+				<p class="muted">{o.delivery_days}</p>
+				{#if o.note}<Alert tone="info" title={t.customerNote}>{o.note}</Alert>{/if}
+				<h3>{t.payment}</h3>
+				<p>{t.cod}</p>
+			</div>
+		</Card>
 
-		<section class="card" aria-labelledby="tl-{o.number}">
-			<h2 id="tl-{o.number}">{t.timeline}</h2>
+		<Card title={t.timeline} level={2}>
 			<ol class="timeline">
 				{#each o.events as e, i (i)}
 					<li>
@@ -80,7 +81,7 @@
 					</li>
 				{/each}
 			</ol>
-		</section>
+		</Card>
 	</div>
 </div>
 
@@ -91,25 +92,17 @@
 		align-items: start;
 		gap: 1.25rem;
 	}
+	.stack {
+		display: grid;
+		gap: 0.375rem;
+	}
+	h3 {
+		margin: 0.5rem 0 0;
+		font-size: 0.9375rem;
+	}
 	.side {
 		display: grid;
 		gap: 1.25rem;
-	}
-	.card {
-		display: grid;
-		gap: 0.5rem;
-		padding: 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: calc(var(--ui-radius) * 1.5);
-		background: var(--bg-surface);
-	}
-	h2 {
-		margin: 0;
-		font-size: 1rem;
-		font-weight: 600;
-	}
-	h2:not(:first-child) {
-		margin-block-start: 0.5rem;
 	}
 	p {
 		margin: 0;
@@ -158,11 +151,6 @@
 		border-block-start: 1px solid var(--border);
 		font-size: 1.125rem;
 		font-weight: 700;
-	}
-	.note {
-		padding: 0.5rem 0.75rem;
-		border-radius: var(--ui-radius-control);
-		background: var(--bg-subtle);
 	}
 	.timeline {
 		gap: 0.75rem;
