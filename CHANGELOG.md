@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Dashboard: review stars are Hugeicons stars, not text characters, and the product editor
+  has a breadcrumb in place of a text "← All products" link.
 - Dashboard: Team, API keys, Reviews, Questions, Orders and Customers are tables with a "⋯" menu
   per row instead of inline buttons. Adding someone, creating a key and answering a question
   happen in a dialog, one step at a time; switching someone off and revoking a key ask first.

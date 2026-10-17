@@ -9,11 +9,13 @@
 		errorText,
 		picker,
 		productStatus,
+		nav,
 		productEditor as t,
 		ph
 	} from '#lib/copy.js';
 	import { toPoisha, toTaka } from '#lib/money.js';
 	import Alert from '#lib/sinaui/ui/Alert.svelte';
+	import Breadcrumb from '#lib/sinaui/ui/Breadcrumb.svelte';
 	import Button from '#lib/sinaui/ui/Button.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
 	import ConfirmButton from '#lib/sinaui/ui/ConfirmButton.svelte';
@@ -187,7 +189,12 @@
 	<title>{data.product?.name ?? t.newTitle} · {data.store.name}</title>
 </svelte:head>
 
-<a class="back" href="/admin/products">← {t.back}</a>
+<Breadcrumb
+	items={[
+		{ label: nav.products, href: '/admin/products' },
+		{ label: data.product?.name ?? t.newTitle }
+	]}
+/>
 <div class="head">
 	<h1>{data.product?.name ?? t.newTitle}</h1>
 	{#if data.product?.status === 'active'}
@@ -464,11 +471,6 @@
 </Dialog>
 
 <style>
-	.back {
-		display: inline-block;
-		margin-block-end: 0.75rem;
-		font-size: 0.875rem;
-	}
 	.head {
 		display: flex;
 		flex-wrap: wrap;

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { StarIcon } from '@hugeicons/core-free-icons';
 	import type { components } from '#lib/api.js';
 	import { runAction } from '#lib/admin/actions.js';
 	import RowMenu from '#lib/admin/RowMenu.svelte';
@@ -7,6 +8,7 @@
 	import Badge from '#lib/sinaui/ui/Badge.svelte';
 	import Card from '#lib/sinaui/ui/Card.svelte';
 	import EmptyState from '#lib/sinaui/ui/EmptyState.svelte';
+	import Icon from '#lib/sinaui/ui/Icon.svelte';
 	import Table from '#lib/sinaui/ui/Table.svelte';
 	import { toast } from '#lib/sinaui/ui/toast/index.js';
 	import type { PageProps } from './$types';
@@ -54,7 +56,12 @@
 						>
 						<td>
 							<span class="stars" aria-label={r.starsLabel(x.rating)}
-								>{'★'.repeat(x.rating)}<span class="dim">{'★'.repeat(5 - x.rating)}</span></span
+								>{#each [1, 2, 3, 4, 5] as i (i)}<Icon
+										icon={StarIcon}
+										size={14}
+										fill={i <= x.rating ? 'currentColor' : 'none'}
+										class={i > x.rating ? 'dim' : undefined}
+									/>{/each}</span
 							>
 						</td>
 						<td class="body">{x.body || t.noText}</td>
@@ -96,11 +103,11 @@
 		font-weight: 600;
 	}
 	.stars {
+		display: inline-flex;
+		gap: 0.125rem;
 		color: var(--star);
-		letter-spacing: 0.05em;
-		white-space: nowrap;
 	}
-	.dim {
+	.stars :global(.dim) {
 		color: var(--border-strong);
 	}
 	.body {

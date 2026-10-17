@@ -224,7 +224,6 @@ export const products = {
 
 export const productEditor = {
 	newTitle: 'Add a product',
-	back: 'All products',
 	details: 'Details',
 	name: 'Name',
 	description: 'Description',
