@@ -35,7 +35,7 @@ func (s *Server) ListCategories(ctx context.Context, _ apigen.ListCategoriesRequ
 	}
 	items := make([]apigen.Category, len(rows))
 	for i, c := range rows {
-		items[i] = toCategory(c)
+		items[i] = s.toCategory(dbq.CategoryByIDRow(c))
 	}
 	return apigen.ListCategories200JSONResponse{
 		Body: struct {
@@ -79,7 +79,11 @@ func (s *Server) saveCategory(ctx context.Context, id uuid.UUID, in apigen.Categ
 	if in.Position != nil {
 		position = int32(*in.Position)
 	}
-	var saved dbq.Category
+	var image uuid.NullUUID
+	if in.ImageId != nil {
+		image = uuid.NullUUID{UUID: *in.ImageId, Valid: true}
+	}
+	var saved dbq.CategoryByIDRow
 	err = pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		q := s.q.WithTx(tx)
 		if parent.Valid {
@@ -98,16 +102,26 @@ func (s *Server) saveCategory(ctx context.Context, id uuid.UUID, in apigen.Categ
 				}
 			}
 		}
+		if image.Valid {
+			if found, err := q.UploadsByIDs(ctx, []uuid.UUID{image.UUID}); err != nil {
+				return err
+			} else if len(found) == 0 {
+				return invalid(map[string]string{"image_id": "That picture is missing. Upload it again."})
+			}
+		}
 		slug, err := s.uniqueSlug(ctx, q, id, in.Slug, name)
 		if err != nil {
 			return err
 		}
 		if id == uuid.Nil {
-			saved, err = q.CreateCategory(ctx, dbq.CreateCategoryParams{ParentID: parent, Name: name, Slug: slug, Position: position})
+			c, err := q.CreateCategory(ctx, dbq.CreateCategoryParams{ParentID: parent, Name: name, Slug: slug, Position: position, ImageID: image})
 			if err != nil {
 				return err
 			}
-			return s.audit(ctx, q, p, "category.create", "category", saved.ID.String(), nil, toCategory(saved))
+			if saved, err = q.CategoryByID(ctx, c.ID); err != nil {
+				return err
+			}
+			return s.audit(ctx, q, p, "category.create", "category", saved.ID.String(), nil, s.toCategory(saved))
 		}
 		before, err := q.CategoryByID(ctx, id)
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -116,16 +130,18 @@ func (s *Server) saveCategory(ctx context.Context, id uuid.UUID, in apigen.Categ
 		if err != nil {
 			return err
 		}
-		saved, err = q.UpdateCategory(ctx, dbq.UpdateCategoryParams{ID: id, ParentID: parent, Name: name, Slug: slug, Position: position})
-		if err != nil {
+		if _, err := q.UpdateCategory(ctx, dbq.UpdateCategoryParams{ID: id, ParentID: parent, Name: name, Slug: slug, Position: position, ImageID: image}); err != nil {
 			return err
 		}
-		return s.audit(ctx, q, p, "category.update", "category", id.String(), toCategory(before), toCategory(saved))
+		if saved, err = q.CategoryByID(ctx, id); err != nil {
+			return err
+		}
+		return s.audit(ctx, q, p, "category.update", "category", id.String(), s.toCategory(before), s.toCategory(saved))
 	})
 	if err != nil {
 		return apigen.Category{}, fmt.Errorf("save category: %w", err)
 	}
-	return toCategory(saved), nil
+	return s.toCategory(saved), nil
 }
 
 func (s *Server) DeleteCategory(ctx context.Context, req apigen.DeleteCategoryRequestObject) (apigen.DeleteCategoryResponseObject, error) {
@@ -139,7 +155,7 @@ func (s *Server) DeleteCategory(ctx context.Context, req apigen.DeleteCategoryRe
 		if err != nil {
 			return err
 		}
-		return s.audit(ctx, q, p, "category.delete", "category", c.ID.String(), toCategory(c), nil)
+		return s.audit(ctx, q, p, "category.delete", "category", c.ID.String(), map[string]string{"name": c.Name, "slug": c.Slug}, nil)
 	})
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -279,6 +295,7 @@ func (s *Server) saveProduct(ctx context.Context, id uuid.UUID, in apigen.Produc
 	if in.Description != nil {
 		description = strings.TrimSpace(*in.Description)
 	}
+	featured := in.Featured != nil && *in.Featured
 	var imageIDs []uuid.UUID
 	if in.ImageIds != nil {
 		imageIDs = *in.ImageIds
@@ -313,7 +330,7 @@ func (s *Server) saveProduct(ctx context.Context, id uuid.UUID, in apigen.Produc
 		if id == uuid.Nil {
 			row, err = q.CreateProduct(ctx, dbq.CreateProductParams{
 				Slug: slug, Name: name, Description: description, Status: dbq.ProductStatus(in.Status),
-				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi,
+				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi, Featured: featured,
 			})
 		} else {
 			old, err := q.ProductByID(ctx, id)
@@ -328,7 +345,7 @@ func (s *Server) saveProduct(ctx context.Context, id uuid.UUID, in apigen.Produc
 			}
 			row, err = q.UpdateProduct(ctx, dbq.UpdateProductParams{
 				ID: id, Slug: slug, Name: name, Description: description, Status: dbq.ProductStatus(in.Status),
-				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi,
+				CategoryID: category, Options: optionsJSON, PriceMin: lo, PriceMax: hi, Featured: featured,
 			})
 			if err != nil {
 				return err
@@ -534,7 +551,7 @@ func (s *Server) UploadImage(ctx context.Context, req apigen.UploadImageRequestO
 // loadProduct adds a product's category, variants and images: three more queries, whatever its size.
 func (s *Server) loadProduct(ctx context.Context, q *dbq.Queries, p dbq.Product) (apigen.Product, error) {
 	out := apigen.Product{
-		Id: p.ID, Slug: p.Slug, Name: p.Name, Description: p.Description, Status: apigen.ProductStatus(p.Status),
+		Id: p.ID, Slug: p.Slug, Name: p.Name, Description: p.Description, Status: apigen.ProductStatus(p.Status), Featured: p.Featured,
 		Currency: "BDT", CreatedAt: p.CreatedAt.Time, UpdatedAt: p.UpdatedAt.Time,
 		Options: []apigen.ProductOption{}, Variants: []apigen.Variant{}, Images: []apigen.Image{},
 	}
@@ -546,7 +563,7 @@ func (s *Server) loadProduct(ctx context.Context, q *dbq.Queries, p dbq.Product)
 		if err != nil {
 			return out, fmt.Errorf("product category: %w", err)
 		}
-		cat := toCategory(c)
+		cat := s.toCategory(c)
 		out.Category = &cat
 	}
 	variants, err := q.VariantsByProduct(ctx, p.ID)
@@ -589,10 +606,14 @@ func toVariant(v dbq.Variant) (apigen.Variant, error) {
 	return out, nil
 }
 
-func toCategory(c dbq.Category) apigen.Category {
+func (s *Server) toCategory(c dbq.CategoryByIDRow) apigen.Category {
 	out := apigen.Category{Id: c.ID, Name: c.Name, Slug: c.Slug, Position: int(c.Position)}
 	if c.ParentID.Valid {
 		out.ParentId = &c.ParentID.UUID
+	}
+	if c.ImageID.Valid && c.ImageKey != "" {
+		img := s.toImage(c.ImageID.UUID, c.ImageKey, "", c.ImageWidth, c.ImageHeight)
+		out.Image = &img
 	}
 	return out
 }

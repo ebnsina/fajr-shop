@@ -484,6 +484,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The shop's active banners, in display order
+         * @description `hero` slides at the top, `side` beside them, `wide` across the page further down.
+         */
+        get: operations["listBanners"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every banner, hidden ones included
+         * @description Needs `catalog:write`. At most 100.
+         */
+        get: operations["adminListBanners"];
+        put?: never;
+        /**
+         * Add a banner
+         * @description Needs `catalog:write`.
+         */
+        post: operations["createBanner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/banners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change a banner
+         * @description Needs `catalog:write`.
+         */
+        put: operations["updateBanner"];
+        post?: never;
+        /**
+         * Remove a banner
+         * @description Needs `catalog:write`.
+         */
+        delete: operations["deleteBanner"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -616,6 +686,8 @@ export interface components {
             slug: string;
             /** @description Order among its siblings, from 0. */
             position: number;
+            /** @description Shown as the category's round picture. */
+            image?: components["schemas"]["Image"] | null;
         };
         CategoryInput: {
             name: string;
@@ -624,6 +696,11 @@ export interface components {
             /** Format: uuid */
             parent_id?: string | null;
             position?: number;
+            /**
+             * Format: uuid
+             * @description An uploaded image, or null for none.
+             */
+            image_id?: string | null;
         };
         /**
          * @description Only `active` products are for sale.
@@ -684,6 +761,7 @@ export interface components {
             name: string;
             description: string;
             status: components["schemas"]["ProductStatus"];
+            featured: boolean;
             category?: components["schemas"]["Category"] | null;
             currency: string;
             options: components["schemas"]["ProductOption"][];
@@ -700,6 +778,8 @@ export interface components {
             slug?: string;
             description?: string;
             status: components["schemas"]["ProductStatus"];
+            /** @description Shown in the home page's featured section. */
+            featured?: boolean;
             /** Format: uuid */
             category_id?: string | null;
             /** @description Up to three, e.g. Size and Color. Empty for a product with one variant. */
@@ -773,6 +853,32 @@ export interface components {
             currency: string;
             /** @description Only when this response created a guest cart. Send it back as X-Cart-Token. */
             token?: string | null;
+        };
+        /**
+         * @description `hero`: the big slides at the top. `side`: beside them. `wide`: across the page lower down.
+         * @enum {string}
+         */
+        BannerPlacement: "hero" | "side" | "wide";
+        Banner: {
+            /** Format: uuid */
+            id: string;
+            placement: components["schemas"]["BannerPlacement"];
+            image: components["schemas"]["Image"];
+            /** @description Where it leads, e.g. "/c/saree" or a full https address. */
+            link?: string | null;
+            /** @description What the banner says, for people who can't see it. */
+            alt: string;
+            position: number;
+            active: boolean;
+        };
+        BannerInput: {
+            placement: components["schemas"]["BannerPlacement"];
+            /** Format: uuid */
+            image_id: string;
+            link?: string | null;
+            alt: string;
+            position?: number;
+            active?: boolean;
         };
     };
     responses: {
@@ -1121,6 +1227,10 @@ export interface operations {
                 min_price?: number;
                 max_price?: number;
                 in_stock?: boolean;
+                /** @description Only products the shop marked as featured. */
+                featured?: boolean;
+                /** @description Only products with a variant priced below its old price. */
+                on_sale?: boolean;
                 /** @description Only products with a variant having this option, as `Name:Value` (e.g. `Color:Red`). Repeat to require several. */
                 option?: string[];
                 sort?: "newest" | "price_asc" | "price_desc" | "name";
@@ -1499,6 +1609,126 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Cart"];
                 };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    listBanners: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Banners */
+            200: {
+                headers: {
+                    "Cache-Control": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Banner"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    adminListBanners: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Banners */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Banner"][];
+                    };
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BannerInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Banner"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BannerInput"];
+            };
+        };
+        responses: {
+            /** @description Saved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Banner"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    deleteBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["Error"];
         };

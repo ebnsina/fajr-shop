@@ -310,3 +310,81 @@ func TestValidationMessagesArePlain(t *testing.T) {
 		t.Errorf("missing property: fields = %v", *e.Error.Fields)
 	}
 }
+
+func (h *harness) pngUpload(token string) apigen.Image {
+	h.t.Helper()
+	var b bytes.Buffer
+	if err := png.Encode(&b, image.NewRGBA(image.Rect(0, 0, 8, 8))); err != nil {
+		h.t.Fatal(err)
+	}
+	rec := h.upload(token, "p.png", b.Bytes())
+	expect(h.t, rec, 201, "")
+	return decode[apigen.Image](h.t, rec)
+}
+
+func TestBannersAndCategoryPictures(t *testing.T) {
+	h := newHarness(t)
+	admin := h.admin()
+	customer := h.register(uniqueEmail())
+	img := h.pngUpload(admin.AccessToken)
+
+	body := map[string]any{"placement": "hero", "image_id": img.Id.String(), "alt": "Eid sale " + tag(), "link": "/c/saree"}
+	expect(t, h.call("POST", "/v1/admin/banners", customer.AccessToken, body), 403, apigen.Forbidden)
+	expect(t, h.call("POST", "/v1/admin/banners", admin.AccessToken, map[string]any{
+		"placement": "hero", "image_id": img.Id.String(), "alt": "x", "link": "javascript:alert(1)",
+	}), 400, apigen.Validation)
+
+	shown := decode[apigen.Banner](t, expect2(t, h.call("POST", "/v1/admin/banners", admin.AccessToken, body), 201))
+	hidden := body
+	hidden["alt"] = "Hidden " + tag()
+	hidden["active"] = false
+	off := decode[apigen.Banner](t, expect2(t, h.call("POST", "/v1/admin/banners", admin.AccessToken, hidden), 201))
+
+	public := decode[struct{ Items []apigen.Banner }](t, expect2(t, h.call("GET", "/v1/banners", "", nil), 200))
+	ids := map[uuid.UUID]bool{}
+	for _, b := range public.Items {
+		ids[b.Id] = true
+	}
+	if !ids[shown.Id] || ids[off.Id] {
+		t.Errorf("public banners should show only active ones: %v", ids)
+	}
+	if shown.Image.Url == "" || *shown.Link != "/c/saree" {
+		t.Errorf("banner %+v", shown)
+	}
+	expect(t, h.call("DELETE", "/v1/admin/banners/"+shown.Id.String(), admin.AccessToken, nil), 204, "")
+	expect(t, h.call("DELETE", "/v1/admin/banners/"+shown.Id.String(), admin.AccessToken, nil), 404, apigen.NotFound)
+
+	rec := h.call("POST", "/v1/admin/categories", admin.AccessToken, map[string]any{"name": "Mobiles", "slug": "c-" + tag(), "image_id": img.Id.String()})
+	cat := decode[apigen.Category](t, expect2(t, rec, 201))
+	if cat.Image == nil || cat.Image.Id != img.Id {
+		t.Errorf("category image %+v", cat.Image)
+	}
+}
+
+func TestFeaturedAndOnSale(t *testing.T) {
+	h := newHarness(t)
+	admin := h.admin()
+	cat := h.category(admin.AccessToken, "Mixed", nil)
+	featured := plain("Featured one", 1000, 1, cat.Id)
+	featured["featured"] = true
+	h.product(admin.AccessToken, featured)
+	sale := plain("On sale", 1000, 1, cat.Id)
+	sale["variants"].([]any)[0].(map[string]any)["compare_at_price"] = 1500
+	h.product(admin.AccessToken, sale)
+	h.product(admin.AccessToken, plain("Plain", 1000, 1, cat.Id))
+
+	names := func(q string) []string {
+		page := decode[apigen.ProductPage](t, expect2(t, h.call("GET", "/v1/products?category="+cat.Slug+"&"+q, "", nil), 200))
+		var out []string
+		for _, p := range page.Items {
+			out = append(out, p.Name)
+		}
+		return out
+	}
+	if got := names("featured=true"); !slices.Equal(got, []string{"Featured one"}) {
+		t.Errorf("featured: %v", got)
+	}
+	if got := names("on_sale=true"); !slices.Equal(got, []string{"On sale"}) {
+		t.Errorf("on sale: %v", got)
+	}
+}

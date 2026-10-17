@@ -342,6 +342,16 @@ paths:
           in: query
           schema:
             type: boolean
+        - name: featured
+          in: query
+          description: Only products the shop marked as featured.
+          schema:
+            type: boolean
+        - name: on_sale
+          in: query
+          description: Only products with a variant priced below its old price.
+          schema:
+            type: boolean
         - name: option
           in: query
           description: "Only products with a variant having this option, as `Name:Value` (e.g. `Color:Red`). Repeat to require several."
@@ -713,6 +723,117 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /v1/banners:
+    get:
+      operationId: listBanners
+      tags: [catalog]
+      summary: The shop's active banners, in display order
+      description: "`hero` slides at the top, `side` beside them, `wide` across the page further down."
+      responses:
+        "200":
+          description: Banners
+          headers:
+            Cache-Control:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Banner"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/banners:
+    get:
+      operationId: adminListBanners
+      tags: [admin]
+      summary: Every banner, hidden ones included
+      description: Needs `catalog:write`. At most 100.
+      security:
+        - bearer: []
+      responses:
+        "200":
+          description: Banners
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Banner"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      operationId: createBanner
+      tags: [admin]
+      summary: Add a banner
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /v1/admin/banners/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      operationId: updateBanner
+      tags: [admin]
+      summary: Change a banner
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteBanner
+      tags: [admin]
+      summary: Remove a banner
+      description: Needs `catalog:write`.
+      security:
+        - bearer: []
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   securitySchemes:
     bearer:
@@ -1046,6 +1167,11 @@ components:
         position:
           description: Order among its siblings, from 0.
           type: integer
+        image:
+          description: Shown as the category's round picture.
+          oneOf:
+            - $ref: "#/components/schemas/Image"
+            - type: "null"
 
     CategoryInput:
       type: object
@@ -1066,6 +1192,10 @@ components:
         position:
           type: integer
           minimum: 0
+        image_id:
+          description: An uploaded image, or null for none.
+          type: [string, "null"]
+          format: uuid
 
     ProductStatus:
       description: Only `active` products are for sale.
@@ -1161,7 +1291,7 @@ components:
 
     Product:
       type: object
-      required: [id, slug, name, description, status, currency, options, variants, images, created_at, updated_at]
+      required: [id, slug, name, description, status, featured, currency, options, variants, images, created_at, updated_at]
       properties:
         id:
           type: string
@@ -1174,6 +1304,8 @@ components:
           type: string
         status:
           $ref: "#/components/schemas/ProductStatus"
+        featured:
+          type: boolean
         category:
           oneOf:
             - $ref: "#/components/schemas/Category"
@@ -1217,6 +1349,9 @@ components:
           maxLength: 20000
         status:
           $ref: "#/components/schemas/ProductStatus"
+        featured:
+          description: Shown in the home page's featured section.
+          type: boolean
         category_id:
           type: [string, "null"]
           format: uuid
@@ -1360,3 +1495,53 @@ components:
         token:
           description: Only when this response created a guest cart. Send it back as X-Cart-Token.
           type: [string, "null"]
+
+    BannerPlacement:
+      description: "`hero`: the big slides at the top. `side`: beside them. `wide`: across the page lower down."
+      type: string
+      enum: [hero, side, wide]
+
+    Banner:
+      type: object
+      required: [id, placement, image, alt, position, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        placement:
+          $ref: "#/components/schemas/BannerPlacement"
+        image:
+          $ref: "#/components/schemas/Image"
+        link:
+          description: Where it leads, e.g. "/c/saree" or a full https address.
+          type: [string, "null"]
+        alt:
+          description: What the banner says, for people who can't see it.
+          type: string
+        position:
+          type: integer
+        active:
+          type: boolean
+
+    BannerInput:
+      type: object
+      required: [placement, image_id, alt]
+      properties:
+        placement:
+          $ref: "#/components/schemas/BannerPlacement"
+        image_id:
+          type: string
+          format: uuid
+        link:
+          type: [string, "null"]
+          pattern: "^(/|https://)"
+          maxLength: 500
+        alt:
+          type: string
+          minLength: 1
+          maxLength: 200
+        position:
+          type: integer
+          minimum: 0
+        active:
+          type: boolean
