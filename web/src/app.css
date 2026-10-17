@@ -1,0 +1,17 @@
+@import '@fontsource-variable/mona-sans';
+@import '@fontsource-variable/geist-mono';
+
+:root {
+	--ui-font: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--ui-font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+	font-family: var(--ui-font);
+	background: var(--ui-bg);
+	color: var(--ui-fg);
+}
+
+body {
+	margin: 0;
+}

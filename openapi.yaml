@@ -409,6 +409,11 @@ components:
       type: string
       enum: [store:write, api_keys:manage, audit:read]
 
+    ApiKeyScope:
+      description: What an API key may do. Managing keys is for signed-in people only.
+      type: string
+      enum: [store:write, audit:read]
+
     User:
       type: object
       required: [id, role, name, permissions, created_at]
@@ -507,7 +512,7 @@ components:
           minItems: 1
           uniqueItems: true
           items:
-            $ref: "#/components/schemas/Permission"
+            $ref: "#/components/schemas/ApiKeyScope"
 
     ApiKey:
       type: object
@@ -524,7 +529,7 @@ components:
         scopes:
           type: array
           items:
-            $ref: "#/components/schemas/Permission"
+            $ref: "#/components/schemas/ApiKeyScope"
         created_at:
           type: string
           format: date-time

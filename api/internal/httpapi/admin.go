@@ -214,9 +214,9 @@ func jsonOrNil(v any) ([]byte, error) {
 }
 
 func toAPIKey(k dbq.ApiKey) apigen.ApiKey {
-	scopes := make([]apigen.Permission, len(k.Scopes))
+	scopes := make([]apigen.ApiKeyScope, len(k.Scopes))
 	for i, sc := range k.Scopes {
-		scopes[i] = apigen.Permission(sc)
+		scopes[i] = apigen.ApiKeyScope(sc)
 	}
 	return apigen.ApiKey{Id: k.ID, Name: k.Name, Hint: k.Hint, Scopes: scopes, CreatedAt: k.CreatedAt.Time}
 }

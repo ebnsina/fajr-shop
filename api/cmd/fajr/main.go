@@ -82,17 +82,15 @@ func run() error {
 func createAdmin(ctx context.Context, q *dbq.Queries) error {
 	name, password := os.Getenv("FAJR_ADMIN_NAME"), os.Getenv("FAJR_ADMIN_PASSWORD")
 	email, phone := os.Getenv("FAJR_ADMIN_EMAIL"), os.Getenv("FAJR_ADMIN_PHONE")
-	if name == "" || (email == "" && phone == "") {
-		return errors.New("create-admin: set FAJR_ADMIN_NAME and FAJR_ADMIN_EMAIL or FAJR_ADMIN_PHONE")
+	// The dashboard signs in by email, so the owner needs one; a phone is optional.
+	if name == "" || email == "" {
+		return errors.New("create-admin: set FAJR_ADMIN_NAME and FAJR_ADMIN_EMAIL")
 	}
 	if len(password) < 12 {
 		return errors.New("create-admin: FAJR_ADMIN_PASSWORD must be at least 12 characters")
 	}
-	params := dbq.CreateUserParams{Role: dbq.UserRoleAdmin, Name: name}
-	if email != "" {
-		e := strings.ToLower(email)
-		params.Email = &e
-	}
+	e := strings.ToLower(email)
+	params := dbq.CreateUserParams{Role: dbq.UserRoleAdmin, Name: name, Email: &e}
 	if phone != "" {
 		p, ok := auth.NormalizePhone(phone)
 		if !ok {

@@ -308,3 +308,10 @@ func TestSignInIsRateLimited(t *testing.T) {
 		t.Error("no Retry-After")
 	}
 }
+
+func TestKeysCannotBeGivenKeyManagement(t *testing.T) {
+	h := newHarness(t)
+	admin := h.admin()
+	body := map[string]any{"name": "Too much", "scopes": []string{"api_keys:manage"}}
+	expect(t, h.call("POST", "/v1/admin/api-keys", admin.AccessToken, body), 400, apigen.Validation)
+}
