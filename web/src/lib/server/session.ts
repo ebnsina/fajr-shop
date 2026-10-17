@@ -36,3 +36,9 @@ export function saveSession(cookies: Cookies, s: Session, keep: boolean) {
 export function clearSession(cookies: Cookies) {
 	for (const name of [ACCESS, REFRESH, KEEP]) cookies.delete(name, { path: '/' });
 }
+
+// A guest's cart token. Signed-in customers' carts are found by their session instead.
+const CART = 'fs_cart';
+export const readCartToken = (cookies: Cookies) => cookies.get(CART);
+export const saveCartToken = (cookies: Cookies, token: string) =>
+	cookies.set(CART, token, { ...base, maxAge: 60 * 24 * 60 * 60 });

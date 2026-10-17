@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Cart: guests and signed-in customers each have a bag that always shows today's prices; a line
+  that can't be bought (sold out, not enough stock, no longer for sale) is marked and left out of
+  the subtotal. A guest's bag joins the customer's on sign-in (`POST /v1/cart/merge`).
+- Storefront: "Add to bag" on product pages, a bag drawer with quantity and remove, and a bag
+  page. All of it also works without JavaScript.
 - Catalog: categories (nested), products with up to three options (size, color…) and a price and
   stock per combination, photos, search, filters (category, price, in stock, option) and sorting.
 - Stock changes are recorded with a reason and who made them; a product form can't overwrite a

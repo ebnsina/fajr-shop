@@ -1,11 +1,23 @@
 <script lang="ts">
-	import { shop as t } from '#lib/copy.js';
+	import { cart as c, shop as t } from '#lib/copy.js';
+	import { Toaster } from '#lib/sinaui/ui/toast/index.js';
+	import BagDrawer from '#lib/shop/BagDrawer.svelte';
 	import SiteFooter from '#lib/shop/SiteFooter.svelte';
 	import SiteHeader from '#lib/shop/SiteHeader.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
 
+	const vat = $derived(data.store.vat);
+	const vatNote = $derived(
+		vat.enabled && !vat.prices_include_vat
+			? c.vatNote(
+					new Intl.NumberFormat('en-BD', { style: 'percent', maximumFractionDigits: 2 }).format(
+						vat.rate_bp / 10000
+					)
+				)
+			: undefined
+	);
 	const nav = $derived([
 		{ label: t.all, href: '/shop' },
 		...data.categories
@@ -16,10 +28,12 @@
 
 <div class="site">
 	<a class="skip" href="#main">{t.skip}</a>
-	<SiteHeader store={data.store} {nav} />
+	<SiteHeader store={data.store} {nav} count={data.cart.item_count} />
 	<div id="main" class="site-main" role="main" tabindex="-1">{@render children()}</div>
 	<SiteFooter store={data.store} {nav} />
 </div>
+<BagDrawer cart={data.cart} {vatNote} />
+<Toaster />
 
 <style>
 	.site {
